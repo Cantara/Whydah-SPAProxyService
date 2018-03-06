@@ -25,6 +25,14 @@ public class ProxyResource {
     @GET
     public Response getProxyRedirect() {
         log.trace("getProxyRedirect");
+
+        // 1. get redirectname from URI
+        // 2. lookup redirectname in applicationmodel to find URI to redirect to
+        // 3. lookup potential usertokenId from request cookies
+        // 4. establish new SPA secret and store it in secret-applicationsession map
+        // 5. store part one of secret in user cookie for the domain of the redircet URI and add it to the Response
+        // 6. create 302-response with part2 of secret in http Location header
+
         Response response=Response.status(Response.Status.FOUND).header("Location", "https://www.vg.no?code="+ UUID.randomUUID().toString()+"&ticket="+ UUID.randomUUID().toString()).build();
         return response;
 
