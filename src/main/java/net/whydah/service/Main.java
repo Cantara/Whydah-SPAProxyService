@@ -62,7 +62,7 @@ public class Main {
 
             Runtime.getRuntime().addShutdownHook(new Thread() {
                 public void run() {
-                    log.debug("ShutdownHook triggered. Exiting Whydah-OAuth2Service");
+                    log.debug("ShutdownHook triggered. Exiting Whydah-SPAProxyService");
                     main.stop();
                 }
             });
@@ -71,7 +71,7 @@ public class Main {
             log.debug("Finished waiting for Thread.currentThread().join()");
             main.stop();
         } catch (RuntimeException e) {
-            log.error("Error during startup. Shutting down Whydah-OAuth2Service.", e);
+            log.error("Error during startup. Shutting down Whydah-SPAProxyService.", e);
             System.exit(1);
         }
     }
@@ -113,7 +113,7 @@ public class Main {
             // "System. exit(2);"
         }
         webappPort = connector.getLocalPort();
-        log.info("Whydah-OAuth2Service started on http://localhost:{}{}", webappPort, CONTEXT_PATH);
+        log.info("Whydah-SPAProxyService started on http://localhost:{}{}", webappPort, CONTEXT_PATH);
         try {
             server.join();
         } catch (InterruptedException e) {

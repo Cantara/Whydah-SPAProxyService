@@ -3,6 +3,7 @@ package net.whydah.service.proxy;
 import net.whydah.service.CredentialStore;
 import net.whydah.service.health.HealthResource;
 import net.whydah.sso.application.types.Application;
+import net.whydah.sso.application.types.ApplicationACL;
 import net.whydah.sso.application.types.ApplicationToken;
 import net.whydah.util.StringXORer;
 import org.slf4j.Logger;
@@ -56,7 +57,7 @@ public class ProxyResource {
         // 1. get redirectname from URI
 
         // 2. lookup redirectname in applicationmodel to find URI to redirect to
-        String appname="ACS";
+        String appname="Whydah-TestWebApplication";
         Application application=findApplication(appname);
         if (application==null){
             // No registered application found, return to default login
@@ -75,7 +76,7 @@ public class ProxyResource {
         // 5. store part one of secret in user cookie for the domain of the redircet URI and add it to the Response
 
 
-        StringBuilder sb = new StringBuilder("domain from redirectURI");
+        StringBuilder sb = new StringBuilder(findRedirectUrl(application));
         sb.append("=");
         sb.append(secretPart2);
         sb.append(";expires=");
@@ -88,15 +89,38 @@ public class ProxyResource {
 
     // 6. create 302-response with part2 of secret in http Location header
 
-        Response mresponse=Response.status(Response.Status.FOUND).header("Location", "https://www.vg.no?code="+ secretPart1 +"&ticket="+ UUID.randomUUID().toString()).build();
+        Response mresponse=Response.status(Response.Status.FOUND).header("Location", findRedirectUrl(application)+"?code="+ secretPart1 +"&ticket="+ UUID.randomUUID().toString()).build();
         return mresponse;
 
     }
 
+    private String findRedirectUrl(Application application) {
+        String redirectUrl = null;
+
+        if (application != null && application.getAcl() != null) {
+            List<ApplicationACL> acls = application.getAcl();
+            for (ApplicationACL acl : acls) {
+                if (acl.getAccessRights() != null && acl.getAccessRights().contains(ApplicationACL.OAUTH2_REDIRECT)) {
+                    redirectUrl = acl.getApplicationACLPath();
+                    log.trace("Found redirectpath {} for application {}", redirectUrl, application.getId());
+                }
+            }
+        }
+
+        if (redirectUrl==null){
+            redirectUrl=application.getApplicationUrl();
+        }
+
+        return redirectUrl;
+    }
+
+
     private Application findApplication(String appName){
 
         List<Application> applicationList = credentialStore.getWas().getApplicationList();
+        log.debug("Found {} applications",applicationList.size());
         for (Application application:applicationList){
+            log.info("Parsing application: {}",application.getName());
 
             if (application.getName().equalsIgnoreCase(appName)){
                 return application;

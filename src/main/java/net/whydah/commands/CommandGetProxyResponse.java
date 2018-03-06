@@ -14,7 +14,7 @@ public class CommandGetProxyResponse  extends MyBaseHttpGetHystrixCommand<String
 
     public CommandGetProxyResponse(String uri) {
         super(URI.create(uri),
-                "hystrixCommandGetFromTestSpecification_" + r.nextInt(100));
+                "CommandGetProxyResponse_" + r.nextInt(100),3000);
     }
 
 
@@ -38,11 +38,15 @@ public class CommandGetProxyResponse  extends MyBaseHttpGetHystrixCommand<String
             return responseBody;
         }
         if (statusCode == 302) {
-            responseBody = "[" +
-                    "{" +
-                    "\"code\": \""+ responseBody.substring(responseBody.indexOf("code=") + 5, responseBody.indexOf("&ticket"))+ "\"}, \n{" +
-                    "\"ticket\": \""+ responseBody.substring(responseBody.indexOf("ticket=") + 7, responseBody.length()-2)+ "\"}" +
-                    "]";
+            log.info("ResponseBody: {}",responseBody);
+            if (responseBody.contains("code")){
+                responseBody = "[" +
+                        "{" +
+                        "\"responseBody\": \""+ responseBody+ "\"}, \n{" +
+                        "\"code\": \""+ responseBody.substring(responseBody.indexOf("code=") + 5, responseBody.indexOf("&ticket"))+ "\"}, \n{" +
+                        "\"ticket\": \""+ responseBody.substring(responseBody.indexOf("ticket=") + 7, responseBody.length()-2)+ "\"}" +
+                        "]";
+            }
             return responseBody;
         }
         return "StatusCode:" + statusCode + ":" + responseBody;
