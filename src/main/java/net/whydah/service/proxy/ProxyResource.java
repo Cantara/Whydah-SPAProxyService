@@ -8,6 +8,7 @@ import net.whydah.util.StringXORer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import sun.security.krb5.internal.APOptions;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.GET;
@@ -36,7 +37,7 @@ public class ProxyResource {
     private StringXORer stringXORer= new StringXORer();
     private List<Application> applicationsList = new LinkedList<>();
 
-    private Map<String,ApplicationToken> spaSecretMap = new HashMap<String,ApplicationToken>();
+    private Map<String,Application> spaSecretMap = new HashMap<String,Application>();
 
 
 
@@ -44,7 +45,6 @@ public class ProxyResource {
     @Autowired
     public ProxyResource(CredentialStore credentialStore) {
         this.credentialStore = credentialStore;
-        startProcessWorker();
     }
 
 
@@ -54,7 +54,14 @@ public class ProxyResource {
         log.trace("getProxyRedirect");
 
         // 1. get redirectname from URI
+
         // 2. lookup redirectname in applicationmodel to find URI to redirect to
+        String appname="ACS";
+        Application application=findApplication(appname);
+        if (application==null){
+            // No registered application found, return to default login
+            return Response.status(Response.Status.FOUND).header("Location", "https://whydahdev.cantara.on/sso/login").build();
+        }
         // 3. lookup potential usertokenId from request cookies
         // 4. establish new SPA secret and store it in secret-applicationsession map
         String secretPart1=UUID.randomUUID().toString();
@@ -62,7 +69,7 @@ public class ProxyResource {
         String secret = stringXORer.encode(secretPart1,secretPart2);
 
         log.info("Created secret: part1:{}, part2:{} = secret:{}",secretPart1,secretPart2,secret);
-        spaSecretMap.put(secret,null);
+        spaSecretMap.put(secret,application);
 
 
         // 5. store part one of secret in user cookie for the domain of the redircet URI and add it to the Response
@@ -86,36 +93,17 @@ public class ProxyResource {
 
     }
 
-    /**
-     * Enable syncronization to prevent race conditions.
-     * @return List of clients.
-     */
-    private synchronized void rebuildClients() {
+    private Application findApplication(String appName){
 
-       applicationsList = credentialStore.getWas().getApplicationList();
-        if (applicationsList.size() < 1) {
-            log.warn("Unable to add clients, as we got no applications form Whydah");
-        }
-    }
+        List<Application> applicationList = credentialStore.getWas().getApplicationList();
+        for (Application application:applicationList){
 
-    private void startProcessWorker() {
-        if (!isRunning) {
-
-            scheduledThreadPool = Executors.newScheduledThreadPool(1);
-            //Schedule to Update Cache every 5 minutes.
-            log.debug("startProcessWorker - Current Time = " + new Date());
-            try {
-                scheduledThreadPool.scheduleWithFixedDelay(new Runnable() {
-                    public void run() {
-                        rebuildClients();
-                    }
-                }, 10, 300, TimeUnit.SECONDS);
-            } catch (Exception e) {
-                log.error("Error or interrupted trying to refresh client list.", e);
-                isRunning = false;
+            if (application.getName().equalsIgnoreCase(appName)){
+                return application;
             }
-
         }
+        return null;
     }
+
 
 }
