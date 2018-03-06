@@ -1,0 +1,28 @@
+<configuration scan="true" scanPeriod="60 seconds">
+    <property name="LOG_DIR" value="logs/" />
+    <property name="env" value="prod" />
+    <property name="appName" value="Whydah-OAuth2Service" />
+
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <File>${LOG_DIR}${appName}.log</File>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR}${appName}-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxHistory>5</maxHistory>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>20MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{35} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+
+    <logger name="org.eclipse.jetty" level="WARN"/>
+
+    <logger name="net.whydah.demoservice" level="DEBUG"/>
+
+    <root level="info">
+        <appender-ref ref="FILE" />
+    </root>
+</configuration>

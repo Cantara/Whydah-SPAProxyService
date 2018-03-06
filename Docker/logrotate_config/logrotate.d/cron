@@ -1,0 +1,9 @@
+/var/log/cron.log {
+    missingok
+    notifempty
+    compress
+    size 20M
+    daily
+    create 0744 Whydah-OAuth2Service Whydah-OAuth2Service
+    rotate 4
+}
