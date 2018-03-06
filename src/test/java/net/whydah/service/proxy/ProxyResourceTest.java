@@ -1,8 +1,6 @@
 package net.whydah.service.proxy;
 
 import net.whydah.demoservice.testsupport.TestServer;
-import net.whydah.service.health.HealthResource;
-import org.junit.Ignore;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -29,8 +27,7 @@ public class ProxyResourceTest {
         testServer.stop();
     }
 
-    @Test
-    @Ignore
+    @Test(enabled = false)
     public void testProxy() throws IOException {
         given()
                 .log().everything()
