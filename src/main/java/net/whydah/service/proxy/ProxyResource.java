@@ -1,10 +1,13 @@
 package net.whydah.service.proxy;
 
+import net.whydah.service.CredentialStore;
 import net.whydah.service.health.HealthResource;
+import net.whydah.sso.application.types.Application;
 import net.whydah.sso.application.types.ApplicationToken;
 import net.whydah.util.StringXORer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.GET;
@@ -14,9 +17,10 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import java.net.CookieManager;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import static net.whydah.service.proxy.ProxyResource.PROXY_PATH;
 
@@ -26,9 +30,24 @@ public class ProxyResource {
 
     public static final String PROXY_PATH = "/";
     private static final Logger log = LoggerFactory.getLogger(ProxyResource.class);
+    private final CredentialStore credentialStore;
+    private static boolean isRunning = false;
+    private static ScheduledExecutorService scheduledThreadPool;
     private StringXORer stringXORer= new StringXORer();
+    private List<Application> applicationsList = new LinkedList<>();
 
     private Map<String,ApplicationToken> spaSecretMap = new HashMap<String,ApplicationToken>();
+
+
+
+
+    @Autowired
+    public ProxyResource(CredentialStore credentialStore) {
+        this.credentialStore = credentialStore;
+        startProcessWorker();
+    }
+
+
 
     @GET
     public Response getProxyRedirect() {
@@ -65,6 +84,38 @@ public class ProxyResource {
         Response mresponse=Response.status(Response.Status.FOUND).header("Location", "https://www.vg.no?code="+ secretPart1 +"&ticket="+ UUID.randomUUID().toString()).build();
         return mresponse;
 
+    }
+
+    /**
+     * Enable syncronization to prevent race conditions.
+     * @return List of clients.
+     */
+    private synchronized void rebuildClients() {
+
+       applicationsList = credentialStore.getWas().getApplicationList();
+        if (applicationsList.size() < 1) {
+            log.warn("Unable to add clients, as we got no applications form Whydah");
+        }
+    }
+
+    private void startProcessWorker() {
+        if (!isRunning) {
+
+            scheduledThreadPool = Executors.newScheduledThreadPool(1);
+            //Schedule to Update Cache every 5 minutes.
+            log.debug("startProcessWorker - Current Time = " + new Date());
+            try {
+                scheduledThreadPool.scheduleWithFixedDelay(new Runnable() {
+                    public void run() {
+                        rebuildClients();
+                    }
+                }, 10, 300, TimeUnit.SECONDS);
+            } catch (Exception e) {
+                log.error("Error or interrupted trying to refresh client list.", e);
+                isRunning = false;
+            }
+
+        }
     }
 
 }
