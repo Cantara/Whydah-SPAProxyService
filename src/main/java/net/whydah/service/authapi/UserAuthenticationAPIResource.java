@@ -4,9 +4,15 @@ import javax.crypto.spec.SecretKeySpec;
 import javax.xml.bind.DatatypeConverter;
 import java.security.Key;
 import io.jsonwebtoken.*;
-import java.util.Date; import net.whydah.service.proxy.ProxyResource;
+import java.util.Date;
+
+import net.whydah.service.CredentialStore;
+import net.whydah.service.SPAApplicationRepository;
+import net.whydah.service.proxy.ProxyResource;
+import net.whydah.sso.application.types.ApplicationToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -26,13 +32,21 @@ public class UserAuthenticationAPIResource {
 
     public static final String API_PATH = "/api/";
     private static final Logger log = LoggerFactory.getLogger(ProxyResource.class);
+    private final CredentialStore credentialStore;
+    private final SPAApplicationRepository spaApplicationRepository;
 
+    @Autowired
+    public UserAuthenticationAPIResource(CredentialStore credentialStore,SPAApplicationRepository spaApplicationRepository) {
+        this.credentialStore = credentialStore;
+        this.spaApplicationRepository=spaApplicationRepository;
+    }
 
     @GET
     public Response getProxyRedirect() {
         log.trace("getProxyRedirect");
 
         // 1. lookup secret in secret-application session map
+        ApplicationToken applicationToken= spaApplicationRepository.getApplicationTokenBySecret("mysecret");
         // 2. execute Whydah API request using the found application
 
         return Response.ok(getResponseTextJson()).build();

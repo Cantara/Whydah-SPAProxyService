@@ -1,6 +1,7 @@
 package net.whydah.service.proxy;
 
 import net.whydah.service.CredentialStore;
+import net.whydah.service.SPAApplicationRepository;
 import net.whydah.service.health.HealthResource;
 import net.whydah.sso.application.types.Application;
 import net.whydah.sso.application.types.ApplicationACL;
@@ -33,10 +34,10 @@ public class ProxyResource {
     public static final String PROXY_PATH = "/load";
     private static final Logger log = LoggerFactory.getLogger(ProxyResource.class);
     private final CredentialStore credentialStore;
+    private final SPAApplicationRepository spaApplicationRepository;
     private static boolean isRunning = false;
     private static ScheduledExecutorService scheduledThreadPool;
     private StringXORer stringXORer= new StringXORer();
-    private List<Application> applicationsList = new LinkedList<>();
 
     private Map<String,Application> spaSecretMap = new HashMap<String,Application>();
 
@@ -44,8 +45,9 @@ public class ProxyResource {
 
 
     @Autowired
-    public ProxyResource(CredentialStore credentialStore) {
+    public ProxyResource(CredentialStore credentialStore,SPAApplicationRepository spaApplicationRepository) {
         this.credentialStore = credentialStore;
+        this.spaApplicationRepository=spaApplicationRepository;
     }
 
 
@@ -70,7 +72,7 @@ public class ProxyResource {
         String secret = stringXORer.encode(secretPart1,secretPart2);
 
         log.info("Created secret: part1:{}, part2:{} = secret:{}",secretPart1,secretPart2,secret);
-        spaSecretMap.put(secret,application);
+        spaApplicationRepository.add(secret,createSessionForApplicationapplication(application));
 
 
         // 5. store part one of secret in user cookie for the domain of the redircet URI and add it to the Response
@@ -94,6 +96,15 @@ public class ProxyResource {
 
     }
 
+    private ApplicationToken createSessionForApplicationapplication(Application application){
+        for (ApplicationToken applicationToken:spaApplicationRepository.allSessions()){
+            if (applicationToken.getApplicationID().equalsIgnoreCase(application.getId())){
+                return applicationToken;
+            }
+        }
+        // Stubbed creation
+        return new ApplicationToken();
+    }
     private String findRedirectUrl(Application application) {
         String redirectUrl = null;
 
