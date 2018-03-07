@@ -29,8 +29,8 @@ public class CommandResolveTicketToJWTTest {
 
     @Test //TODO verify new api endpoint
     public void testResolveTicket() throws IOException {
-        CommandResolveTicketToJWT commandGetProxyResponse = new CommandResolveTicketToJWT(testServer.getUrl()+ UserAuthenticationAPIResource.API_PATH,"secret","ticket","{}");
-        String response =commandGetProxyResponse.execute();
+        CommandResolveTicketToJWT commandResolveTicketToJWT = new CommandResolveTicketToJWT(testServer.getUrl()+ UserAuthenticationAPIResource.API_PATH,"secret","ticket","{}");
+        String response =commandResolveTicketToJWT.execute();
         System.out.println(response);
     }
 }

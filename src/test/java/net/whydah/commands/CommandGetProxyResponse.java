@@ -39,12 +39,13 @@ public class CommandGetProxyResponse  extends MyBaseHttpGetHystrixCommand<String
         if (statusCode == 302) {
             log.info("ResponseBody: {}",responseBody);
             if (responseBody.contains("code")){
-                responseBody = "[" +
+                responseBody = "" +
                         "{" +
-                        "\"responseBody\": \""+ responseBody+ "\"}, \n{" +
-                        "\"code\": \""+ responseBody.substring(responseBody.indexOf("code=") + 5, responseBody.indexOf("&ticket"))+ "\"}, \n{" +
+//                        "\"responseBody\": \""+ responseBody+ "\", \n" +
+                        "\"code\": \""+ responseBody.substring(responseBody.indexOf("code=") + 5, responseBody.indexOf("&ticket"))+ "\", \n" +
+                        "\"cookievalue\": \""+ responseBody.substring(responseBody.indexOf("test=") + 5, responseBody.indexOf(";expires"))+ "\", \n" +
                         "\"ticket\": \""+ responseBody.substring(responseBody.indexOf("ticket=") + 7, responseBody.length()-2)+ "\"}" +
-                        "]";
+                        "";
             }
             return responseBody;
         }
