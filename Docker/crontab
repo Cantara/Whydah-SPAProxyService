@@ -1,1 +1,1 @@
-* *  *   *   *     /home/Whydah-OAuth2Service/update-service.sh >> /var/log/cron.log 2>&1 && /home/Whydah-OAuth2Service/stop-service.sh >> /var/log/cron.log 2>&1
+* *  *   *   *     /home/Whydah-SPAProxyService/update-service.sh >> /var/log/cron.log 2>&1 && /home/Whydah-SPAProxyService/stop-service.sh >> /var/log/cron.log 2>&1

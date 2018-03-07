@@ -1,7 +1,7 @@
 <configuration scan="true" scanPeriod="60 seconds">
     <property name="LOG_DIR" value="logs/" />
     <property name="env" value="prod" />
-    <property name="appName" value="Whydah-OAuth2Service" />
+    <property name="appName" value="Whydah-SPAProxyService" />
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <layout class="ch.qos.logback.classic.PatternLayout">
@@ -45,7 +45,6 @@
 
     <logger name="org.eclipse.jetty" level="WARN"/>
 
-    <logger name="net.whydah.demoservice" level="TRACE"/>
     <logger name="net.whydah.service" level="TRACE"/>
 
     <logger name="auditLog" level="INFO" additivity="false">

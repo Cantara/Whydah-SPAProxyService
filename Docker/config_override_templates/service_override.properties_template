@@ -1,7 +1,7 @@
 releaseRepo=http://mvnrepo.cantara.no/content/repositories/releases
 snapshotRepo=http://mvnrepo.cantara.no/content/repositories/snapshots
 groupId=net/whydah/service
-artifactId=Whydah-OAuth2Service
+artifactId=Whydah-SPAProxyService
 version=0.3-SNAPSHOT
 
 APP=${artifactId}.jar

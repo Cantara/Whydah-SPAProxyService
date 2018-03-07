@@ -1,7 +1,7 @@
 <configuration scan="true" scanPeriod="60 seconds">
     <property name="LOG_DIR" value="logs/" />
     <property name="env" value="prod" />
-    <property name="appName" value="Whydah-OAuth2Service" />
+    <property name="appName" value="SPAProxyService" />
 
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <File>${LOG_DIR}${appName}.log</File>
@@ -20,7 +20,7 @@
 
     <logger name="org.eclipse.jetty" level="WARN"/>
 
-    <logger name="net.whydah.demoservice" level="DEBUG"/>
+    <logger name="net.whydah" level="DEBUG"/>
 
     <root level="info">
         <appender-ref ref="FILE" />
