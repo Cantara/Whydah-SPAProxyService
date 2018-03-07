@@ -1,6 +1,7 @@
 package net.whydah.service.authapi;
 
 import javax.crypto.spec.SecretKeySpec;
+import javax.ws.rs.*;
 import javax.xml.bind.DatatypeConverter;
 import java.security.Key;
 import io.jsonwebtoken.*;
@@ -14,9 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -41,12 +39,27 @@ public class UserAuthenticationAPIResource {
         this.spaApplicationRepository=spaApplicationRepository;
     }
 
-    @GET
-    public Response getProxyRedirect() {
-        log.trace("getProxyRedirect");
+
+
+    @POST
+    @Path("/{secret}/get_token_from_ticket/{ticket}")
+    public Response getJWTFromTicket(@PathParam("secret") String secret,@PathParam("ticket") String ticket) {
+        log.trace("getJWTFromTicket - called with secret:{}",secret);
 
         // 1. lookup secret in secret-application session map
-        ApplicationToken applicationToken= spaApplicationRepository.getApplicationTokenBySecret("mysecret");
+        ApplicationToken applicationToken= spaApplicationRepository.getApplicationTokenBySecret(secret);
+        // 2. execute Whydah API request using the found application
+
+        return Response.ok(getResponseTextJson()).build();
+
+    }
+    @POST
+    @Path("/{secret}/authenticate_user/")
+    public Response authenticateUser(@PathParam("secret") String secret) {
+        log.trace("authenticateUser - called with secret:{}",secret);
+
+        // 1. lookup secret in secret-application session map
+        ApplicationToken applicationToken= spaApplicationRepository.getApplicationTokenBySecret(secret);
         // 2. execute Whydah API request using the found application
 
         return Response.ok(getResponseTextJson()).build();
