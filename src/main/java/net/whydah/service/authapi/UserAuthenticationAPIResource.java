@@ -11,6 +11,8 @@ import net.whydah.service.CredentialStore;
 import net.whydah.service.SPAApplicationRepository;
 import net.whydah.service.proxy.ProxyResource;
 import net.whydah.sso.application.types.ApplicationToken;
+import net.whydah.sso.user.mappers.UserTokenMapper;
+import net.whydah.sso.user.types.UserToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,7 +69,8 @@ public class UserAuthenticationAPIResource {
     }
 
     private String getResponseTextJson(){
-        return "{}";
+
+        return "{"+createJWT("id","issuer","subject", UserTokenMapper.toJson(new UserToken()),666333)+"}";
     }
 
 
@@ -81,15 +84,15 @@ public class UserAuthenticationAPIResource {
 
         //We will sign our JWT with our ApiKey secret
         byte[] apiKeySecretBytes = DatatypeConverter.parseBase64Binary(getSecret());
-        Key signingKey = new SecretKeySpec(apiKeySecretBytes, signatureAlgorithm.getJcaName());
+        //Key signingKey = new SecretKeySpec(apiKeySecretBytes, signatureAlgorithm.getJcaName());
 
         //Let's set the JWT Claims
         JwtBuilder builder = Jwts.builder().setId(id)
                                  .setIssuedAt(now)
                                  .setSubject(subject)
-                                 .setIssuer(issuer)
-                                 .setPayload(whydahJsonToken)
-                                 .signWith(signatureAlgorithm, signingKey);
+                                 .setIssuer(issuer);
+//                                 .setPayload(whydahJsonToken);
+//                                 .signWith(signatureAlgorithm, signingKey);
 
         //if it has been specified, let's add the expiration
         if (ttlMillis >= 0) {

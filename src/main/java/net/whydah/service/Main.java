@@ -1,5 +1,6 @@
 package net.whydah.service;
 
+import net.whydah.service.authapi.UserAuthenticationAPIResource;
 import net.whydah.service.health.HealthResource;
 import net.whydah.service.proxy.ProxyResource;
 import net.whydah.util.Configuration;
@@ -165,6 +166,11 @@ public class Main {
         proxyEndpointConstraintMapping.setPathSpec(ProxyResource.PROXY_PATH);
         securityHandler.addConstraintMapping(proxyEndpointConstraintMapping);
 
+        // Allow userAuthEndpointConstraintMapping to be accessed without authentication
+        ConstraintMapping userAuthEndpointConstraintMapping = new ConstraintMapping();
+        userAuthEndpointConstraintMapping.setConstraint(new Constraint(Constraint.NONE, Constraint.ANY_ROLE));
+        userAuthEndpointConstraintMapping.setPathSpec(UserAuthenticationAPIResource.API_PATH+"/*");
+        securityHandler.addConstraintMapping(userAuthEndpointConstraintMapping);
 
         HashLoginService loginService = new HashLoginService("Whydah-SPAProxyService");
 

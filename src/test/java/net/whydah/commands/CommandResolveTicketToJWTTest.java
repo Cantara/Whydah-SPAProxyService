@@ -1,18 +1,17 @@
 package net.whydah.commands;
 
 import net.whydah.demoservice.testsupport.TestServer;
+import net.whydah.service.authapi.UserAuthenticationAPIResource;
 import net.whydah.service.proxy.ProxyResource;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
 
-import static com.jayway.restassured.RestAssured.given;
 import static org.testng.Assert.*;
 
-public class CommandGetProxyResponseTest {
+public class CommandResolveTicketToJWTTest {
     private TestServer testServer;
 
     @BeforeClass
@@ -28,9 +27,9 @@ public class CommandGetProxyResponseTest {
         testServer.stop();
     }
 
-    @Test //TODO verify new load endpoint
-    public void testProxyRespurce() throws IOException {
-        CommandGetProxyResponse commandGetProxyResponse = new CommandGetProxyResponse(testServer.getUrl()+ProxyResource.PROXY_PATH+"/Whydah-TestWebApplication");
+    @Test //TODO verify new api endpoint
+    public void testResolveTicket() throws IOException {
+        CommandResolveTicketToJWT commandGetProxyResponse = new CommandResolveTicketToJWT(testServer.getUrl()+ UserAuthenticationAPIResource.API_PATH,"secret","ticket","{}");
         String response =commandGetProxyResponse.execute();
         System.out.println(response);
     }
