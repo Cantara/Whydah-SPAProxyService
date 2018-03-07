@@ -30,7 +30,7 @@ public class CommandGetProxyResponseTest {
 
     @Test //TODO verify new health test
     public void testProxyRespurce() throws IOException {
-        CommandGetProxyResponse commandGetProxyResponse = new CommandGetProxyResponse(testServer.getUrl()+"/");
+        CommandGetProxyResponse commandGetProxyResponse = new CommandGetProxyResponse(testServer.getUrl()+ProxyResource.PROXY_PATH);
         String response =commandGetProxyResponse.execute();
         System.out.println(response);
     }

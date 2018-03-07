@@ -1,4 +1,4 @@
-package net.whydah.commands.util.basecommands;
+package net.whydah.commands.basecommands;
 
 import com.github.kevinsawicki.http.HttpRequest;
 import com.netflix.hystrix.HystrixCommand;

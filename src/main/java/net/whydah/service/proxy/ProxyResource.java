@@ -30,7 +30,7 @@ import static net.whydah.service.proxy.ProxyResource.PROXY_PATH;
 @Produces(MediaType.TEXT_HTML)
 public class ProxyResource {
 
-    public static final String PROXY_PATH = "/";
+    public static final String PROXY_PATH = "/load";
     private static final Logger log = LoggerFactory.getLogger(ProxyResource.class);
     private final CredentialStore credentialStore;
     private static boolean isRunning = false;

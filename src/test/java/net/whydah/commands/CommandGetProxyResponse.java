@@ -1,7 +1,7 @@
 package net.whydah.commands;
 
 import com.github.kevinsawicki.http.HttpRequest;
-import net.whydah.commands.util.basecommands.MyBaseHttpGetHystrixCommand;
+import net.whydah.commands.basecommands.MyBaseHttpGetHystrixCommand;
 
 import java.net.URI;
 import java.util.Random;
@@ -13,8 +13,7 @@ public class CommandGetProxyResponse  extends MyBaseHttpGetHystrixCommand<String
     static Random r = new Random();
 
     public CommandGetProxyResponse(String uri) {
-        super(URI.create(uri),
-                "CommandGetProxyResponse_" + r.nextInt(100),3000);
+        super(URI.create(uri),"CommandGetProxyResponse_" + r.nextInt(100),3000);
     }
 
 
