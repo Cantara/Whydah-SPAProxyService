@@ -20,13 +20,22 @@ import java.io.IOException;
 public class BootstrapFlowTest {
     private TestServer testServer;
     private StringXORer stringXORer= new StringXORer();
+    String secret;
 
 
     @BeforeClass
     public void startServer() throws Exception {
         testServer = new TestServer(getClass());
         testServer.start();
-        Thread.sleep(3000);
+        Thread.sleep(5000);
+        CommandGetProxyResponse commandGetProxyResponse = new CommandGetProxyResponse(testServer.getUrl()+ ProxyResource.PROXY_PATH+"/Whydah-TestWebApplication");
+        String response =commandGetProxyResponse.execute();
+        System.out.println(response);
+
+        String secretA = JsonPathHelper.findJsonPathValue(response,"$.code");
+        String secretB = JsonPathHelper.findJsonPathValue(response,"$.cookievalue");
+
+        secret = stringXORer.encode(secretA,secretB);
 
     }
 
@@ -38,14 +47,6 @@ public class BootstrapFlowTest {
     @Test //TODO verify new api verify ticket endpoint
     public void testResolveTicket() throws IOException {
 
-        CommandGetProxyResponse commandGetProxyResponse = new CommandGetProxyResponse(testServer.getUrl()+ ProxyResource.PROXY_PATH+"/Whydah-TestWebApplication");
-        String response =commandGetProxyResponse.execute();
-        System.out.println(response);
-
-        String secretA = JsonPathHelper.findJsonPathValue(response,"$.code");
-        String secretB = JsonPathHelper.findJsonPathValue(response,"$.cookievalue");
-
-        String secret = stringXORer.encode(secretA,secretB);
 
         CommandResolveTicketToJWT commandResolveTicketToJWT = new CommandResolveTicketToJWT(testServer.getUrl()+ UserAuthenticationAPIResource.API_PATH,secret,"ticket","{}");
         String response2 =commandResolveTicketToJWT.execute();
@@ -55,14 +56,7 @@ public class BootstrapFlowTest {
     @Test //TODO verify new api verify ticket endpoint
     public void testAPILogon() throws IOException {
 
-        CommandGetProxyResponse commandGetProxyResponse = new CommandGetProxyResponse(testServer.getUrl()+ ProxyResource.PROXY_PATH+"/Whydah-TestWebApplication");
-        String response =commandGetProxyResponse.execute();
-        System.out.println(response);
 
-        String secretA = JsonPathHelper.findJsonPathValue(response,"$.code");
-        String secretB = JsonPathHelper.findJsonPathValue(response,"$.cookievalue");
-
-        String secret = stringXORer.encode(secretA,secretB);
         UserCredential userCredential= new UserCredential();
         userCredential.setUserName(Configuration.getString("adminuserid"));
         userCredential.setPassword(Configuration.getString("adminusersecret"));
