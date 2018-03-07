@@ -5,7 +5,7 @@
     <artifactId>Whydah-SPAProxyService</artifactId>
     <version>0.1.2-SNAPSHOT</version>
     <name>Whydah-SPAProxyService</name>
-    <url>https://wiki.cantara.no/display/whydah/OAuth2Service</url>
+    <url>https://wiki.cantara.no/display/whydah/SPAProxyService</url>
 
     <parent>
         <groupId>no.cantara.emi</groupId>
@@ -13,12 +13,12 @@
         <version>6</version>
     </parent>
     <scm>
-        <developerConnection>scm:git:ssh://git@github.com/cantara/Whydah-SPAProxyService.git
-        </developerConnection>
+        <developerConnection>scm:git:ssh://git@github.com/cantara/Whydah-SPAProxyService.git</developerConnection>
         <connection>scm:git:https://github.com/cantara/Whydah-SPAProxyService.git</connection>
-        <url>https://wiki.cantara.no/display/whydah/OAuth2Service</url>
-        <tag>HEAD</tag>
+        <url>https://wiki.cantara.no/display/whydah/SPAProxyService</url>
     </scm>
+
+
 
     <properties>
         <service.name>Whydah-SPAProxyService</service.name>
