@@ -16,6 +16,10 @@ import javax.ws.rs.core.Response;
 
 import static net.whydah.service.authapi.UserAuthenticationAPIResource.API_PATH;
 
+/*
+getJWTTokenFromTicket, loginUserWithUserNameAndPassword   loginUserWithUsernameAndPin  renewUserToken
+ */
+
 @Path(API_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 public class UserAuthenticationAPIResource {
