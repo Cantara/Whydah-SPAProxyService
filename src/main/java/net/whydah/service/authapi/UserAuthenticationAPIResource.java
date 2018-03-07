@@ -1,24 +1,32 @@
 package net.whydah.service.authapi;
 
-import javax.crypto.spec.SecretKeySpec;
-import javax.ws.rs.*;
-import javax.xml.bind.DatatypeConverter;
-import java.security.Key;
-import io.jsonwebtoken.*;
-import java.util.Date;
-
+import io.jsonwebtoken.JwtBuilder;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import net.whydah.service.CredentialStore;
 import net.whydah.service.SPAApplicationRepository;
 import net.whydah.service.proxy.ProxyResource;
+import net.whydah.sso.application.mappers.ApplicationTokenMapper;
 import net.whydah.sso.application.types.ApplicationToken;
+import net.whydah.sso.commands.userauth.CommandGetUsertokenByUserticket;
+import net.whydah.sso.commands.userauth.CommandLogonUserByUserCredential;
 import net.whydah.sso.user.mappers.UserTokenMapper;
+import net.whydah.sso.user.types.UserCredential;
 import net.whydah.sso.user.types.UserToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.xml.bind.DatatypeConverter;
+import java.net.URI;
+import java.util.Date;
+import java.util.UUID;
 
 import static net.whydah.service.authapi.UserAuthenticationAPIResource.API_PATH;
 
@@ -36,16 +44,15 @@ public class UserAuthenticationAPIResource {
     private final SPAApplicationRepository spaApplicationRepository;
 
     @Autowired
-    public UserAuthenticationAPIResource(CredentialStore credentialStore,SPAApplicationRepository spaApplicationRepository) {
+    public UserAuthenticationAPIResource(CredentialStore credentialStore, SPAApplicationRepository spaApplicationRepository) {
         this.credentialStore = credentialStore;
-        this.spaApplicationRepository=spaApplicationRepository;
+        this.spaApplicationRepository = spaApplicationRepository;
     }
-
 
 
     @POST
     @Path("/{secret}/get_token_from_ticket/{ticket}")
-    public Response getJWTFromTicket(@PathParam("secret") String secret,@PathParam("ticket") String ticket) {
+    public Response getJWTFromTicket(@PathParam("secret") String secret, @PathParam("ticket") String ticket) {
         log.trace("getJWTFromTicket - called with secret:{}", secret);
 
         // 1. lookup secret in secret-application session map
@@ -55,30 +62,41 @@ public class UserAuthenticationAPIResource {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
 
-        return Response.ok(getResponseTextJson()).build();
+        UserToken userToken = UserTokenMapper.fromUserTokenXml(new CommandGetUsertokenByUserticket(URI.create(credentialStore.getWas().getSTS()), applicationToken.getApplicationID(), ApplicationTokenMapper.toXML(applicationToken), ticket).execute());
+        ;
+        return Response.ok(getResponseTextJson(userToken)).build();
     }
 
 
     @POST
     @Path("/{secret}/authenticate_user/")
     public Response authenticateUser(@PathParam("secret") String secret) {
-        log.trace("authenticateUser - called with secret:{}",secret);
+        log.trace("authenticateUser - called with secret:{}", secret);
 
         // 1. lookup secret in secret-application session map
-        ApplicationToken applicationToken= spaApplicationRepository.getApplicationTokenBySecret(secret);
+        ApplicationToken applicationToken = spaApplicationRepository.getApplicationTokenBySecret(secret);
         // 2. execute Whydah API request using the found application
+        if (applicationToken == null) {
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
+        UserCredential userCredential = new UserCredential();
+        String ticket = UUID.randomUUID().toString();
+        UserToken userToken = UserTokenMapper.fromUserTokenXml(new CommandLogonUserByUserCredential(URI.create(credentialStore.getWas().getSTS()), applicationToken.getApplicationID(), ApplicationTokenMapper.toXML(applicationToken), userCredential, ticket).execute());
 
-        return Response.ok(getResponseTextJson()).build();
+        if (!userToken.isValid()) {
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
+        return Response.ok(getResponseTextJson(userToken)).build();
 
     }
 
-    private String getResponseTextJson(){
+    private String getResponseTextJson(UserToken userToken) {
 
-        return "{"+createJWT("id","issuer","subject", UserTokenMapper.toJson(new UserToken()),666333)+"}";
+        return "{" + createJWT(userToken.getUserTokenId(), userToken.getIssuer(), userToken.getUid(), UserTokenMapper.toJson(new UserToken()), Long.parseLong(userToken.getLifespan())) + "}";
     }
 
 
-    private String createJWT(String id, String issuer, String subject, String whydahJsonToken,long ttlMillis) {
+    private String createJWT(String id, String issuer, String subject, String whydahJsonToken, long ttlMillis) {
 
         //The JWT signature algorithm we will be using to sign the token
         SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.HS256;
@@ -109,7 +127,7 @@ public class UserAuthenticationAPIResource {
         return builder.compact();
     }
 
-    private String getSecret(){
+    private String getSecret() {
         return "yiu";
     }
 }

@@ -3,9 +3,13 @@ package net.whydah.service.proxy;
 import net.whydah.service.CredentialStore;
 import net.whydah.service.SPAApplicationRepository;
 import net.whydah.service.health.HealthResource;
+import net.whydah.sso.application.helpers.ApplicationXpathHelper;
+import net.whydah.sso.application.mappers.ApplicationTokenMapper;
 import net.whydah.sso.application.types.Application;
 import net.whydah.sso.application.types.ApplicationACL;
+import net.whydah.sso.application.types.ApplicationCredential;
 import net.whydah.sso.application.types.ApplicationToken;
+import net.whydah.sso.commands.appauth.CommandLogonApplication;
 import net.whydah.util.StringXORer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +25,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import java.net.CookieManager;
+import java.net.URI;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -74,7 +79,7 @@ public class ProxyResource {
         String secret = stringXORer.encode(secretPart1,secretPart2);
 
         log.info("Created secret: part1:{}, part2:{} = secret:{}",secretPart1,secretPart2,secret);
-        spaApplicationRepository.add(secret,createSessionForApplicationapplication(application));
+        spaApplicationRepository.add(secret,createSessionForApplication(application));
 
 
         // 5. store part one of secret in user cookie for the domain of the redircet URI and add it to the Response
@@ -98,14 +103,16 @@ public class ProxyResource {
 
     }
 
-    private ApplicationToken createSessionForApplicationapplication(Application application){
+    private ApplicationToken createSessionForApplication(Application application){
         for (ApplicationToken applicationToken:spaApplicationRepository.allSessions()){
             if (applicationToken.getApplicationID().equalsIgnoreCase(application.getId())){
                 return applicationToken;
             }
         }
-        // Stubbed creation
-        return new ApplicationToken();
+        ApplicationCredential appCredential = new ApplicationCredential(application.getId(),application.getName(),application.getSecurity().getSecret());
+        String myAppTokenXml = new CommandLogonApplication(URI.create(credentialStore.getWas().getSTS()), appCredential).execute();
+        ApplicationToken applicationToken = ApplicationTokenMapper.fromXml(myAppTokenXml);
+        return applicationToken;
     }
     private String findRedirectUrl(Application application) {
         String redirectUrl = null;
@@ -121,6 +128,7 @@ public class ProxyResource {
         }
 
         if (redirectUrl==null){
+
             redirectUrl=application.getApplicationUrl();
         }
 
