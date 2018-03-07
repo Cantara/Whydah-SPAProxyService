@@ -89,11 +89,15 @@ public abstract class MyBaseHttpGetHystrixCommand<R> extends HystrixCommand<R> {
 
             responseBody = request.bytes();
             String location = "";
+            String cookie="";
             int statusCode = request.code();
             String responseAsText = StringConv.UTF8(responseBody);
             if (statusCode == 302) {
                 location = request.getConnection().getHeaderField("Location");
-                responseAsText = "{\"Location\": \"" + location + "\"}";
+                cookie = request.getConnection().getHeaderField("SET-COOKIE");
+                responseAsText = "{\"Location\": \"" + location + "\"," +
+                        "\"Cookie\": \"" + cookie + "\"" +
+                        "}";
             }
 
             switch (statusCode) {

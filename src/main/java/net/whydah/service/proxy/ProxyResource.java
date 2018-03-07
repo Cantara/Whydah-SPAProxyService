@@ -89,7 +89,7 @@ public class ProxyResource {
 
     // 6. create 302-response with part2 of secret in http Location header
 
-        Response mresponse=Response.status(Response.Status.FOUND).header("Location", findRedirectUrl(application)+"?code="+ secretPart1 +"&ticket="+ UUID.randomUUID().toString()).build();
+        Response mresponse=Response.status(Response.Status.FOUND).header("Location", findRedirectUrl(application)+"?code="+ secretPart1 +"&ticket="+ UUID.randomUUID().toString()).header("SET-COOKIE",sb.toString()).build();
         return mresponse;
 
     }
