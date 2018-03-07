@@ -15,6 +15,7 @@ import sun.security.krb5.internal.APOptions;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -50,16 +51,17 @@ public class ProxyResource {
         this.spaApplicationRepository=spaApplicationRepository;
     }
 
-
+    @Produces(MediaType.APPLICATION_JSON)
 
     @GET
-    public Response getProxyRedirect() {
+    @Path("/{appname}")
+    public Response getProxyRedirect(@PathParam("appname") String appname) {
         log.trace("getProxyRedirect");
 
         // 1. get redirectname from URI
 
         // 2. lookup redirectname in applicationmodel to find URI to redirect to
-        String appname="Whydah-TestWebApplication";
+        //String appname="Whydah-TestWebApplication";
         Application application=findApplication(appname);
         if (application==null){
             // No registered application found, return to default login
