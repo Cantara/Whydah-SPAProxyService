@@ -43,7 +43,7 @@ public class CommandAPIUserLoginToJWT  extends MyBaseHttpPostHystrixCommand<Stri
 
     @Override
     protected String getTargetPath() {
-        return ""+secret+"/authenticate_user";
+        return "/"+secret+"/authenticate_user";
     }
 
 

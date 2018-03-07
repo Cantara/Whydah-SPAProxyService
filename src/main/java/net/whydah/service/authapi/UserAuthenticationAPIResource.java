@@ -38,7 +38,7 @@ getJWTTokenFromTicket, loginUserWithUserNameAndPassword   loginUserWithUsernameA
 @Produces(MediaType.APPLICATION_JSON)
 public class UserAuthenticationAPIResource {
 
-    public static final String API_PATH = "/api/";
+    public static final String API_PATH = "/api";
     private static final Logger log = LoggerFactory.getLogger(ProxyResource.class);
     private final CredentialStore credentialStore;
     private final SPAApplicationRepository spaApplicationRepository;
@@ -59,11 +59,15 @@ public class UserAuthenticationAPIResource {
         ApplicationToken applicationToken = spaApplicationRepository.getApplicationTokenBySecret(secret);
         // 2. execute Whydah API request using the found application
         if (applicationToken == null) {
+            log.warn("Unable to locate applicationsession from secret, returning 403");
             return Response.status(Response.Status.FORBIDDEN).build();
         }
 
         UserToken userToken = UserTokenMapper.fromUserTokenXml(new CommandGetUsertokenByUserticket(URI.create(credentialStore.getWas().getSTS()), applicationToken.getApplicationID(), ApplicationTokenMapper.toXML(applicationToken), ticket).execute());
-        ;
+        if (!userToken.isValid()) {
+            log.warn("Unable to resolve valid UserToken from ticket, returning 403");
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
         return Response.ok(getResponseTextJson(userToken)).build();
     }
 
@@ -77,6 +81,7 @@ public class UserAuthenticationAPIResource {
         ApplicationToken applicationToken = spaApplicationRepository.getApplicationTokenBySecret(secret);
         // 2. execute Whydah API request using the found application
         if (applicationToken == null) {
+            log.warn("Unable to locate applicationsession from secret, returning 403");
             return Response.status(Response.Status.FORBIDDEN).build();
         }
         UserCredential userCredential = new UserCredential();
@@ -84,12 +89,13 @@ public class UserAuthenticationAPIResource {
         UserToken userToken = UserTokenMapper.fromUserTokenXml(new CommandLogonUserByUserCredential(URI.create(credentialStore.getWas().getSTS()), applicationToken.getApplicationID(), ApplicationTokenMapper.toXML(applicationToken), userCredential, ticket).execute());
 
         if (!userToken.isValid()) {
+            log.warn("Unable to resolve valid UserToken from supplied usercredentials, returning 403");
             return Response.status(Response.Status.FORBIDDEN).build();
         }
         return Response.ok(getResponseTextJson(userToken)).build();
 
     }
-
+// DFBSAg9QVwAADgBQDgAABQBaAFpZUlgAWwBXUwkDV10ABwdS
     private String getResponseTextJson(UserToken userToken) {
 
         return "{" + createJWT(userToken.getUserTokenId(), userToken.getIssuer(), userToken.getUid(), UserTokenMapper.toJson(new UserToken()), Long.parseLong(userToken.getLifespan())) + "}";

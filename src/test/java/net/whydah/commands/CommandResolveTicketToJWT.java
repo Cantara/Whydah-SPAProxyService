@@ -50,7 +50,7 @@ public class CommandResolveTicketToJWT  extends MyBaseHttpPostHystrixCommand<Str
 
     @Override
     protected String getTargetPath() {
-        return ""+secret+"/get_token_from_ticket/"+ticket;
+        return "/"+secret+"/get_token_from_ticket/"+ticket;
     }
 
 
