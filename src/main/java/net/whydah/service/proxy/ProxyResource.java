@@ -138,6 +138,9 @@ public class ProxyResource {
             if (application.getName().equalsIgnoreCase(appName)){
                 return application;
             }
+            if (application.getId().equalsIgnoreCase(appName)){
+                return application;
+            }
         }
         return null;
     }
