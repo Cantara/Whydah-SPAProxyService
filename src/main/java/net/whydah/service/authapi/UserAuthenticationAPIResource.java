@@ -46,15 +46,19 @@ public class UserAuthenticationAPIResource {
     @POST
     @Path("/{secret}/get_token_from_ticket/{ticket}")
     public Response getJWTFromTicket(@PathParam("secret") String secret,@PathParam("ticket") String ticket) {
-        log.trace("getJWTFromTicket - called with secret:{}",secret);
+        log.trace("getJWTFromTicket - called with secret:{}", secret);
 
         // 1. lookup secret in secret-application session map
-        ApplicationToken applicationToken= spaApplicationRepository.getApplicationTokenBySecret(secret);
+        ApplicationToken applicationToken = spaApplicationRepository.getApplicationTokenBySecret(secret);
         // 2. execute Whydah API request using the found application
+        if (applicationToken == null) {
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
 
         return Response.ok(getResponseTextJson()).build();
-
     }
+
+
     @POST
     @Path("/{secret}/authenticate_user/")
     public Response authenticateUser(@PathParam("secret") String secret) {
