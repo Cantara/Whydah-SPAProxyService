@@ -13,7 +13,7 @@ public class CommandGetProxyResponse  extends MyBaseHttpGetHystrixCommand<String
     static Random r = new Random();
 
     public CommandGetProxyResponse(String uri) {
-        super(URI.create(uri),"CommandGetProxyResponse_" + r.nextInt(100),3000);
+        super(URI.create(uri),"CommandGetProxyResponse_" + r.nextInt(100), 5000);
     }
 
 

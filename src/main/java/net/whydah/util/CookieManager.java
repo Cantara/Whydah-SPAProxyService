@@ -11,7 +11,7 @@ import java.net.URL;
 
 
 public class CookieManager {
-	public static final String USER_TOKEN_REFERENCE_NAME = "whydahusertoken_sso";
+	public static String USER_TOKEN_REFERENCE_NAME = "whydahusertoken_sso";
     //private static final String LOGOUT_COOKIE_VALUE = "logout";
     private static final Logger log = LoggerFactory.getLogger(CookieManager.class);
     private static final int DEFAULT_COOKIE_MAX_AGE = 365 * 24 * 60 * 60;
@@ -27,7 +27,7 @@ public class CookieManager {
         try {
             cookiedomain = Configuration.getString("whydah.cookiedomain");
             MY_APP_URI = Configuration.getString("myuri");
-           
+            USER_TOKEN_REFERENCE_NAME = Configuration.getString("whydahusertoken_sso");
             //some overrides
             URL uri;
         	if(MY_APP_URI!=null){

@@ -4,18 +4,29 @@ import net.whydah.service.CredentialStore;
 import net.whydah.service.SPAApplicationRepository;
 import net.whydah.service.health.HealthResource;
 import net.whydah.sso.application.helpers.ApplicationXpathHelper;
+import net.whydah.sso.application.mappers.ApplicationMapper;
 import net.whydah.sso.application.mappers.ApplicationTokenMapper;
 import net.whydah.sso.application.types.Application;
 import net.whydah.sso.application.types.ApplicationACL;
 import net.whydah.sso.application.types.ApplicationCredential;
 import net.whydah.sso.application.types.ApplicationToken;
+import net.whydah.sso.commands.adminapi.application.CommandGetApplication;
+import net.whydah.sso.commands.adminapi.user.CommandGetUser;
+import net.whydah.sso.commands.appauth.CommandGetApplicationKey;
 import net.whydah.sso.commands.appauth.CommandLogonApplication;
+import net.whydah.sso.commands.userauth.CommandCreateTicketForUserTokenID;
+import net.whydah.sso.commands.userauth.CommandGetUsertokenByUserticket;
+import net.whydah.sso.commands.userauth.CommandGetUsertokenByUsertokenId;
+import net.whydah.util.CookieManager;
 import net.whydah.util.StringXORer;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+
 import sun.security.krb5.internal.APOptions;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -24,7 +35,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import java.net.CookieManager;
 import java.net.URI;
 import java.util.*;
 import java.util.concurrent.Executors;
@@ -58,21 +68,31 @@ public class ProxyResource {
 
     @Produces(MediaType.APPLICATION_JSON)
 
+    //HUY: there is no secret, that means this is exposed to everyone
+    //However, the key advantage is that we conveniently hide the application secret from exposure 
     @GET
     @Path("/{appname}")
-    public Response getProxyRedirect(@PathParam("appname") String appname) {
+    public Response getProxyRedirect(HttpServletRequest request, @PathParam("appname") String appname) {
         log.trace("getProxyRedirect");
-
-        // 1. get redirectname from URI
-
-        // 2. lookup redirectname in applicationmodel to find URI to redirect to
-        //String appname="Whydah-TestWebApplication";
+      
         Application application=findApplication(appname);
         if (application==null){
             // No registered application found, return to default login
             return Response.status(Response.Status.FOUND).header("Location", "https://whydahdev.cantara.on/sso/login").build();
         }
         // 3. lookup potential usertokenId from request cookies
+        //we find a INN/Whydah cookie...   picking up usertokenid, verify that it is valid and creating a userticket based upon the valid usertokenid
+        String userTokenId = CookieManager.getUserTokenIdFromCookie(request);
+        String ticket = UUID.randomUUID().toString();
+        if(userTokenId!=null){
+        	CommandCreateTicketForUserTokenID cmt = new CommandCreateTicketForUserTokenID(URI.create(credentialStore.getWas().getSTS()), credentialStore.getWas().getActiveApplicationTokenId(), credentialStore.getWas().getActiveApplicationTokenXML(), ticket, userTokenId);
+        	boolean result = cmt.execute();
+        	if(result){
+        		log.debug("create a ticket {} for usertoken {}", ticket, userTokenId);
+        	} else {
+        		log.warn("failed to create a ticket {} for usertoken {}", ticket, userTokenId);
+        	}
+        }
         // 4. establish new SPA secret and store it in secret-applicationsession map
         String secretPart1=UUID.randomUUID().toString();
         String secretPart2=UUID.randomUUID().toString();
@@ -81,10 +101,7 @@ public class ProxyResource {
         log.info("Created secret: part1:{}, part2:{} = secret:{}",secretPart1,secretPart2,secret);
         spaApplicationRepository.add(secret,createSessionForApplication(application));
 
-
         // 5. store part one of secret in user cookie for the domain of the redircet URI and add it to the Response
-
-
         StringBuilder sb = new StringBuilder(findRedirectUrl(application));
         sb.append("=");
         sb.append(secretPart2);
@@ -96,8 +113,7 @@ public class ProxyResource {
         sb.append(";secure");
 //        response.setHeader("SET-COOKIE", sb.toString());
 
-    // 6. create 302-response with part2 of secret in http Location header
-
+       // 6. create 302-response with part2 of secret in http Location header
         Response mresponse=Response.status(Response.Status.FOUND).header("Location", findRedirectUrl(application)+"?code="+ secretPart1 +"&ticket="+ UUID.randomUUID().toString()).header("SET-COOKIE",sb.toString()).build();
         return mresponse;
 
@@ -140,17 +156,30 @@ public class ProxyResource {
 
         List<Application> applicationList = credentialStore.getWas().getApplicationList();
         log.debug("Found {} applications",applicationList.size());
+        Application found = null;
         for (Application application:applicationList){
             log.info("Parsing application: {}",application.getName());
 
             if (application.getName().equalsIgnoreCase(appName)){
-                return application;
+                found = application;
+                break;
             }
             if (application.getId().equalsIgnoreCase(appName)){
-                return application;
+                found = application;
+                break;
             }
         }
-        return null;
+        
+        if(found!=null){
+        	//HUY: we have to use admin function to get the full specification of this app
+        	//Problem is the app secret is obfuscated in application list
+        	CommandGetApplication app = new CommandGetApplication(URI.create(credentialStore.getWas().getUAS()), credentialStore.getWas().getActiveApplicationTokenId(), credentialStore.getAdminUserTokenId(), found.getId());
+        	String result = app.execute();
+        	if(result!=null){
+        		found = ApplicationMapper.fromJson(result);
+        	}
+        }
+        return found;
     }
 
 

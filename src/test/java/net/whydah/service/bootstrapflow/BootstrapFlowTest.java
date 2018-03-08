@@ -11,6 +11,7 @@ import net.whydah.sso.user.mappers.UserCredentialMapper;
 import net.whydah.sso.user.types.UserCredential;
 import net.whydah.util.Configuration;
 import net.whydah.util.StringXORer;
+
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -21,22 +22,26 @@ public class BootstrapFlowTest {
     private TestServer testServer;
     private StringXORer stringXORer= new StringXORer();
     String secret;
-
-
+    String TEST_APPLICATION_NAME = "Whydah-Jenkins";
+    
     @BeforeClass
     public void startServer() throws Exception {
         testServer = new TestServer(getClass());
         testServer.start();
+        
         Thread.sleep(5000);
-        CommandGetProxyResponse commandGetProxyResponse = new CommandGetProxyResponse(testServer.getUrl()+ ProxyResource.PROXY_PATH+"/Whydah-TestWebApplication");
+        
+        CommandGetProxyResponse commandGetProxyResponse = new CommandGetProxyResponse(testServer.getUrl()+ ProxyResource.PROXY_PATH+"/" + TEST_APPLICATION_NAME);
         String response =commandGetProxyResponse.execute();
         System.out.println(response);
 
-        String secretA = JsonPathHelper.findJsonPathValue(response,"$.code");
-        String secretB = JsonPathHelper.findJsonPathValue(response,"$.cookievalue");
-
-        secret = stringXORer.encode(secretA,secretB);
-
+        if(response!=null){
+        	String secretA = JsonPathHelper.findJsonPathValue(response,"$.code");
+        	String secretB = JsonPathHelper.findJsonPathValue(response,"$.cookievalue");
+        	secret = stringXORer.encode(secretA,secretB);
+        } else {
+        	stop();
+        }
     }
 
     @AfterClass

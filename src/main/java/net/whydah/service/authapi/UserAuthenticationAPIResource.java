@@ -10,12 +10,19 @@ import net.whydah.sso.application.mappers.ApplicationTokenMapper;
 import net.whydah.sso.application.types.ApplicationToken;
 import net.whydah.sso.commands.userauth.CommandGetUsertokenByUserticket;
 import net.whydah.sso.commands.userauth.CommandLogonUserByUserCredential;
+import net.whydah.sso.user.mappers.UserCredentialMapper;
 import net.whydah.sso.user.mappers.UserTokenMapper;
 import net.whydah.sso.user.types.UserCredential;
 import net.whydah.sso.user.types.UserToken;
+import net.whydah.util.AdvancedJWTokenUtil;
+
+import org.jose4j.jwt.JwtClaims;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -24,6 +31,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.xml.bind.DatatypeConverter;
+
 import java.net.URI;
 import java.util.Date;
 import java.util.UUID;
@@ -74,7 +82,7 @@ public class UserAuthenticationAPIResource {
 
     @POST
     @Path("/{secret}/authenticate_user/")
-    public Response authenticateUser(@PathParam("secret") String secret) {
+    public Response authenticateUser(@PathParam("secret") String secret, @RequestBody String payload) {
         log.trace("authenticateUser - called with secret:{}", secret);
 
         // 1. lookup secret in secret-application session map
@@ -84,7 +92,22 @@ public class UserAuthenticationAPIResource {
             log.warn("Unable to locate applicationsession from secret, returning 403");
             return Response.status(Response.Status.FORBIDDEN).build();
         }
-        UserCredential userCredential = new UserCredential();
+        UserCredential userCredential = UserCredentialMapper.fromXml(payload);
+        if(userCredential==null){
+        	try {
+				JSONObject obj = new JSONObject(payload);
+				String username = obj.getString("username");
+				String password = obj.getString("password");
+				userCredential = new UserCredential(username, password);
+			} catch (JSONException e) {
+				
+			}
+        }
+        if(userCredential==null){
+        	 log.warn("Unable to find the user credential, returning 403");
+             return Response.status(Response.Status.FORBIDDEN).build();
+        }
+        
         String ticket = UUID.randomUUID().toString();
         UserToken userToken = UserTokenMapper.fromUserTokenXml(new CommandLogonUserByUserCredential(URI.create(credentialStore.getWas().getSTS()), applicationToken.getApplicationID(), ApplicationTokenMapper.toXML(applicationToken), userCredential, ticket).execute());
 
@@ -95,10 +118,11 @@ public class UserAuthenticationAPIResource {
         return Response.ok(getResponseTextJson(userToken)).build();
 
     }
-// DFBSAg9QVwAADgBQDgAABQBaAFpZUlgAWwBXUwkDV10ABwdS
-    private String getResponseTextJson(UserToken userToken) {
 
-        return "{" + createJWT(userToken.getUserTokenId(), userToken.getIssuer(), userToken.getUid(), UserTokenMapper.toJson(new UserToken()), Long.parseLong(userToken.getLifespan())) + "}";
+    private String getResponseTextJson(UserToken userToken) {
+    	//audience can be an ip address
+    	return AdvancedJWTokenUtil.buildJWT(userToken.getUserTokenId(), userToken.getIssuer(),  "", UserTokenMapper.toJson(userToken), Long.parseLong(userToken.getLifespan()));
+        //return "{" + createJWT(userToken.getUserTokenId(), userToken.getIssuer(), userToken.getUid(), UserTokenMapper.toJson(new UserToken()), Long.parseLong(userToken.getLifespan())) + "}";
     }
 
 

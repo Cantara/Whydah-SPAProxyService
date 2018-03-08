@@ -82,6 +82,13 @@
             <version>0.9.0</version>
         </dependency>
 
+		 <!--this supports the JWS/JWE compact serializations with the complete suite of JOSE (Javascript Object Signing and Encryption) algorithms-->
+		 <dependency>
+		    <groupId>org.bitbucket.b_c</groupId>
+		    <artifactId>jose4j</artifactId>
+		    <version>0.6.3</version>
+		  </dependency>
+		  
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
