@@ -96,7 +96,7 @@ public class HealthResource {
 
         Collection<ApplicationToken> applicationSessions = spaApplicationRepository.allSessions();
         if (applicationSessions == null || applicationSessions.size() < 1) {
-            return "";
+            return "\"\"";
         }
         Map<String, Integer> countMap = new HashMap();
         for (ApplicationToken applicationToken : applicationSessions) {
@@ -111,7 +111,7 @@ public class HealthResource {
 
             return jsonString;
         } catch (Exception e) {
-            return "";
+            return "\"\"";
         }
     }
 
