@@ -1,6 +1,9 @@
 package net.whydah.service.health;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import net.whydah.service.CredentialStore;
+import net.whydah.service.SPAApplicationRepository;
+import net.whydah.sso.application.types.ApplicationToken;
 import net.whydah.sso.util.WhydahUtil;
 import net.whydah.util.Configuration;
 import org.slf4j.Logger;
@@ -16,6 +19,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 
@@ -30,15 +35,18 @@ import java.util.Properties;
 public class HealthResource {
     public static final String HEALTH_PATH = "/health";
     private static final Logger log = LoggerFactory.getLogger(HealthResource.class);
+    private static final ObjectMapper mapper = new ObjectMapper();
     private final CredentialStore credentialStore;
+    private final SPAApplicationRepository spaApplicationRepository;
     static String resultJson = "";
     private static String applicationInstanceName = "";
 
 
 
     @Autowired
-    public HealthResource(CredentialStore credentialStore) {
+    public HealthResource(CredentialStore credentialStore, SPAApplicationRepository spaApplicationRepository) {
         this.credentialStore = credentialStore;
+        this.spaApplicationRepository = spaApplicationRepository;
         this.applicationInstanceName = Configuration.getString("applicationname");
     }
 
@@ -64,7 +72,7 @@ public class HealthResource {
                 "  \"now\": \"" + Instant.now()+ "\",\n" +
                 "  \"running since\": \"" + WhydahUtil.getRunningSince() + "\",\n\n" +
 
-                "  \"clientIDs\": " + getClientIdsJson() + "\n" +
+                "  \"applicationSessionStatistics\": " + getClientIdsJson() + "\n" +
                 "}\n";
     }
 
@@ -85,41 +93,26 @@ public class HealthResource {
     }
 
     private synchronized String getClientIdsJson() {
-        /*
-        if (resultJson != null && resultJson.length() > 10) {
-            return resultJson;
-        }
-        */
-        String buildJson = "";
-/*
-        Collection<Client> clients = clientService.allClients();
-        if (clients == null || clients.size() < 1) {
+
+        Collection<ApplicationToken> applicationSessions = spaApplicationRepository.allSessions();
+        if (applicationSessions == null || applicationSessions.size() < 1) {
             return "";
         }
-        for (Client client : clients) {
-            String logoUrl = client.getLogoUrl();
-            if (logoUrl == null) {
-                logoUrl = "";
-            } else if (logoUrl.length() > 200) {
-                logoUrl = "<embedded logo>";
+        Map<String, Integer> countMap = new HashMap();
+        for (ApplicationToken applicationToken : applicationSessions) {
+            if (countMap.get(applicationToken.getApplicationName()) == null) {
+                countMap.put(applicationToken.getApplicationName(), 1);
+            } else {
+                countMap.put(applicationToken.getApplicationName(), 1 + countMap.get(applicationToken.getApplicationName()));
             }
+        }
+        try {
+            String jsonString = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(countMap);
 
-            buildJson = buildJson +
-                    "\n     {" +
-                    "\n         \"clientId\":          \"" + client.getClientId() + "\"," +
-                    "\n         \"applicationName\":   \"" + client.getApplicationName() + "\"," +
-                    "\n         \"applicationUrl\":    \"" + client.getApplicationUrl() + "\"," +
-                    "\n         \"redirectUrl\":       \"" + client.getRedirectUrl() + "\"," +
-                    "\n         \"logoUrl\":           \"" + logoUrl + "\"" +
-                    "\n     },";
+            return jsonString;
+        } catch (Exception e) {
+            return "";
         }
-*/
-        if (buildJson.length() < 2) {
-            return "[]";
-        }
-        buildJson = "\n  [" + buildJson.substring(0, buildJson.length() - 1) + " \n  ]\n";
-        resultJson = buildJson;
-        return resultJson;
     }
 
 
