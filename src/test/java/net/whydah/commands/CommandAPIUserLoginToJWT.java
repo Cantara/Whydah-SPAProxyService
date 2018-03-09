@@ -16,8 +16,9 @@ public class CommandAPIUserLoginToJWT  extends MyBaseHttpPostHystrixCommand<Stri
 
 
     public CommandAPIUserLoginToJWT(String url,String secret, String payload) {
-        super(URI.create(url), "CommandAPIUserLoginToJWT" + r.nextInt(100), 500000);
+        super(URI.create(url), "CommandAPIUserLoginToJWT" + r.nextInt(100), HystrixCommandTimeoutConfig.defaultTimeout);
         this.payload=payload;
+        
         this.secret=secret;
     }
 

@@ -7,6 +7,7 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+
 import net.whydah.commands.basecommands.MyBaseHttpPostHystrixCommand;
 
 import javax.ws.rs.core.MediaType;
@@ -22,7 +23,7 @@ public class CommandResolveTicketToJWT  extends MyBaseHttpPostHystrixCommand<Str
 
 
     public CommandResolveTicketToJWT(String url,String secret, String ticket,String payload) {
-        super(URI.create(url), "CommandResolveTicketToJWT" + r.nextInt(100), 50000);
+        super(URI.create(url), "CommandResolveTicketToJWT" + r.nextInt(100), HystrixCommandTimeoutConfig.defaultTimeout);
         this.payload=payload;
         this.secret=secret;
         this.ticket=ticket;
