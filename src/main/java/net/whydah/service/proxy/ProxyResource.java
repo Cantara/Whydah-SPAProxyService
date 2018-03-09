@@ -32,6 +32,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -47,6 +48,7 @@ import static net.whydah.service.proxy.ProxyResource.PROXY_PATH;
 @Produces(MediaType.TEXT_HTML)
 public class ProxyResource {
 
+	
     public static final String PROXY_PATH = "/load";
     private static final Logger log = LoggerFactory.getLogger(ProxyResource.class);
     private final CredentialStore credentialStore;
@@ -72,7 +74,7 @@ public class ProxyResource {
     //However, the key advantage is that we conveniently hide the application secret from exposure 
     @GET
     @Path("/{appname}")
-    public Response getProxyRedirect(HttpServletRequest request, @PathParam("appname") String appname) {
+    public Response getProxyRedirect(@Context HttpServletRequest httpServletRequest, @Context HttpServletResponse httpServletResponse, @PathParam("appname") String appname) {
         log.trace("getProxyRedirect");
       
         Application application=findApplication(appname);
@@ -82,7 +84,7 @@ public class ProxyResource {
         }
         // 3. lookup potential usertokenId from request cookies
         //we find a INN/Whydah cookie...   picking up usertokenid, verify that it is valid and creating a userticket based upon the valid usertokenid
-        String userTokenId = CookieManager.getUserTokenIdFromCookie(request);
+        String userTokenId = CookieManager.getUserTokenIdFromCookie(httpServletRequest);
         String ticket = UUID.randomUUID().toString();
         if(userTokenId!=null){
         	CommandCreateTicketForUserTokenID cmt = new CommandCreateTicketForUserTokenID(URI.create(credentialStore.getWas().getSTS()), credentialStore.getWas().getActiveApplicationTokenId(), credentialStore.getWas().getActiveApplicationTokenXML(), ticket, userTokenId);
@@ -114,7 +116,7 @@ public class ProxyResource {
 //        response.setHeader("SET-COOKIE", sb.toString());
 
        // 6. create 302-response with part2 of secret in http Location header
-        Response mresponse=Response.status(Response.Status.FOUND).header("Location", findRedirectUrl(application)+"?code="+ secretPart1 +"&ticket="+ UUID.randomUUID().toString()).header("SET-COOKIE",sb.toString()).build();
+        Response mresponse=Response.status(Response.Status.FOUND).header("Location", findRedirectUrl(application)+"?code="+ secretPart1 +"&ticket="+ ticket).header("SET-COOKIE",sb.toString()).build();
         return mresponse;
 
     }

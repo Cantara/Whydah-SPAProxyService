@@ -27,7 +27,7 @@ public class CookieManager {
         try {
             cookiedomain = Configuration.getString("whydah.cookiedomain");
             MY_APP_URI = Configuration.getString("myuri");
-            USER_TOKEN_REFERENCE_NAME = Configuration.getString("whydahusertoken_sso");
+            USER_TOKEN_REFERENCE_NAME = Configuration.getString("cookie_user_token_reference_name");
             //some overrides
             URL uri;
         	if(MY_APP_URI!=null){

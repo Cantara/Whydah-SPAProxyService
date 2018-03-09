@@ -13,10 +13,10 @@ import io.jsonwebtoken.SignatureAlgorithm;
 
 public class JWTokenUtil {
 	
-	public static String secret = "yiu"; 
+	public static String secret = "secret"; 
 			
 	
-	public static String createJWT(String id, String issuer, String subject, long ttlMillis) {
+	public static String createJWT(String id, String issuer, String audience, String subject, long ttlMillis) {
 	 
 	    //The JWT signature algorithm we will be using to sign the token
 	    SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.HS256;
@@ -33,6 +33,7 @@ public class JWTokenUtil {
 	                                .setIssuedAt(now)
 	                                .setSubject(subject)
 	                                .setIssuer(issuer)
+	                                .setAudience(audience)
 	                                .signWith(signatureAlgorithm, signingKey);
 	 
 	    //if it has been specified, let's add the expiration

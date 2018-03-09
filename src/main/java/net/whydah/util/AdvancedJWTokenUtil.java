@@ -1,5 +1,6 @@
 package net.whydah.util;
 
+import java.security.Key;
 import java.util.Arrays;
 import java.util.List;
 
@@ -12,8 +13,11 @@ import java.util.List;
 
 
 
+
+
 import net.whydah.service.SPAApplicationRepository;
 import net.whydah.service.proxy.ProxyResource;
+import net.whydah.sso.user.types.UserToken;
 
 import org.jose4j.jwa.AlgorithmConstraints;
 import org.jose4j.jwa.AlgorithmConstraints.ConstraintType;
@@ -47,23 +51,26 @@ public class AdvancedJWTokenUtil {
 	static RsaJsonWebKey rsaJsonWebKey = RsaJwkProducer.produce();
 	
 	
-	public static String buildJWT(String id, String issuer, String audience, String subject, long ttlMillis) {
+	public static String buildJWT(UserToken usertoken, String userTicket) {
 		
 		System.out.println("RSA hash code... " + rsaJsonWebKey.hashCode());
 		JwtClaims claims = new JwtClaims();
-		claims.setSubject(subject); // the subject/principal is whom the token is about
-		claims.setJwtId(id);
-		claims.setIssuer(issuer);
-		claims.setAudience(audience);// to whom the token is intended to be sent
-		claims.setSubject(subject); // the subject/principal is whom the token is about
+		claims.setSubject(usertoken.getUserName()); // the subject/principal is whom the token is about
+		claims.setJwtId(usertoken.getUserTokenId());
+		claims.setIssuer(usertoken.getIssuer());
+		claims.setAudience("");// to whom the token is intended to be sent
 		claims.setIssuedAtToNow();
+		if(userTicket!=null){
+			claims.setClaim("userticket", userTicket);
+		}
 		//add expiration date
 		NumericDate numericDate = NumericDate.now();
-		numericDate.addSeconds(ttlMillis/1000);
+		numericDate.addSeconds(Long.parseLong(usertoken.getLifespan())/1000);
 		claims.setExpirationTime(numericDate);
 
 		JsonWebSignature jws = new JsonWebSignature();
 		jws.setPayload(claims.toJson());
+	
 		jws.setKey(rsaJsonWebKey.getPrivateKey());
 		jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
 

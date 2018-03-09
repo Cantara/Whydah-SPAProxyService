@@ -22,7 +22,7 @@ public class CommandResolveTicketToJWT  extends MyBaseHttpPostHystrixCommand<Str
 
 
     public CommandResolveTicketToJWT(String url,String secret, String ticket,String payload) {
-        super(URI.create(url), "CommandResolveTicketToJWT" + r.nextInt(100),3000);
+        super(URI.create(url), "CommandResolveTicketToJWT" + r.nextInt(100), 50000);
         this.payload=payload;
         this.secret=secret;
         this.ticket=ticket;

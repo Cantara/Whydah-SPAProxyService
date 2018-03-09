@@ -1,5 +1,6 @@
 package net.whydah.service.bootstrapflow;
 
+import static org.testng.Assert.assertTrue;
 import net.whydah.commands.CommandAPIUserLoginToJWT;
 import net.whydah.commands.CommandGetProxyResponse;
 import net.whydah.commands.CommandResolveTicketToJWT;
@@ -12,6 +13,7 @@ import net.whydah.sso.user.types.UserCredential;
 import net.whydah.util.Configuration;
 import net.whydah.util.StringXORer;
 
+import org.apache.commons.codec.binary.Base64;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -19,55 +21,118 @@ import org.testng.annotations.Test;
 import java.io.IOException;
 
 public class BootstrapFlowTest {
-    private TestServer testServer;
-    private StringXORer stringXORer= new StringXORer();
-    String secret;
-    String TEST_APPLICATION_NAME = "Whydah-Jenkins";
-    
-    @BeforeClass
-    public void startServer() throws Exception {
-        testServer = new TestServer(getClass());
-        testServer.start();
-        
-        Thread.sleep(5000);
-        
-        CommandGetProxyResponse commandGetProxyResponse = new CommandGetProxyResponse(testServer.getUrl()+ ProxyResource.PROXY_PATH+"/" + TEST_APPLICATION_NAME);
-        String response =commandGetProxyResponse.execute();
-        System.out.println(response);
+	private TestServer testServer;
+	private StringXORer stringXORer= new StringXORer();
+	String secret;
+	String TEST_APPLICATION_NAME = "Whydah-Jenkins";
 
-        if(response!=null){
-        	String secretA = JsonPathHelper.findJsonPathValue(response,"$.code");
-        	String secretB = JsonPathHelper.findJsonPathValue(response,"$.cookievalue");
-        	secret = stringXORer.encode(secretA,secretB);
-        } else {
-        	stop();
-        }
-    }
+	@BeforeClass
+	public void startServer() throws Exception {
+		testServer = new TestServer(getClass());
+		testServer.start();
 
-    @AfterClass
-    public void stop() {
-        testServer.stop();
-    }
+		Thread.sleep(5000);
 
-    @Test //TODO verify new api verify ticket endpoint
-    public void testResolveTicket() throws IOException {
+		CommandGetProxyResponse commandGetProxyResponse = new CommandGetProxyResponse(testServer.getUrl()+ ProxyResource.PROXY_PATH+"/" + TEST_APPLICATION_NAME);
+		String response =commandGetProxyResponse.execute();
+		System.out.println(response);
+
+		if(response!=null){
+			String secretA = JsonPathHelper.findJsonPathValue(response,"$.code");
+			String secretB = JsonPathHelper.findJsonPathValue(response,"$.cookievalue");
+			secret = stringXORer.encode(secretA,secretB);
+		} else {
+			stop();
+		}
+	}
+
+	@AfterClass
+	public void stop() {
+		testServer.stop();
+	}
+
+	enum JWTokenPart{
+		header,
+		payload,
+		signature
+	}
+
+	public String parseJWT(String jwtToken, JWTokenPart partToReturn){
+		String[] split_string = jwtToken.split("\\.");
+		String base64EncodedHeader = split_string[0];
+		String base64EncodedBody = split_string[1];
+		String base64EncodedSignature = split_string[2];
+
+		System.out.println("~~~~~~~~~ JWT Header ~~~~~~~");
+		Base64 base64Url = new Base64(true);
+		String header = new String(base64Url.decode(base64EncodedHeader));
+		System.out.println("JWT Header : " + header);
 
 
-        CommandResolveTicketToJWT commandResolveTicketToJWT = new CommandResolveTicketToJWT(testServer.getUrl()+ UserAuthenticationAPIResource.API_PATH,secret,"ticket","{}");
-        String response2 =commandResolveTicketToJWT.execute();
-        System.out.println(response2);
-    }
+		System.out.println("~~~~~~~~~ JWT Body ~~~~~~~");
+		String body = new String(base64Url.decode(base64EncodedBody));
+		System.out.println("JWT Body : "+body);  
 
-    @Test //TODO verify new api verify ticket endpoint
-    public void testAPILogon() throws IOException {
+		System.out.println("~~~~~~~~~ JWT Signature ~~~~~~~");
+		String signature = new String(base64Url.decode(base64EncodedSignature));
+		System.out.println("JWT Signature : "+signature);  
+
+		if(partToReturn == JWTokenPart.header){
+			return header;
+		} else if(partToReturn == JWTokenPart.payload){
+			return body;
+		} else if(partToReturn == JWTokenPart.signature){
+			return signature;
+		}
+		return "";
+	}
+
+	@Test //TODO verify new api verify ticket endpoint
+	public void testResolveTicket() throws IOException {
+
+		UserCredential userCredential= new UserCredential();
+		userCredential.setUserName(Configuration.getString("adminuserid"));
+		userCredential.setPassword(Configuration.getString("adminusersecret"));
+
+		//log on
+		CommandAPIUserLoginToJWT commandAPIUserLoginToJWT = new CommandAPIUserLoginToJWT(testServer.getUrl()+ UserAuthenticationAPIResource.API_PATH,secret, UserCredentialMapper.toXML(userCredential));
+		String response2 =commandAPIUserLoginToJWT.execute();
+		assertTrue(response2!=null);
+
+		//parse JWT to get the ticket
+		String body = parseJWT(response2, JWTokenPart.payload);
+		assertTrue(body!=null);
+		System.out.println(body);
+		String userticket = JsonPathHelper.findJsonPathValue(body,"$.userticket");
+
+		CommandResolveTicketToJWT commandResolveTicketToJWT = new CommandResolveTicketToJWT(testServer.getUrl()+ UserAuthenticationAPIResource.API_PATH,secret, userticket,"{}");
+		response2 =commandResolveTicketToJWT.execute();
+		assertTrue(response2!=null);
+		System.out.println(response2);
+
+		//parse JWT to get the ticket
+		body = parseJWT(response2, JWTokenPart.payload);
+		assertTrue(body!=null);
+		System.out.println(body);
+		String userticket2 = JsonPathHelper.findJsonPathValue(body,"$.userticket");
+		//userticket must be renewed
+		assertTrue(userticket2!=null && !userticket.equals(userticket2));
+	}
+
+	@Test //TODO verify new api verify ticket endpoint
+	public void testAPILogon() throws IOException {
 
 
-        UserCredential userCredential= new UserCredential();
-        userCredential.setUserName(Configuration.getString("adminuserid"));
-        userCredential.setPassword(Configuration.getString("adminusersecret"));
+		UserCredential userCredential= new UserCredential();
+		userCredential.setUserName(Configuration.getString("adminuserid"));
+		userCredential.setPassword(Configuration.getString("adminusersecret"));
 
-        CommandAPIUserLoginToJWT commandAPIUserLoginToJWT = new CommandAPIUserLoginToJWT(testServer.getUrl()+ UserAuthenticationAPIResource.API_PATH,secret, UserCredentialMapper.toXML(userCredential));
-        String response2 =commandAPIUserLoginToJWT.execute();
-        System.out.println(response2);
-    }
+		CommandAPIUserLoginToJWT commandAPIUserLoginToJWT = new CommandAPIUserLoginToJWT(testServer.getUrl()+ UserAuthenticationAPIResource.API_PATH,secret, UserCredentialMapper.toXML(userCredential));
+		String response2 =commandAPIUserLoginToJWT.execute();
+		assertTrue(response2!=null);
+
+
+
+		System.out.println(response2);
+	}
 }

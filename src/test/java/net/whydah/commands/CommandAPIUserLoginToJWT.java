@@ -16,7 +16,7 @@ public class CommandAPIUserLoginToJWT  extends MyBaseHttpPostHystrixCommand<Stri
 
 
     public CommandAPIUserLoginToJWT(String url,String secret, String payload) {
-        super(URI.create(url), "CommandAPIUserLoginToJWT" + r.nextInt(100), 5000);
+        super(URI.create(url), "CommandAPIUserLoginToJWT" + r.nextInt(100), 500000);
         this.payload=payload;
         this.secret=secret;
     }
@@ -24,8 +24,6 @@ public class CommandAPIUserLoginToJWT  extends MyBaseHttpPostHystrixCommand<Stri
 
     @Override
     protected HttpRequest dealWithRequestBeforeSend(HttpRequest request) {
-        //super.dealWithRequestBeforeSend(request);
-
         return request.contentType(contentType).accept(contentType).send(this.payload);
     }
 
