@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>net.whydah.service</groupId>
     <artifactId>Whydah-SPAProxyService</artifactId>
-    <version>0.2.4</version>
+    <version>0.2.5-SNAPSHOT</version>
     <name>Whydah-SPAProxyService</name>
     <url>https://wiki.cantara.no/display/whydah/SPAProxyService</url>
 
@@ -15,7 +15,7 @@
         <developerConnection>scm:git:ssh://git@github.com/cantara/Whydah-SPAProxyService.git</developerConnection>
         <connection>scm:git:https://github.com/cantara/Whydah-SPAProxyService.git</connection>
         <url>https://wiki.cantara.no/display/whydah/SPAProxyService</url>
-      <tag>Whydah-SPAProxyService-0.2.4</tag>
+      <tag>HEAD</tag>
   </scm>
 
 
