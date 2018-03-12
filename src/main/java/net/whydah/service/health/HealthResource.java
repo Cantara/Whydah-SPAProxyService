@@ -79,7 +79,7 @@ public class HealthResource {
 
     private String getVersion() {
         Properties mavenProperties = new Properties();
-        String resourcePath = "/META-INF/maven/net.whydah.service/Whydah-OAuth2Service/pom.properties";
+        String resourcePath = "/META-INF/maven/net.whydah.service/Whydah-SPAProxyService/pom.properties";
         URL mavenVersionResource = this.getClass().getResource(resourcePath);
         if (mavenVersionResource != null) {
             try {
