@@ -17,6 +17,7 @@ import net.whydah.sso.commands.appauth.CommandLogonApplication;
 import net.whydah.sso.commands.userauth.CommandCreateTicketForUserTokenID;
 import net.whydah.sso.commands.userauth.CommandGetUsertokenByUserticket;
 import net.whydah.sso.commands.userauth.CommandGetUsertokenByUsertokenId;
+import net.whydah.util.Configuration;
 import net.whydah.util.CookieManager;
 import net.whydah.util.StringXORer;
 
@@ -80,7 +81,7 @@ public class ProxyResource {
         Application application=findApplication(appname);
         if (application==null){
             // No registered application found, return to default login
-            return Response.status(Response.Status.FOUND).header("Location", "https://whydahdev.cantara.no/sso/login").build();
+            return Response.status(Response.Status.FOUND).header("Location", Configuration.getString("fallbackurl")).build();
         }
         // 3. lookup potential usertokenId from request cookies
         //we find a INN/Whydah cookie...   picking up usertokenid, verify that it is valid and creating a userticket based upon the valid usertokenid
