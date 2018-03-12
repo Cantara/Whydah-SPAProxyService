@@ -26,7 +26,8 @@ The SPAProxyService is an optinal Whydah module to support whydah application se
   "now": "2018-03-12T12:14:55.535Z",
   "running since": "2018-03-12T12:06:03.327Z",
 
-  "applicationSessionStatistics": "{
-  \"Whydah-SSOLoginWebApp\" : 2 }"
+  "applicationSessionStatistics": {
+        "Whydah-SSOLoginWebApp" : 2 
+     }
 }
 ```
