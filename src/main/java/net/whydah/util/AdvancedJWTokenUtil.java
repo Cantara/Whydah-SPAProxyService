@@ -17,6 +17,7 @@ import java.util.List;
 
 import net.whydah.service.SPAApplicationRepository;
 import net.whydah.service.proxy.ProxyResource;
+import net.whydah.sso.user.types.UserApplicationRoleEntry;
 import net.whydah.sso.user.types.UserToken;
 
 import org.jose4j.jwa.AlgorithmConstraints;
@@ -62,6 +63,11 @@ public class AdvancedJWTokenUtil {
 		claims.setIssuedAtToNow();
 		if(userTicket!=null){
 			claims.setClaim("userticket", userTicket);
+		} else {
+			for (UserApplicationRoleEntry userApplicationRoleEntry: usertoken.getRoleList()){
+				claims.setClaim(userApplicationRoleEntry.getApplicationName(),userApplicationRoleEntry.getRoleName());
+
+			}
 		}
 		//add expiration date
 		NumericDate numericDate = NumericDate.now();
