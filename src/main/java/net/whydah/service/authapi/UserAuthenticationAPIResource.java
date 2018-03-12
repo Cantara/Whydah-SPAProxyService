@@ -17,6 +17,7 @@ import net.whydah.sso.user.mappers.UserTokenMapper;
 import net.whydah.sso.user.types.UserCredential;
 import net.whydah.sso.user.types.UserToken;
 import net.whydah.util.AdvancedJWTokenUtil;
+import net.whydah.util.CookieManager;
 import net.whydah.util.JWTokenUtil;
 
 import org.jose4j.jwt.JwtClaims;
@@ -27,10 +28,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.xml.bind.DatatypeConverter;
@@ -93,7 +97,7 @@ public class UserAuthenticationAPIResource {
 
     @POST
     @Path("/{secret}/authenticate_user/")
-    public Response authenticateUser(@PathParam("secret") String secret, @RequestBody String payload) {
+    public Response authenticateUser(@Context HttpServletRequest httpServletRequest, @Context HttpServletResponse httpServletResponse, @PathParam("secret") String secret, @RequestBody String payload) {
         log.trace("authenticateUser - called with secret:{}", secret);
 
         // 1. lookup secret in secret-application session map
@@ -126,6 +130,7 @@ public class UserAuthenticationAPIResource {
             log.warn("Unable to resolve valid UserToken from supplied usercredentials, returning 403");
             return Response.status(Response.Status.FORBIDDEN).build();
         }
+        CookieManager.createAndSetUserTokenCookie(userToken.getUserTokenId(),Integer.parseInt(userToken.getLifespan()) ,httpServletRequest, httpServletResponse);
         return Response.ok(getResponseTextJson(userToken, ticket, applicationToken.getApplicationID())).build();
 
     }
