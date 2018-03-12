@@ -52,7 +52,7 @@ public class AdvancedJWTokenUtil {
 	static RsaJsonWebKey rsaJsonWebKey = RsaJwkProducer.produce();
 	
 	
-	public static String buildJWT(UserToken usertoken, String userTicket) {
+	public static String buildJWT(UserToken usertoken, String userTicket,String applicationId) {
 		
 		System.out.println("RSA hash code... " + rsaJsonWebKey.hashCode());
 		JwtClaims claims = new JwtClaims();
@@ -63,12 +63,15 @@ public class AdvancedJWTokenUtil {
 		claims.setIssuedAtToNow();
 		if(userTicket!=null){
 			claims.setClaim("userticket", userTicket);
-		} else {
+		}
+
 			for (UserApplicationRoleEntry userApplicationRoleEntry: usertoken.getRoleList()){
-				claims.setClaim(userApplicationRoleEntry.getApplicationName(),userApplicationRoleEntry.getRoleName());
+		    if (applicationId==null || applicationId.equalsIgnoreCase(userApplicationRoleEntry.getApplicationId())){
+                claims.setClaim(userApplicationRoleEntry.getApplicationName(),userApplicationRoleEntry.getRoleName());
+
+            }
 
 			}
-		}
 		//add expiration date
 		NumericDate numericDate = NumericDate.now();
 		numericDate.addSeconds(Long.parseLong(usertoken.getLifespan())/1000);

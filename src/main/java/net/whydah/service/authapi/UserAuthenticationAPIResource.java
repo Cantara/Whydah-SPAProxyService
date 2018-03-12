@@ -87,7 +87,7 @@ public class UserAuthenticationAPIResource {
         	 log.warn("Unable to renew a ticket for this UserToken, returning 500");
              return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
-        return Response.ok(getResponseTextJson(userToken, newTicket)).build();
+        return Response.ok(getResponseTextJson(userToken, newTicket, applicationToken.getApplicationID())).build();
     }
 
 
@@ -126,12 +126,12 @@ public class UserAuthenticationAPIResource {
             log.warn("Unable to resolve valid UserToken from supplied usercredentials, returning 403");
             return Response.status(Response.Status.FORBIDDEN).build();
         }
-        return Response.ok(getResponseTextJson(userToken, ticket)).build();
+        return Response.ok(getResponseTextJson(userToken, ticket, applicationToken.getApplicationID())).build();
 
     }
 
-    private String getResponseTextJson(UserToken userToken, String userticket) {
-    	return AdvancedJWTokenUtil.buildJWT(userToken, userticket);
+    private String getResponseTextJson(UserToken userToken, String userticket,String applicationId) {
+    	return AdvancedJWTokenUtil.buildJWT(userToken, userticket,applicationId);
     }
 
 
