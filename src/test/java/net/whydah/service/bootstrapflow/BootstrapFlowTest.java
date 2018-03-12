@@ -24,7 +24,7 @@ public class BootstrapFlowTest {
 	private TestServer testServer;
 	private StringXORer stringXORer= new StringXORer();
 	String secret;
-	String TEST_APPLICATION_NAME = "Whydah-Jenkins";
+	String TEST_APPLICATION_NAME = "ACS";
 
 	@BeforeClass
 	public void startServer() throws Exception {

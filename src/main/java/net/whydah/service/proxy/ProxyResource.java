@@ -51,6 +51,7 @@ public class ProxyResource {
 
 	
     public static final String PROXY_PATH = "/load";
+    public static final String FALLBACk_URL =  Configuration.getString("fallbackurl");
     private static final Logger log = LoggerFactory.getLogger(ProxyResource.class);
     private final CredentialStore credentialStore;
     private final SPAApplicationRepository spaApplicationRepository;
@@ -81,7 +82,7 @@ public class ProxyResource {
         Application application=findApplication(appname);
         if (application==null){
             // No registered application found, return to default login
-            return Response.status(Response.Status.FOUND).header("Location", Configuration.getString("fallbackurl")).build();
+            return Response.status(Response.Status.FOUND).header("Location", FALLBACk_URL).build();
         }
         // 3. lookup potential usertokenId from request cookies
         //we find a INN/Whydah cookie...   picking up usertokenid, verify that it is valid and creating a userticket based upon the valid usertokenid
@@ -147,8 +148,10 @@ public class ProxyResource {
         }
 
         if (redirectUrl==null){
-
             redirectUrl=application.getApplicationUrl();
+        }
+        if (redirectUrl==null){
+            redirectUrl= FALLBACk_URL;
         }
 
         return redirectUrl;
