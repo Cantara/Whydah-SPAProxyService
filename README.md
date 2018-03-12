@@ -8,3 +8,4 @@
 The SPAProxyService is an optinal Whydah module to support whydah application sessions for single-page applications. This is the backend/API support module for the Whydah SPA javascript npm library.
 
 
+* use:  https://spaproxy.cantara.no/proxy/load/My-SPA-Application
