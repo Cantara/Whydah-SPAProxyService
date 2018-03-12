@@ -38,7 +38,6 @@ public class HealthResource {
     private static final ObjectMapper mapper = new ObjectMapper();
     private final CredentialStore credentialStore;
     private final SPAApplicationRepository spaApplicationRepository;
-    static String resultJson = "";
     private static String applicationInstanceName = "";
 
 
@@ -108,7 +107,6 @@ public class HealthResource {
         }
         try {
             String jsonString = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(countMap);
-
             return jsonString;
         } catch (Exception e) {
             return "{}";
