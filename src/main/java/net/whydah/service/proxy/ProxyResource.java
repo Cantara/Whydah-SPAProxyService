@@ -101,9 +101,12 @@ public class ProxyResource {
         String secretPart1=UUID.randomUUID().toString();
         String secretPart2=UUID.randomUUID().toString();
         String secret = stringXORer.encode(secretPart1,secretPart2);
+        String secret2 = stringXORer.encode(secretPart1,secretPart2);
 
         log.info("Created secret: part1:{}, part2:{} = secret:{}",secretPart1,secretPart2,secret);
         spaApplicationRepository.add(secret,createSessionForApplication(application));
+        log.info("Created secret: part1:{}, part2:{} = secret:{}",secretPart1,secretPart2,secret2);
+        spaApplicationRepository.add(secret2,createSessionForApplication(application));
 
         // 5. store part one of secret in user cookie for the domain of the redircet URI and add it to the Response
         StringBuilder sb = new StringBuilder(findRedirectUrl(application));
