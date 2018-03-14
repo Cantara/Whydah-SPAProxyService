@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>net.whydah.service</groupId>
     <artifactId>Whydah-SPAProxyService</artifactId>
-    <version>0.2.12-SNAPSHOT</version>
+    <version>0.2.13-SNAPSHOT</version>
     <name>Whydah-SPAProxyService</name>
     <url>https://wiki.cantara.no/display/whydah/SPAProxyService</url>
 
