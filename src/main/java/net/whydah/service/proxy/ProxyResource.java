@@ -101,7 +101,7 @@ public class ProxyResource {
         String secretPart1=UUID.randomUUID().toString();
         String secretPart2=UUID.randomUUID().toString();
         String secret = stringXORer.encode(secretPart1,secretPart2);
-        String secret2 = stringXORer.encode(secretPart1,secretPart2);
+        String secret2 = stringXORer.encode(secretPart1,secretPart1);
 
         log.info("Created secret: part1:{}, part2:{} = secret:{}",secretPart1,secretPart2,secret);
         spaApplicationRepository.add(secret,createSessionForApplication(application));
