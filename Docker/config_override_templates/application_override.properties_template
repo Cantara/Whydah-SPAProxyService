@@ -5,6 +5,7 @@ applicationid=12212
 applicationsecret=9ju592A4t8dzz8mz7a5QQJ7Px
 applicationname=Whydah-SPAProxyService
 fallbackurl=https://whydahdev.cantara.no/sso/login
+allow.simple.secret=true
 
 
 

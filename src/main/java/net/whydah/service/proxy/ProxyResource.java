@@ -105,8 +105,10 @@ public class ProxyResource {
 
         log.info("Created secret: part1:{}, part2:{} = secret:{}",secretPart1,secretPart2,secret);
         spaApplicationRepository.add(secret,createSessionForApplication(application));
-        log.info("Created secret: part1:{}, part2:{} = secret:{}",secretPart1,application.getId(),secret2);
-        spaApplicationRepository.add(secret2,createSessionForApplication(application));
+        if (Configuration.getBoolean("allow.simple.secret")){
+            log.info("Created secret: part1:{}, part2:{} = secret:{}",secretPart1,application.getId(),secret2);
+            spaApplicationRepository.add(secret2,createSessionForApplication(application));
+        }
 
         // 5. store part one of secret in user cookie for the domain of the redircet URI and add it to the Response
         StringBuilder sb = new StringBuilder(findRedirectUrl(application));
