@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -36,6 +37,7 @@ import java.util.stream.Stream;
 
 import static net.whydah.service.proxy.ProxyResource.PROXY_PATH;
 
+@RestController
 @Path(PROXY_PATH)
 @Produces(MediaType.TEXT_HTML)
 public class ProxyResource {
@@ -60,7 +62,7 @@ public class ProxyResource {
     }
 
 
-    @CrossOrigin(value = "https://latitude.sixtysix.no", allowCredentials = "true")
+    @CrossOrigin(value = "https://latitude.sixtysix.no", allowCredentials = "true",  allowedHeaders = "*")
     @GET
     @Path("/ping")
     public Response proxyPing(HttpServletRequest request) {
