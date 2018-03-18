@@ -70,17 +70,13 @@ public class ProxyResource {
     public Response proxyPing(HttpServletRequest request) {
         String body="{}";
         try {
-            Stream<Cookie> cookies = Arrays.stream(request.getCookies());
-
-            Optional<Cookie> codeCookie = cookies
-                    .filter(cookie -> cookie.getName().equals("code"))
-                    .findFirst();
 
 
+            Cookie codeCookie = CookieManager.getCodeCookie(request);
             String secretPart2 = UUID.randomUUID().toString();
 
-            if (codeCookie.isPresent()) {
-                body = "{\"secret2\"=\""+codeCookie.get().getValue()+"\"}";
+            if (codeCookie!=null) {
+                body = "{\"secret2\"=\""+codeCookie.getValue()+"\"}";
                 Response mresponse = Response.status(Response.Status.OK).header("Access-Control-Allow-Origin","https://latitude.sixtysix.no").header("Access-Control-Allow-Credentials",true).entity(body).build();
                 return mresponse;
             }

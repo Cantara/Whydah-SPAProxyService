@@ -179,7 +179,20 @@ public class CookieManager {
         }
         return null;
     }
-    
+
+    public static Cookie getCodeCookie(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) {
+            return null;
+        }
+        for (Cookie cookie : cookies) {
+            log.info("getCodeCookie: cookie with name={}, value={}", cookie.getName(), cookie.getValue(), cookie.getDomain(), cookie.getPath());
+            if ("code".equalsIgnoreCase(cookie.getName())) {
+                return cookie;
+            }
+        }
+        return null;
+    }
     private static void addCookie(String userTokenId,
 			Integer tokenRemainingLifetimeSeconds, HttpServletResponse response) {
 		StringBuilder sb = new StringBuilder(USER_TOKEN_REFERENCE_NAME);
