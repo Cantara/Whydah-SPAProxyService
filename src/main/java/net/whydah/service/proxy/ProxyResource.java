@@ -2,8 +2,6 @@ package net.whydah.service.proxy;
 
 import net.whydah.service.CredentialStore;
 import net.whydah.service.SPAApplicationRepository;
-import net.whydah.service.health.HealthResource;
-import net.whydah.sso.application.helpers.ApplicationXpathHelper;
 import net.whydah.sso.application.mappers.ApplicationMapper;
 import net.whydah.sso.application.mappers.ApplicationTokenMapper;
 import net.whydah.sso.application.types.Application;
@@ -11,22 +9,18 @@ import net.whydah.sso.application.types.ApplicationACL;
 import net.whydah.sso.application.types.ApplicationCredential;
 import net.whydah.sso.application.types.ApplicationToken;
 import net.whydah.sso.commands.adminapi.application.CommandGetApplication;
-import net.whydah.sso.commands.adminapi.user.CommandGetUser;
-import net.whydah.sso.commands.appauth.CommandGetApplicationKey;
 import net.whydah.sso.commands.appauth.CommandLogonApplication;
 import net.whydah.sso.commands.userauth.CommandCreateTicketForUserTokenID;
-import net.whydah.sso.commands.userauth.CommandGetUsertokenByUserticket;
-import net.whydah.sso.commands.userauth.CommandGetUsertokenByUsertokenId;
 import net.whydah.util.Configuration;
 import net.whydah.util.CookieManager;
 import net.whydah.util.StringXORer;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
 
-import sun.security.krb5.internal.APOptions;
-
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.GET;
@@ -36,12 +30,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
 import java.net.URI;
 import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 import static net.whydah.service.proxy.ProxyResource.PROXY_PATH;
 
@@ -55,8 +46,6 @@ public class ProxyResource {
     private static final Logger log = LoggerFactory.getLogger(ProxyResource.class);
     private final CredentialStore credentialStore;
     private final SPAApplicationRepository spaApplicationRepository;
-    private static boolean isRunning = false;
-    private static ScheduledExecutorService scheduledThreadPool;
     private StringXORer stringXORer= new StringXORer();
 
     private Map<String,Application> spaSecretMap = new HashMap<String,Application>();
@@ -70,8 +59,35 @@ public class ProxyResource {
         this.spaApplicationRepository=spaApplicationRepository;
     }
 
-    @Produces(MediaType.APPLICATION_JSON)
 
+    @CrossOrigin(value = "*", allowCredentials = "true")
+    @GetMapping("/ping")
+    public Response proxyPing(HttpServletRequest request) {
+        Stream<Cookie> cookies = Arrays.stream(request.getCookies());
+
+        Optional<Cookie> codeCookie = cookies
+                .filter(cookie -> cookie.getName().equals("code"))
+                .findFirst();
+
+        String secretPart2 = UUID.randomUUID().toString();
+
+        if (codeCookie.isPresent()) {
+            StringBuilder sb = new StringBuilder();
+            sb.append("code=");
+            sb.append(secretPart2);
+            sb.append(";expires=");
+            sb.append(8460);
+            sb.append(";path=");
+            sb.append("/");
+            sb.append(";HttpOnly");
+            sb.append(";secure");
+            Response mresponse = Response.status(Response.Status.OK).header("SET-COOKIE", sb.toString()).build();
+            return mresponse;
+        }
+
+        Response mresponse = Response.status(Response.Status.OK).build();
+        return mresponse;
+    }
     //HUY: there is no secret, that means this is exposed to everyone
     //However, the key advantage is that we conveniently hide the application secret from exposure 
     @GET
@@ -112,7 +128,7 @@ public class ProxyResource {
 
         // 5. store part one of secret in user cookie for the domain of the redircet URI and add it to the Response
         StringBuilder sb = new StringBuilder(findRedirectUrl(application));
-        sb.append("=");
+        sb.append("code=");
         sb.append(secretPart2);
         sb.append(";expires=");
         sb.append(846000);
