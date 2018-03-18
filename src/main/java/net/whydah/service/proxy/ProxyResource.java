@@ -86,15 +86,14 @@ public class ProxyResource {
                 sb.append("/");
                 sb.append(";HttpOnly");
                 sb.append(";secure");
-                Response mresponse = Response.status(Response.Status.OK).header("SET-COOKIE", sb.toString()).build();
+                Response mresponse = Response.status(Response.Status.OK).header("Access-Control-Allow-Origin","https://latitude.sixtysix.no").header("Access-Control-Allow-Credentials",true).header("SET-COOKIE", sb.toString()).build();
                 return mresponse;
             }
         } catch (Exception e){
             log.warn("Ping called but no cookies found: ",e);
         }
 
-
-        Response mresponse = Response.status(Response.Status.OK).build();
+        Response mresponse = Response.status(Response.Status.OK).header("Access-Control-Allow-Origin","https://latitude.sixtysix.no").header("Access-Control-Allow-Credentials",true).build();
         return mresponse;
     }
     //HUY: there is no secret, that means this is exposed to everyone
