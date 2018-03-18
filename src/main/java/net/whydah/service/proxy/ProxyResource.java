@@ -66,6 +66,7 @@ public class ProxyResource {
     @GET
     @Path("/ping")
     public Response proxyPing(HttpServletRequest request) {
+        String body="{}";
         try {
             Stream<Cookie> cookies = Arrays.stream(request.getCookies());
 
@@ -86,14 +87,15 @@ public class ProxyResource {
                 sb.append("/");
                 sb.append(";HttpOnly");
                 sb.append(";secure");
-                Response mresponse = Response.status(Response.Status.OK).header("Access-Control-Allow-Origin","https://latitude.sixtysix.no").header("Access-Control-Allow-Credentials",true).header("SET-COOKIE", sb.toString()).build();
+                body = "{\"secret2\"=\""+codeCookie.get().getValue()+"\"}";
+                Response mresponse = Response.status(Response.Status.OK).header("Access-Control-Allow-Origin","https://latitude.sixtysix.no").header("Access-Control-Allow-Credentials",true).header("SET-COOKIE", sb.toString()).entity(body).build();
                 return mresponse;
             }
         } catch (Exception e){
             log.warn("Ping called but no cookies found: ",e);
         }
 
-        Response mresponse = Response.status(Response.Status.OK).header("Access-Control-Allow-Origin","https://latitude.sixtysix.no").header("Access-Control-Allow-Credentials",true).build();
+        Response mresponse = Response.status(Response.Status.OK).header("Access-Control-Allow-Origin","https://latitude.sixtysix.no").header("Access-Control-Allow-Credentials",true).entity(body).build();
         return mresponse;
     }
     //HUY: there is no secret, that means this is exposed to everyone
