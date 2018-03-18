@@ -61,7 +61,8 @@ public class ProxyResource {
 
 
     @CrossOrigin(value = "*", allowCredentials = "true")
-    @GetMapping("/ping")
+    @GET
+    @Path("/ping")
     public Response proxyPing(HttpServletRequest request) {
         Stream<Cookie> cookies = Arrays.stream(request.getCookies());
 
