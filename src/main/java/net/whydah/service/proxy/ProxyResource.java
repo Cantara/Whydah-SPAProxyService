@@ -62,27 +62,26 @@ public class ProxyResource {
     }
 
 
-    @CrossOrigin(value = "https://latitude.sixtysix.no", allowCredentials = "true",  allowedHeaders = "*")
+//    @CrossOrigin(value = "https://latitude.sixtysix.no", allowCredentials = "true",  allowedHeaders = "*")
     @GET
-    @Path("/ping")
+    @Path("/{appname}/ping")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response proxyPing(@Context HttpServletRequest request) {
+    public Response proxyPing(@Context HttpServletRequest request, @PathParam("appname") String appname) {
         String body="{}";
-        try {
-
-
-            Cookie codeCookie = CookieManager.getCodeCookie(request);
-            String secretPart2 = UUID.randomUUID().toString();
-
-            if (codeCookie!=null) {
-                body = "{\"secret2\"=\""+codeCookie.getValue()+"\"}";
-                Response mresponse = Response.status(Response.Status.OK).header("Access-Control-Allow-Origin","https://latitude.sixtysix.no").header("Access-Control-Allow-Credentials",true).entity(body).build();
-                return mresponse;
+        log.trace("getProxyRedirect");
+        Application application=findApplication(appname);
+        if (application==null) {
+            try {
+                Cookie codeCookie = CookieManager.getCodeCookie(request);
+                if (codeCookie != null) {
+                    body = "{\"secret2\"=\"" + codeCookie.getValue() + "\"}";
+                    Response mresponse = Response.status(Response.Status.OK).header("Access-Control-Allow-Origin", findRedirectUrl(application)).header("Access-Control-Allow-Credentials", true).entity(body).build();
+                    return mresponse;
+                }
+            } catch (Exception e) {
+                log.warn("Ping called but no cookies found: ", e);
             }
-        } catch (Exception e){
-            log.warn("Ping called but no cookies found: ",e);
         }
-
         Response mresponse = Response.status(Response.Status.OK).header("Access-Control-Allow-Origin","https://latitude.sixtysix.no").header("Access-Control-Allow-Credentials",true).entity(body).build();
         return mresponse;
     }
@@ -92,7 +91,6 @@ public class ProxyResource {
     @Path("/{appname}")
     public Response getProxyRedirect(@Context HttpServletRequest httpServletRequest, @Context HttpServletResponse httpServletResponse, @PathParam("appname") String appname) {
         log.trace("getProxyRedirect");
-      
         Application application=findApplication(appname);
         if (application==null){
             // No registered application found, return to default login
