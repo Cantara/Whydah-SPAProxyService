@@ -64,7 +64,9 @@ public class ProxyResource {
 
     @CrossOrigin(value = "https://latitude.sixtysix.no", allowCredentials = "true",  allowedHeaders = "*")
     @GET
+    @Context
     @Path("/ping")
+    @Produces(MediaType.APPLICATION_JSON)
     public Response proxyPing(HttpServletRequest request) {
         String body="{}";
         try {
