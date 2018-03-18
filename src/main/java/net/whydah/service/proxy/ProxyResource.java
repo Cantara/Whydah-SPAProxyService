@@ -80,17 +80,8 @@ public class ProxyResource {
             String secretPart2 = UUID.randomUUID().toString();
 
             if (codeCookie.isPresent()) {
-                StringBuilder sb = new StringBuilder();
-                sb.append("code=");
-                sb.append(secretPart2);
-                sb.append(";expires=");
-                sb.append(8460);
-                sb.append(";path=");
-                sb.append("/");
-                sb.append(";HttpOnly");
-                sb.append(";secure");
                 body = "{\"secret2\"=\""+codeCookie.get().getValue()+"\"}";
-                Response mresponse = Response.status(Response.Status.OK).header("Access-Control-Allow-Origin","https://latitude.sixtysix.no").header("Access-Control-Allow-Credentials",true).header("SET-COOKIE", sb.toString()).entity(body).build();
+                Response mresponse = Response.status(Response.Status.OK).header("Access-Control-Allow-Origin","https://latitude.sixtysix.no").header("Access-Control-Allow-Credentials",true).entity(body).build();
                 return mresponse;
             }
         } catch (Exception e){
@@ -139,7 +130,7 @@ public class ProxyResource {
         }
 
         // 5. store part one of secret in user cookie for the domain of the redircet URI and add it to the Response
-        StringBuilder sb = new StringBuilder(findRedirectUrl(application));
+        StringBuilder sb = new StringBuilder();
         sb.append("code=");
         sb.append(secretPart2);
         sb.append(";expires=");
