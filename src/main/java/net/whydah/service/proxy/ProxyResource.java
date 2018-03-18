@@ -64,27 +64,33 @@ public class ProxyResource {
     @GET
     @Path("/ping")
     public Response proxyPing(HttpServletRequest request) {
-        Stream<Cookie> cookies = Arrays.stream(request.getCookies());
+        try {
+            Stream<Cookie> cookies = Arrays.stream(request.getCookies());
 
-        Optional<Cookie> codeCookie = cookies
-                .filter(cookie -> cookie.getName().equals("code"))
-                .findFirst();
+            Optional<Cookie> codeCookie = cookies
+                    .filter(cookie -> cookie.getName().equals("code"))
+                    .findFirst();
 
-        String secretPart2 = UUID.randomUUID().toString();
 
-        if (codeCookie.isPresent()) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("code=");
-            sb.append(secretPart2);
-            sb.append(";expires=");
-            sb.append(8460);
-            sb.append(";path=");
-            sb.append("/");
-            sb.append(";HttpOnly");
-            sb.append(";secure");
-            Response mresponse = Response.status(Response.Status.OK).header("SET-COOKIE", sb.toString()).build();
-            return mresponse;
+            String secretPart2 = UUID.randomUUID().toString();
+
+            if (codeCookie.isPresent()) {
+                StringBuilder sb = new StringBuilder();
+                sb.append("code=");
+                sb.append(secretPart2);
+                sb.append(";expires=");
+                sb.append(8460);
+                sb.append(";path=");
+                sb.append("/");
+                sb.append(";HttpOnly");
+                sb.append(";secure");
+                Response mresponse = Response.status(Response.Status.OK).header("SET-COOKIE", sb.toString()).build();
+                return mresponse;
+            }
+        } catch (Exception e){
+            log.warn("Ping called but no cookies found: ",e);
         }
+
 
         Response mresponse = Response.status(Response.Status.OK).build();
         return mresponse;
