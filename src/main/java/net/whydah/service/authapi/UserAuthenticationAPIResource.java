@@ -7,6 +7,7 @@ import net.whydah.service.CredentialStore;
 import net.whydah.service.SPAApplicationRepository;
 import net.whydah.service.proxy.ProxyResource;
 import net.whydah.sso.application.mappers.ApplicationTokenMapper;
+import net.whydah.sso.application.types.Application;
 import net.whydah.sso.application.types.ApplicationToken;
 import net.whydah.sso.commands.userauth.CommandCreateTicketForUserTokenID;
 import net.whydah.sso.commands.userauth.CommandGetUsertokenByUserticket;
@@ -54,7 +55,7 @@ getJWTTokenFromTicket, loginUserWithUserNameAndPassword   loginUserWithUsernameA
 public class UserAuthenticationAPIResource {
 
     public static final String API_PATH = "/api";
-    private static final Logger log = LoggerFactory.getLogger(ProxyResource.class);
+    private static final Logger log = LoggerFactory.getLogger(UserAuthenticationAPIResource.class);
     private final CredentialStore credentialStore;
     private final SPAApplicationRepository spaApplicationRepository;
 
@@ -77,6 +78,7 @@ public class UserAuthenticationAPIResource {
             log.warn("Unable to locate applicationsession from secret, returning 403");
             return Response.status(Response.Status.FORBIDDEN).build();
         }
+        Application application=credentialStore.findApplication(applicationToken.getApplicationName());
 
         
         UserToken userToken = UserTokenMapper.fromUserTokenXml(new CommandGetUsertokenByUserticket(URI.create(credentialStore.getWas().getSTS()), applicationToken.getApplicationTokenId(), ApplicationTokenMapper.toXML(applicationToken), ticket).execute());
@@ -91,7 +93,7 @@ public class UserAuthenticationAPIResource {
         	 log.warn("Unable to renew a ticket for this UserToken, returning 500");
              return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
-        return Response.ok(getResponseTextJson(userToken, newTicket, applicationToken.getApplicationID())).build();
+        return Response.ok(getResponseTextJson(userToken, newTicket, applicationToken.getApplicationID())).header("Access-Control-Allow-Origin",credentialStore.findRedirectUrl(application)).header("Access-Control-Allow-Credentials",true).build();
     }
 
 
@@ -107,6 +109,8 @@ public class UserAuthenticationAPIResource {
             log.warn("Unable to locate applicationsession from secret, returning 403");
             return Response.status(Response.Status.FORBIDDEN).build();
         }
+        Application application=credentialStore.findApplication(applicationToken.getApplicationName());
+
         UserCredential userCredential = UserCredentialMapper.fromXml(payload);
         if(userCredential==null){
         	try {
@@ -131,7 +135,7 @@ public class UserAuthenticationAPIResource {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
         CookieManager.createAndSetUserTokenCookie(userToken.getUserTokenId(),Integer.parseInt(userToken.getLifespan()) ,httpServletRequest, httpServletResponse);
-        return Response.ok(getResponseTextJson(userToken, ticket, applicationToken.getApplicationID())).build();
+        return Response.ok(getResponseTextJson(userToken, ticket, applicationToken.getApplicationID())).header("Access-Control-Allow-Origin",credentialStore.findRedirectUrl(application)).header("Access-Control-Allow-Credentials",true).build();
 
     }
 
@@ -140,38 +144,5 @@ public class UserAuthenticationAPIResource {
     }
 
 
-//    private String createJWT(String id, String issuer, String subject, String whydahJsonToken, long ttlMillis) {
-//
-//        //The JWT signature algorithm we will be using to sign the token
-//        SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.HS256;
-//
-//        long nowMillis = System.currentTimeMillis();
-//        Date now = new Date(nowMillis);
-//
-//        //We will sign our JWT with our ApiKey secret
-//        byte[] apiKeySecretBytes = DatatypeConverter.parseBase64Binary(getSecret());
-//        //Key signingKey = new SecretKeySpec(apiKeySecretBytes, signatureAlgorithm.getJcaName());
-//
-//        //Let's set the JWT Claims
-//        JwtBuilder builder = Jwts.builder().setId(id)
-//                                 .setIssuedAt(now)
-//                                 .setSubject(subject)
-//                                 .setIssuer(issuer);
-////                                 .setPayload(whydahJsonToken);
-////                                 .signWith(signatureAlgorithm, signingKey);
-//
-//        //if it has been specified, let's add the expiration
-//        if (ttlMillis >= 0) {
-//            long expMillis = nowMillis + ttlMillis;
-//            Date exp = new Date(expMillis);
-//            builder.setExpiration(exp);
-//        }
-//
-//        //Builds the JWT and serializes it to a compact, URL-safe string
-//        return builder.compact();
-//    }
-//
-//    private String getSecret() {
-//        return "yiu";
-//    }
+
 }

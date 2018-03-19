@@ -35,6 +35,7 @@ import java.net.URI;
 import java.util.*;
 import java.util.stream.Stream;
 
+import static net.whydah.service.CredentialStore.FALLBACk_URL;
 import static net.whydah.service.proxy.ProxyResource.PROXY_PATH;
 
 @RestController
@@ -44,7 +45,6 @@ public class ProxyResource {
 
 	
     public static final String PROXY_PATH = "/load";
-    public static final String FALLBACk_URL =  Configuration.getString("fallbackurl");
     private static final Logger log = LoggerFactory.getLogger(ProxyResource.class);
     private final CredentialStore credentialStore;
     private final SPAApplicationRepository spaApplicationRepository;
@@ -69,20 +69,20 @@ public class ProxyResource {
     public Response proxyAppPing(@Context HttpServletRequest request, @PathParam("appname") String appname) {
         String body="{\"result\": \"pong\"}";
         log.trace("proxyAppPing");
-        Application application=findApplication(appname);
+        Application application=credentialStore.findApplication(appname);
         if (application==null) {
             try {
                 Cookie codeCookie = CookieManager.getCodeCookie(request);
                 if (codeCookie != null) {
                     body = "{\"result\": \"pong\",\n\"secret2\"=\"" + codeCookie.getValue() + "\"}";
-                    Response mresponse = Response.status(Response.Status.OK).header("Access-Control-Allow-Origin", findRedirectUrl(application)).header("Access-Control-Allow-Credentials", true).entity(body).build();
+                    Response mresponse = Response.status(Response.Status.OK).header("Access-Control-Allow-Origin", credentialStore.findRedirectUrl(application)).header("Access-Control-Allow-Credentials", true).entity(body).build();
                     return mresponse;
                 }
             } catch (Exception e) {
                 log.warn("Ping called but no cookies found: ", e);
             }
         }
-        Response mresponse = Response.status(Response.Status.OK).header("Access-Control-Allow-Origin",findRedirectUrl(application)).header("Access-Control-Allow-Credentials",true).entity(body).build();
+        Response mresponse = Response.status(Response.Status.OK).header("Access-Control-Allow-Origin",credentialStore.findRedirectUrl(application)).header("Access-Control-Allow-Credentials",true).entity(body).build();
         return mresponse;
     }
     //HUY: there is no secret, that means this is exposed to everyone
@@ -91,7 +91,7 @@ public class ProxyResource {
     @Path("/{appname}")
     public Response getProxyRedirect(@Context HttpServletRequest httpServletRequest, @Context HttpServletResponse httpServletResponse, @PathParam("appname") String appname) {
         log.trace("getProxyRedirect");
-        Application application=findApplication(appname);
+        Application application=credentialStore.findApplication(appname);
         if (application==null){
             // No registered application found, return to default login
             return Response.status(Response.Status.FOUND).header("Location", FALLBACk_URL).build();
@@ -135,7 +135,7 @@ public class ProxyResource {
 //        response.setHeader("SET-COOKIE", sb.toString());
 
        // 6. create 302-response with part2 of secret in http Location header
-        Response mresponse=Response.status(Response.Status.FOUND).header("Location", findRedirectUrl(application)+"?code="+ secretPart1 +"&ticket="+ ticket).header("SET-COOKIE",sb.toString()).build();
+        Response mresponse=Response.status(Response.Status.FOUND).header("Location", credentialStore.findRedirectUrl(application)+"?code="+ secretPart1 +"&ticket="+ ticket).header("SET-COOKIE",sb.toString()).build();
         return mresponse;
 
     }
@@ -151,59 +151,9 @@ public class ProxyResource {
         ApplicationToken applicationToken = ApplicationTokenMapper.fromXml(myAppTokenXml);
         return applicationToken;
     }
-    private String findRedirectUrl(Application application) {
-        String redirectUrl = null;
-
-        if (application != null && application.getAcl() != null) {
-            List<ApplicationACL> acls = application.getAcl();
-            for (ApplicationACL acl : acls) {
-                if (acl.getAccessRights() != null && acl.getAccessRights().contains(ApplicationACL.OAUTH2_REDIRECT)) {
-                    redirectUrl = acl.getApplicationACLPath();
-                    log.trace("Found redirectpath {} for application {}", redirectUrl, application.getId());
-                }
-            }
-        }
-
-        if (redirectUrl==null){
-            redirectUrl=application.getApplicationUrl();
-        }
-        if (redirectUrl==null){
-            redirectUrl= FALLBACk_URL;
-        }
-
-        return redirectUrl;
-    }
 
 
-    private Application findApplication(String appName){
 
-        List<Application> applicationList = credentialStore.getWas().getApplicationList();
-        log.debug("Found {} applications",applicationList.size());
-        Application found = null;
-        for (Application application:applicationList){
-            log.info("Parsing application: {}",application.getName());
-
-            if (application.getName().equalsIgnoreCase(appName)){
-                found = application;
-                break;
-            }
-            if (application.getId().equalsIgnoreCase(appName)){
-                found = application;
-                break;
-            }
-        }
-        
-        if(found!=null){
-        	//HUY: we have to use admin function to get the full specification of this app
-        	//Problem is the app secret is obfuscated in application list
-        	CommandGetApplication app = new CommandGetApplication(URI.create(credentialStore.getWas().getUAS()), credentialStore.getWas().getActiveApplicationTokenId(), credentialStore.getAdminUserTokenId(), found.getId());
-        	String result = app.execute();
-        	if(result!=null){
-        		found = ApplicationMapper.fromJson(result);
-        	}
-        }
-        return found;
-    }
 
 
 }
