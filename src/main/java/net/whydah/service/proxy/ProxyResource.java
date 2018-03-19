@@ -66,15 +66,15 @@ public class ProxyResource {
     @GET
     @Path("/{appname}/ping")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response proxyPing(@Context HttpServletRequest request, @PathParam("appname") String appname) {
-        String body="{}";
-        log.trace("getProxyRedirect");
+    public Response proxyAppPing(@Context HttpServletRequest request, @PathParam("appname") String appname) {
+        String body="{\"result\": \"pong\"}";
+        log.trace("proxyAppPing");
         Application application=findApplication(appname);
         if (application==null) {
             try {
                 Cookie codeCookie = CookieManager.getCodeCookie(request);
                 if (codeCookie != null) {
-                    body = "{\"secret2\"=\"" + codeCookie.getValue() + "\"}";
+                    body = "{\"result\": \"pong\",\n\"secret2\"=\"" + codeCookie.getValue() + "\"}";
                     Response mresponse = Response.status(Response.Status.OK).header("Access-Control-Allow-Origin", findRedirectUrl(application)).header("Access-Control-Allow-Credentials", true).entity(body).build();
                     return mresponse;
                 }
@@ -82,7 +82,7 @@ public class ProxyResource {
                 log.warn("Ping called but no cookies found: ", e);
             }
         }
-        Response mresponse = Response.status(Response.Status.OK).header("Access-Control-Allow-Origin","https://latitude.sixtysix.no").header("Access-Control-Allow-Credentials",true).entity(body).build();
+        Response mresponse = Response.status(Response.Status.OK).header("Access-Control-Allow-Origin",findRedirectUrl(application)).header("Access-Control-Allow-Credentials",true).entity(body).build();
         return mresponse;
     }
     //HUY: there is no secret, that means this is exposed to everyone
