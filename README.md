@@ -33,21 +33,22 @@ The SPAProxyService is an optinal Whydah module to support whydah application se
 }
 ```
 
-### Flow documentation
+### SPA SSO Flow 
 
 1. use the ../load/{myapp} redirect flow
-  * Looks for SSO session
-  * Create 302-redirect with two secrets
-    * secret 1 is the code=xxx param on the redirect-URI on the Location URL in the 302 response
-    * secret 2 is in an embedded cookie in the 302-request
+    * Looks for SSO session
+    * Create 302-redirect with two secrets
+      * secret 1 is the code=xxx param on the redirect-URI on the Location URL in the 302 response
+      * secret 2 is in an embedded cookie in the 302-request
+
 2. if you are unable to get/process the cookie
-  * do a js XREF request to  ../load/{myapp}/ping
-    * this will pick up the cookie, and retuen it in a json response
+    * do a js XREF request to  ../load/{myapp}/ping
+      * this will pick up the cookie, and retuen it in a json response
 3. to get the secret (initial application ticket) fo a secret1 XOR secret2   
 4. if the user is recognized, use the ticket from the 302-request and call /{secret}/get_token_from_ticket/{ticket}
-  * You will get a JWT token back with the user roles for your application
+    * You will get a JWT token back with the user roles for your application
 5. to log inn from username/password in your SPA, call /{secret}/authenticate_user/
-  * You will get a JWT token back with the user roles for your application
+    * You will get a JWT token back with the user roles for your application
  
  
 To make {myapp} with, it has to be configured in the system, with a redirect URI pointing to your SPA application.
@@ -58,4 +59,12 @@ To make {myapp} with, it has to be configured in the system, with a redirect URI
   "username": "myUserName",
   "password": "myPassword"
 }
+```
+
+#### Example for JWT token 
+```text
+~~~~~~~~~ JWT Header ~~~~~~~
+JWT Header : {"alg":"RS256"}
+~~~~~~~~~ JWT Body ~~~~~~~
+JWT Body : {"sub":"useradmin","jti":"8bdf8ad8-b7af-4561-93be-58d420c3ea54","iss":"","aud":"","iat":1521489954,"userticket":"27eefeff-606d-4e58-9177-63373f36e6d4","exp":1521509954}
 ```
