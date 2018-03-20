@@ -38,11 +38,11 @@ The SPAProxyService is an optinal Whydah module to support whydah application se
 1. use the ../load/myapp redirect flow
   * Looks for SSO session
   * Create 302-redirect with two secrets
-   * secret 1 is the code=xxx param on the redirect-URI on the Location URL in the 302 response
-   * secret 2 is in an embedded cookie in the 302-request
+    * secret 1 is the code=xxx param on the redirect-URI on the Location URL in the 302 response
+    * secret 2 is in an embedded cookie in the 302-request
 2. if you are unable to get/process the cookie
   * do a js XREF request to  ../load/myapp/ping
-   * this will pick up the cookie, and retuen it in a json response
+    * this will pick up the cookie, and retuen it in a json response
 3. to get the secret (initial application ticket) fo a secret1 XOR secret2   
 4. if the user is recognized, use the ticket from the 302-request and call /{secret}/get_token_from_ticket/{ticket}
   * You will get a JWT token back with the user roles for your application
