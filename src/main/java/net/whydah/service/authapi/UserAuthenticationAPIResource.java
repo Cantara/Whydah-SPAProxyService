@@ -36,6 +36,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.xml.bind.DatatypeConverter;
@@ -68,8 +69,8 @@ public class UserAuthenticationAPIResource {
 
     @POST
     @Path("/{secret}/get_token_from_ticket/{ticket}")
-    public Response getJWTFromTicket(@PathParam("secret") String secret, @PathParam("ticket") String ticket) {
-        log.trace("getJWTFromTicket - called with secret:{}", secret);
+    public Response getJWTFromTicket(@PathParam("secret") String secret,  @Context HttpHeaders headers,@PathParam("ticket") String ticket) {
+        log.info("Invoked get_token_from_ticket with secret: {} ticket: {} and headers: {}", secret, ticket, headers.getRequestHeaders());
 
         // 1. lookup secret in secret-application session map
         ApplicationToken applicationToken = spaApplicationRepository.getApplicationTokenBySecret(secret);
@@ -99,8 +100,8 @@ public class UserAuthenticationAPIResource {
 
     @POST
     @Path("/{secret}/authenticate_user/")
-    public Response authenticateUser(@Context HttpServletRequest httpServletRequest, @Context HttpServletResponse httpServletResponse, @PathParam("secret") String secret, @RequestBody String payload) {
-        log.trace("authenticateUser - called with secret:{}", secret);
+    public Response authenticateUser(@Context HttpServletRequest httpServletRequest, @Context HttpServletResponse httpServletResponse, @Context HttpHeaders headers, @PathParam("secret") String secret, @RequestBody String payload) {
+        log.info("Invoked authenticate_user with secret: {} and headers: {}", secret, headers.getRequestHeaders());
 
         // 1. lookup secret in secret-application session map
         ApplicationToken applicationToken = spaApplicationRepository.getApplicationTokenBySecret(secret);

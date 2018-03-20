@@ -29,6 +29,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.net.URI;
@@ -66,9 +67,10 @@ public class ProxyResource {
     @GET
     @Path("/{appname}/ping")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response proxyAppPing(@Context HttpServletRequest request, @PathParam("appname") String appname) {
+    public Response proxyAppPing(@Context HttpServletRequest request, @Context HttpHeaders headers, @PathParam("appname") String appname) {
+        log.info("Invoked proxyAppPing with appname: {} and headers: {}", appname, headers.getRequestHeaders());
+
         String body="{\"result\": \"pong\"}";
-        log.trace("proxyAppPing");
         Application application=credentialStore.findApplication(appname);
         if (application==null) {
             try {
@@ -89,8 +91,8 @@ public class ProxyResource {
     //However, the key advantage is that we conveniently hide the application secret from exposure 
     @GET
     @Path("/{appname}")
-    public Response getProxyRedirect(@Context HttpServletRequest httpServletRequest, @Context HttpServletResponse httpServletResponse, @PathParam("appname") String appname) {
-        log.trace("getProxyRedirect");
+    public Response getProxyRedirect(@Context HttpServletRequest httpServletRequest, @Context HttpServletResponse httpServletResponse, @Context HttpHeaders headers,@PathParam("appname") String appname) {
+        log.info("Invoked getProxyRedirect with appname: {} and headers: {}", appname, headers.getRequestHeaders());
         Application application=credentialStore.findApplication(appname);
         if (application==null){
             // No registered application found, return to default login
