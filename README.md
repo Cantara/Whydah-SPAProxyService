@@ -53,7 +53,7 @@ The SPAProxyService is an optinal Whydah module to support whydah application se
  
 To make {myapp} with, it has to be configured in the system, with a redirect URI pointing to your SPA application.
  
-#### Example for /proxy/health 
+#### Example for POST /api/{secret}/authenticate_user/  Json user credentials
 ```json
 {
   "username": "myUserName",
@@ -61,7 +61,7 @@ To make {myapp} with, it has to be configured in the system, with a redirect URI
 }
 ```
 
-#### Example for JWT token 
+#### Example for POST /get_token_from_ticket/{ticket}   return JWT token
 ```text
 ~~~~~~~~~ JWT Header ~~~~~~~
 JWT Header : {"alg":"RS256"}
