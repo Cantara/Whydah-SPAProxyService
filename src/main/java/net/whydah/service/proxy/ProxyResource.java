@@ -2,13 +2,10 @@ package net.whydah.service.proxy;
 
 import net.whydah.service.CredentialStore;
 import net.whydah.service.SPAApplicationRepository;
-import net.whydah.sso.application.mappers.ApplicationMapper;
 import net.whydah.sso.application.mappers.ApplicationTokenMapper;
 import net.whydah.sso.application.types.Application;
-import net.whydah.sso.application.types.ApplicationACL;
 import net.whydah.sso.application.types.ApplicationCredential;
 import net.whydah.sso.application.types.ApplicationToken;
-import net.whydah.sso.commands.adminapi.application.CommandGetApplication;
 import net.whydah.sso.commands.appauth.CommandLogonApplication;
 import net.whydah.sso.commands.userauth.CommandCreateTicketForUserTokenID;
 import net.whydah.util.Configuration;
@@ -17,8 +14,6 @@ import net.whydah.util.StringXORer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.Cookie;
@@ -33,8 +28,9 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.net.URI;
-import java.util.*;
-import java.util.stream.Stream;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 import static net.whydah.service.CredentialStore.FALLBACk_URL;
 import static net.whydah.service.proxy.ProxyResource.PROXY_PATH;
@@ -137,7 +133,10 @@ public class ProxyResource {
 //        response.setHeader("SET-COOKIE", sb.toString());
 
        // 6. create 302-response with part2 of secret in http Location header
-        Response mresponse=Response.status(Response.Status.FOUND).header("Location", credentialStore.findRedirectUrl(application)+"?code="+ secretPart1 +"&ticket="+ ticket).header("SET-COOKIE",sb.toString()).build();
+        Response mresponse = Response.status(Response.Status.FOUND)
+                .header("Location", credentialStore.findRedirectUrl(application) + "?code=" + secretPart1 + "&ticket=" + ticket)
+                .header("Access-Control-Expose-Headers", "Cookie")
+                .header("SET-COOKIE", sb.toString()).build();
         return mresponse;
 
     }
