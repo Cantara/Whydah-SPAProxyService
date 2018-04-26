@@ -19,10 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -63,7 +60,7 @@ public class ProxyResource {
     @GET
     @Path("/{appname}/ping")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response proxyAppPing(@Context HttpServletRequest request, @Context HttpHeaders headers, @PathParam("appname") String appname) {
+    public Response proxyAppPing(@Context HttpServletRequest request, @Context HttpHeaders headers, @PathParam("appname") String appname, @QueryParam("s1") String secret1) {
         log.info("Invoked proxyAppPing with appname: {} and headers: {}", appname, headers.getRequestHeaders());
 
         String body="{\"result\": \"pong\"}";
@@ -75,6 +72,25 @@ public class ProxyResource {
                     body = "{\"result\": \"pong\",\n\"secret2\"=\"" + codeCookie.getValue() + "\"}";
                     Response mresponse = Response.status(Response.Status.OK).header("Access-Control-Allow-Origin", credentialStore.findRedirectUrl(application)).header("Access-Control-Allow-Credentials", true).entity(body).build();
                     return mresponse;
+                } else {
+                    if (secret1 != null) {
+                        body = "{\"result\": \"pong\",\n\"secret2\"=\"" + codeCookie.getValue() + "\"}";
+                        StringBuilder sb = new StringBuilder();
+                        sb.append("secret2=");
+                        sb.append(spaSecretMap.get(secret1));
+                        sb.append(";expires=");
+                        sb.append(100);
+                        sb.append(";path=");
+                        sb.append("/");
+                        sb.append(";HttpOnly");
+                        sb.append(";secure");
+                        Response mresponse = Response.status(Response.Status.OK).
+                                header("Access-Control-Allow-Origin", credentialStore.findRedirectUrl(application)).
+                                header("Access-Control-Allow-Credentials", true)
+                                .header("SET-COOKIE", sb.toString())
+                                .entity(body).build();
+                        return mresponse;
+                    }
                 }
             } catch (Exception e) {
                 log.warn("Ping called but no cookies found: ", e);
