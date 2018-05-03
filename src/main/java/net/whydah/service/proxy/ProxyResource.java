@@ -14,6 +14,7 @@ import net.whydah.util.StringXORer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.Cookie;
@@ -81,9 +82,10 @@ public class ProxyResource {
                     sb.append("/");
                     sb.append(";HttpOnly");
                     sb.append(";secure");
-                    Response mresponse = Response.status(Response.Status.OK).
-                            header("Access-Control-Allow-Origin", credentialStore.findRedirectUrl(application)).
-                            header("Access-Control-Allow-Credentials", true)
+                    Response mresponse = Response.status(Response.Status.OK)
+                            .header("Access-Control-Allow-Origin", credentialStore.findRedirectUrl(application))
+                            .header("Access-Control-Allow-Credentials", "true")
+                            .header("Access-Control-Allow-Headers", "*")
                             .header("SET-COOKIE", sb.toString())
                             .entity(body).build();
                     return mresponse;
