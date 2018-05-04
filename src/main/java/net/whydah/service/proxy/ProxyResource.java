@@ -84,7 +84,7 @@ public class ProxyResource {
                     sb.append(";secure");
                     Response mresponse = Response.status(Response.Status.OK)
                             .header("Access-Control-Allow-Origin", credentialStore.findRedirectUrl(application))
-                            .header("Access-Control-Allow-Credentials", "true")
+                            .header("Access-Control-Allow-Credentials", true)
                             .header("Access-Control-Allow-Headers", "*")
                             .header("SET-COOKIE", sb.toString())
                             .entity(body).build();
@@ -101,9 +101,10 @@ public class ProxyResource {
                     sb.append("/");
                     sb.append(";HttpOnly");
                     sb.append(";secure");
-                    Response mresponse = Response.status(Response.Status.OK).
-                            header("Access-Control-Allow-Origin", credentialStore.findRedirectUrl(application)).
-                            header("Access-Control-Allow-Credentials", true)
+                    Response mresponse = Response.status(Response.Status.OK)
+                            .header("Access-Control-Allow-Origin", credentialStore.findRedirectUrl(application))
+                            .header("Access-Control-Allow-Credentials", true)
+                            .header("Access-Control-Allow-Headers", "*")
                             .header("SET-COOKIE", sb.toString())
                             .entity(body).build();
                     return mresponse;
@@ -170,6 +171,8 @@ public class ProxyResource {
         Response mresponse = Response.status(Response.Status.FOUND)
                 .header("Location", credentialStore.findRedirectUrl(application) + "?code=" + secretPart1 + "&ticket=" + ticket)
                 .header("Access-Control-Expose-Headers", "Cookie")
+                .header("Access-Control-Allow-Credentials", true)
+                .header("Access-Control-Allow-Headers", "*")
                 .header("SET-COOKIE", sb.toString()).build();
         return mresponse;
 

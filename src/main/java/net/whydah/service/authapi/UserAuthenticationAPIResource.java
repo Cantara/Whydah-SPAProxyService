@@ -1,17 +1,12 @@
 package net.whydah.service.authapi;
 
-import io.jsonwebtoken.JwtBuilder;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import net.whydah.service.CredentialStore;
 import net.whydah.service.SPAApplicationRepository;
-import net.whydah.service.proxy.ProxyResource;
 import net.whydah.sso.application.mappers.ApplicationTokenMapper;
 import net.whydah.sso.application.types.Application;
 import net.whydah.sso.application.types.ApplicationToken;
 import net.whydah.sso.commands.userauth.CommandCreateTicketForUserTokenID;
 import net.whydah.sso.commands.userauth.CommandGetUsertokenByUserticket;
-import net.whydah.sso.commands.userauth.CommandGetUsertokenByUsertokenId;
 import net.whydah.sso.commands.userauth.CommandLogonUserByUserCredential;
 import net.whydah.sso.user.mappers.UserCredentialMapper;
 import net.whydah.sso.user.mappers.UserTokenMapper;
@@ -19,9 +14,6 @@ import net.whydah.sso.user.types.UserCredential;
 import net.whydah.sso.user.types.UserToken;
 import net.whydah.util.AdvancedJWTokenUtil;
 import net.whydah.util.CookieManager;
-import net.whydah.util.JWTokenUtil;
-
-import org.jose4j.jwt.JwtClaims;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -39,10 +31,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.xml.bind.DatatypeConverter;
-
 import java.net.URI;
-import java.util.Date;
 import java.util.UUID;
 
 import static net.whydah.service.authapi.UserAuthenticationAPIResource.API_PATH;
@@ -94,7 +83,11 @@ public class UserAuthenticationAPIResource {
         	 log.warn("Unable to renew a ticket for this UserToken, returning 500");
              return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
-        return Response.ok(getResponseTextJson(userToken, newTicket, applicationToken.getApplicationID())).header("Access-Control-Allow-Origin",credentialStore.findRedirectUrl(application)).header("Access-Control-Allow-Credentials",true).build();
+        return Response.ok(getResponseTextJson(userToken, newTicket, applicationToken.getApplicationID()))
+                .header("Access-Control-Allow-Origin", credentialStore.findRedirectUrl(application))
+                .header("Access-Control-Allow-Credentials", true)
+                .header("Access-Control-Allow-Headers", "*")
+                .build();
     }
 
 
@@ -136,7 +129,11 @@ public class UserAuthenticationAPIResource {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
         CookieManager.createAndSetUserTokenCookie(userToken.getUserTokenId(),Integer.parseInt(userToken.getLifespan()) ,httpServletRequest, httpServletResponse);
-        return Response.ok(getResponseTextJson(userToken, ticket, applicationToken.getApplicationID())).header("Access-Control-Allow-Origin",credentialStore.findRedirectUrl(application)).header("Access-Control-Allow-Credentials",true).build();
+        return Response.ok(getResponseTextJson(userToken, ticket, applicationToken.getApplicationID()))
+                .header("Access-Control-Allow-Origin", credentialStore.findRedirectUrl(application))
+                .header("Access-Control-Allow-Credentials", true)
+                .header("Access-Control-Allow-Headers", "*")
+                .build();
 
     }
 
