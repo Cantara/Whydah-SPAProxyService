@@ -5,7 +5,9 @@ import net.whydah.sso.application.mappers.ApplicationMapper;
 import net.whydah.sso.application.types.Application;
 import net.whydah.sso.application.types.ApplicationACL;
 import net.whydah.sso.application.types.ApplicationCredential;
+import net.whydah.sso.basehelpers.Validator;
 import net.whydah.sso.commands.adminapi.application.CommandGetApplication;
+import net.whydah.sso.ddd.model.base.AssertionConcern;
 import net.whydah.sso.session.WhydahApplicationSession;
 import net.whydah.sso.session.WhydahUserSession;
 import net.whydah.sso.user.types.UserCredential;
@@ -18,6 +20,7 @@ import org.springframework.stereotype.Repository;
 
 import javax.inject.Singleton;
 import java.net.URI;
+import java.net.URL;
 import java.util.List;
 
 /**
@@ -169,7 +172,7 @@ public class CredentialStore {
             }
         }
 
-        if (redirectUrl==null){
+        if (redirectUrl==null && application!=null && application.getApplicationUrl()!=null && Validator.isValidURL(application.getApplicationUrl())){
             redirectUrl=application.getApplicationUrl();
         }
         if (redirectUrl==null){
