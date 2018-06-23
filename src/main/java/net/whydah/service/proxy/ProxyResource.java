@@ -13,7 +13,6 @@ import net.whydah.sso.user.helpers.UserTokenXpathHelper;
 import net.whydah.util.Configuration;
 import net.whydah.util.CookieManager;
 import net.whydah.util.StringXORer;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -21,9 +20,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sun.research.ws.wadl.Request;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -267,7 +263,7 @@ public class ProxyResource {
         String origin = Configuration.getBoolean("allow.origin")?"*":credentialStore.findRedirectUrl(application);
         
         Response mresponse = Response.ok(js.toString())
-        		.header("Access-Control-Allow-Origin", origin)
+                .header("Access-Control-Allow-Origin", "*")
                 .header("Access-Control-Allow-Credentials", true)
                 .header("Access-Control-Allow-Headers", "*").build();
         return mresponse;
