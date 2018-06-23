@@ -24,11 +24,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -190,7 +186,7 @@ public class UserAuthenticationAPIResource {
         String origin = Configuration.getBoolean("allow.origin")?"*":credentialStore.findRedirectUrl(application);
         
         return Response.ok(getResponseTextJson(userToken, ticket, applicationToken.getApplicationID()))
-                .header("Access-Control-Allow-Origin", origin)
+                .header("Access-Control-Allow-Origin", "*")
                 .header("Access-Control-Allow-Credentials", true)
                 .header("Access-Control-Allow-Headers", "*")
                 .build();
