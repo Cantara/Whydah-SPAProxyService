@@ -13,6 +13,7 @@ import net.whydah.sso.user.mappers.UserTokenMapper;
 import net.whydah.sso.user.types.UserCredential;
 import net.whydah.sso.user.types.UserToken;
 import net.whydah.util.AdvancedJWTokenUtil;
+import net.whydah.util.Configuration;
 import net.whydah.util.CookieManager;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -56,7 +58,7 @@ public class UserAuthenticationAPIResource {
     }
 
 
-    @POST
+    @GET
     @Path("/{secret}/get_token_from_ticket/{ticket}")
     public Response getJWTFromTicket(@PathParam("secret") String secret,  @Context HttpHeaders headers,@PathParam("ticket") String ticket) {
         log.info("Invoked get_token_from_ticket with secret: {} ticket: {} and headers: {}", secret, ticket, headers.getRequestHeaders());
@@ -83,8 +85,11 @@ public class UserAuthenticationAPIResource {
         	 log.warn("Unable to renew a ticket for this UserToken, returning 500");
              return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
+        
+        String origin = Configuration.getBoolean("allow.origin")?"*":credentialStore.findRedirectUrl(application);
+        
         return Response.ok(getResponseTextJson(userToken, newTicket, applicationToken.getApplicationID()))
-                .header("Access-Control-Allow-Origin", credentialStore.findRedirectUrl(application))
+                .header("Access-Control-Allow-Origin", origin)
                 .header("Access-Control-Allow-Credentials", true)
                 .header("Access-Control-Allow-Headers", "*")
                 .build();
@@ -116,6 +121,23 @@ public class UserAuthenticationAPIResource {
 				
 			}
         }
+        if(payload.contains("&")) {
+        	String[] pairs = payload.split("&", 2);
+        	String username=null, password=null;
+        	for (String pair : pairs) {
+        		int idx = pair.indexOf("=");
+        		String key = pair.substring(0, idx);
+        		if(key.equals("username")) {
+        			username = pair.substring(idx + 1);
+        		} else if(key.equals("password")) {
+        			password = pair.substring(idx + 1);
+        		}
+        	}
+        	if(username!=null && password!=null) {
+        		userCredential = new UserCredential(username, password);
+        	}
+        }
+        
         if(userCredential==null){
         	 log.warn("Unable to find the user credential, returning 403");
              return Response.status(Response.Status.FORBIDDEN).build();
@@ -129,8 +151,10 @@ public class UserAuthenticationAPIResource {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
         CookieManager.createAndSetUserTokenCookie(userToken.getUserTokenId(),Integer.parseInt(userToken.getLifespan()) ,httpServletRequest, httpServletResponse);
+        String origin = Configuration.getBoolean("allow.origin")?"*":credentialStore.findRedirectUrl(application);
+        
         return Response.ok(getResponseTextJson(userToken, ticket, applicationToken.getApplicationID()))
-                .header("Access-Control-Allow-Origin", credentialStore.findRedirectUrl(application))
+                .header("Access-Control-Allow-Origin", origin)
                 .header("Access-Control-Allow-Credentials", true)
                 .header("Access-Control-Allow-Headers", "*")
                 .build();

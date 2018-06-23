@@ -28,6 +28,7 @@ public class SPAApplicationRepository {
     @Autowired
     public SPAApplicationRepository(CredentialStore credentialStore){
         this.credentialStore=credentialStore;
+        this.credentialStore.getWas().updateApplinks();
         startProcessWorker();
     }
 
