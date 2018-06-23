@@ -14,7 +14,6 @@ import net.whydah.sso.user.types.UserCredential;
 import net.whydah.sso.user.types.UserToken;
 import net.whydah.util.AdvancedJWTokenUtil;
 import net.whydah.util.Configuration;
-import net.whydah.util.CookieManager;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -182,7 +181,7 @@ public class UserAuthenticationAPIResource {
             log.warn("Unable to resolve valid UserToken from supplied usercredentials, returning 403");
             return Response.status(Response.Status.FORBIDDEN).build();
         }
-        CookieManager.createAndSetUserTokenCookie(userToken.getUserTokenId(),Integer.parseInt(userToken.getLifespan()) ,httpServletRequest, httpServletResponse);
+        //CookieManager.createAndSetUserTokenCookie(userToken.getUserTokenId(),Integer.parseInt(userToken.getLifespan()) ,httpServletRequest, httpServletResponse);
         String origin = Configuration.getBoolean("allow.origin")?"*":credentialStore.findRedirectUrl(application);
         
         return Response.ok(getResponseTextJson(userToken, ticket, applicationToken.getApplicationID()))
