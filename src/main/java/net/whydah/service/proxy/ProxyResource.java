@@ -138,7 +138,7 @@ public class ProxyResource {
             return Response.status(Response.Status.FOUND).header("Location", FALLBACk_URL).build();
         }
         //try to get a userticket from querystring, this can happen when we possibly retrieve from the localstorage
-        String userticket = httpServletRequest.getParameter("userticket");
+        String userticket = httpServletRequest.getParameter("ticket");
         String newTicket = null;
         if(userticket!=null) {
         	CommandGetUsertokenByUserticket cmd = new CommandGetUsertokenByUserticket(URI.create(credentialStore.getWas().getSTS()), credentialStore.getWas().getActiveApplicationTokenId(), credentialStore.getWas().getActiveApplicationTokenXML(), userticket);
@@ -193,7 +193,7 @@ public class ProxyResource {
         // 6. create 302-response with part2 of secret in http Location header
         Response mresponse = Response.status(Response.Status.FOUND)
         		.header("Access-Control-Allow-Origin", origin)
-                .header("Location", credentialStore.findRedirectUrl(application) + "?code=" + secretPart1 + (newTicket!=null?"&userticket=" + newTicket :""))
+                .header("Location", credentialStore.findRedirectUrl(application) + "?code=" + secretPart1 + (newTicket!=null?"&ticket=" + newTicket :""))
                 .header("Access-Control-Expose-Headers", "Cookie")
                 .header("Access-Control-Allow-Credentials", true)
                 .header("Access-Control-Allow-Headers", "*")
@@ -216,7 +216,7 @@ public class ProxyResource {
             return Response.status(Response.Status.FOUND).header("Location", FALLBACk_URL).build();
         }
         //try to get a userticket from querystring, this can happen when we possibly retrieve from the localstorage
-        String userticket = httpServletRequest.getParameter("userticket");
+        String userticket = httpServletRequest.getParameter("ticket");
         String newTicket = null;
         if(userticket!=null) {
         	CommandGetUsertokenByUserticket cmd = new CommandGetUsertokenByUserticket(URI.create(credentialStore.getWas().getSTS()), credentialStore.getWas().getActiveApplicationTokenId(), credentialStore.getWas().getActiveApplicationTokenXML(), userticket);
@@ -259,7 +259,7 @@ public class ProxyResource {
         try {
 			js.put("secret", secret);
 			if(newTicket!=null) {
-	        	js.put("userticket", newTicket);
+	        	js.put("ticket", newTicket);
 	        }
 		} catch (JSONException e) {
 			

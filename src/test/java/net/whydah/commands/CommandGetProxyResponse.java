@@ -49,13 +49,21 @@ public class CommandGetProxyResponse  extends MyBaseHttpGetHystrixCommand<String
 				String location = obj.getString("Location");
 				String cookie = obj.getString("Cookie");
 
-
-				responseBody = "" +
+				if(location.contains("&ticket")) {
+					responseBody = "" +
 						"{" +
 						"\"code\": \""+ location.substring(location.indexOf("code=") + 5, location.indexOf("&ticket"))+ "\"," +
 						"\"cookievalue\": \""+ cookie.substring(cookie.indexOf("=") + 1, cookie.indexOf(";expires"))+ "\"," +
 						"\"ticket\": \""+ location.substring(location.indexOf("ticket=") + 7, location.length())+  "\"" +
 						"}";
+				} else {
+					responseBody = "" +
+							"{" +
+							"\"code\": \""+ location.substring(location.indexOf("code=") + 5)+ "\"," +
+							"\"cookievalue\": \""+ cookie.substring(cookie.indexOf("=") + 1, cookie.indexOf(";expires"))+ "\"," +
+							"\"ticket\": \""+ null +  "\"" +
+							"}";
+				}
 			} catch (JSONException e) {
 
 			}
