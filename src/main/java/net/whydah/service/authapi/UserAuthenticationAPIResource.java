@@ -4,7 +4,9 @@ import net.whydah.service.CredentialStore;
 import net.whydah.service.SPAApplicationRepository;
 import net.whydah.sso.application.mappers.ApplicationTokenMapper;
 import net.whydah.sso.application.types.Application;
+import net.whydah.sso.application.types.ApplicationCredential;
 import net.whydah.sso.application.types.ApplicationToken;
+import net.whydah.sso.commands.appauth.CommandLogonApplication;
 import net.whydah.sso.commands.userauth.CommandCreateTicketForUserTokenID;
 import net.whydah.sso.commands.userauth.CommandGetUsertokenByUserticket;
 import net.whydah.sso.commands.userauth.CommandLogonUserByUserCredential;
@@ -176,8 +178,14 @@ public class UserAuthenticationAPIResource {
         
         String ticket = UUID.randomUUID().toString();
         UserToken userToken = UserTokenMapper.fromUserTokenXml(new CommandLogonUserByUserCredential(URI.create(credentialStore.getWas().getSTS()), applicationToken.getApplicationTokenId(), ApplicationTokenMapper.toXML(applicationToken), userCredential, ticket).execute());
-
-        if (!userToken.isValid()) {
+        if (userToken == null) {
+            // Most likely timeout in application sesssion, lets create a new here..
+            ApplicationCredential appCredential = new ApplicationCredential(application.getId(), application.getName(), application.getSecurity().getSecret());
+            String myAppTokenXml = new CommandLogonApplication(URI.create(credentialStore.getWas().getSTS()), appCredential).execute();
+            applicationToken = ApplicationTokenMapper.fromXml(myAppTokenXml);
+            spaApplicationRepository.add(secret, applicationToken);
+        }
+        if (userToken != null && !userToken.isValid()) {
             log.warn("Unable to resolve valid UserToken from supplied usercredentials, returning 403");
             return Response.status(Response.Status.FORBIDDEN).build();
         }
