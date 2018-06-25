@@ -3,6 +3,10 @@ package net.whydah.util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import net.whydah.sso.user.helpers.UserTokenXpathHelper;
+import net.whydah.sso.user.mappers.UserTokenMapper;
+import net.whydah.sso.user.types.UserToken;
+
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -58,7 +62,29 @@ public class CookieManager {
         response.setHeader("X-Permitted-Cross-Domain-Policies", "master-only");
     }
 
+    public static Integer calculateTokenRemainingLifetimeInSeconds(UserToken usertoken) {
+        Long tokenLifespanSec = Long.parseLong(usertoken.getLifespan());
+        Long tokenTimestampMsSinceEpoch = Long.parseLong(usertoken.getTimestamp());
 
+        if (tokenLifespanSec == null || tokenTimestampMsSinceEpoch == null) {
+            return null;
+        }
+        long endOfTokenLifeMs = tokenTimestampMsSinceEpoch + tokenLifespanSec;
+        long remainingLifeMs = endOfTokenLifeMs - System.currentTimeMillis();
+        return (int) (remainingLifeMs / 1000);
+    }
+
+    public static void createAndSetUserTokenCookie(UserToken ut, HttpServletRequest request, HttpServletResponse response) {
+   	 	Integer tokenRemainingLifetimeSeconds = calculateTokenRemainingLifetimeInSeconds(ut);       
+        CookieManager.createAndSetUserTokenCookie(ut.getUserTokenId(), tokenRemainingLifetimeSeconds , request, response);
+   }
+    
+    public static void createAndSetUserTokenCookie(String userTokenXml, HttpServletRequest request, HttpServletResponse response) {
+    	 UserToken ut = UserTokenMapper.fromUserTokenXml(userTokenXml);
+    	 Integer tokenRemainingLifetimeSeconds = calculateTokenRemainingLifetimeInSeconds(ut);       
+         CookieManager.createAndSetUserTokenCookie(ut.getUserTokenId(), tokenRemainingLifetimeSeconds , request, response);
+    }
+    
     public static void createAndSetUserTokenCookie(String userTokenId, Integer tokenRemainingLifetimeSeconds, HttpServletRequest request, HttpServletResponse response) {
         Cookie cookie = new Cookie(USER_TOKEN_REFERENCE_NAME, userTokenId);
         cookie.setValue(userTokenId);
@@ -66,26 +92,6 @@ public class CookieManager {
         if (tokenRemainingLifetimeSeconds == null) {
             tokenRemainingLifetimeSeconds = DEFAULT_COOKIE_MAX_AGE;
         }
-//        cookie.setMaxAge(tokenRemainingLifetimeSeconds);
-//
-//        if (cookiedomain != null && !cookiedomain.isEmpty()) {
-//            cookie.setDomain(cookiedomain);
-//        }
-//        //cookie.setPath("/; secure; HttpOnly");
-//        cookie.setPath("; HttpOnly;");
-//        cookie.setSecure(IS_MY_URI_SECURED);
-////        if ("https".equalsIgnoreCase(request.getScheme())) {
-////            cookie.setSecure(true);
-////        } else {
-////            log.warn("Unsecure session detected, using myuri to define coocie security");
-////            //cookie.setSecure(secureCookie(MY_APP_URI));
-////            cookie.setSecure(false);
-////
-////        }
-//
-//        log.debug("Created cookie with name={}, value/userTokenId={}, domain={}, path={}, maxAge={}, secure={}",
-//                cookie.getName(), cookie.getValue(), cookie.getDomain(), cookie.getPath(), cookie.getMaxAge(), cookie.getSecure());
-//        response.addCookie(cookie);
         addCookie(cookie.getValue(), tokenRemainingLifetimeSeconds, response);
     }
 
