@@ -184,8 +184,9 @@ public class UserAuthenticationAPIResource {
             String myAppTokenXml = new CommandLogonApplication(URI.create(credentialStore.getWas().getSTS()), appCredential).execute();
             applicationToken = ApplicationTokenMapper.fromXml(myAppTokenXml);
             spaApplicationRepository.add(secret, applicationToken);
+            userToken = UserTokenMapper.fromUserTokenXml(new CommandLogonUserByUserCredential(URI.create(credentialStore.getWas().getSTS()), applicationToken.getApplicationTokenId(), ApplicationTokenMapper.toXML(applicationToken), userCredential, ticket).execute());
         }
-        if (userToken != null && !userToken.isValid()) {
+        if (userToken == null && !userToken.isValid()) {
             log.warn("Unable to resolve valid UserToken from supplied usercredentials, returning 403");
             return Response.status(Response.Status.FORBIDDEN).build();
         }

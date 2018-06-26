@@ -1,35 +1,15 @@
 package net.whydah.util;
 
-import java.security.Key;
-import java.util.Arrays;
-import java.util.List;
-
-
-
-
-
-
-
-
-
-
-
-
-import net.whydah.service.SPAApplicationRepository;
-import net.whydah.service.proxy.ProxyResource;
 import net.whydah.sso.user.types.UserApplicationRoleEntry;
 import net.whydah.sso.user.types.UserToken;
-
 import org.jose4j.jwa.AlgorithmConstraints;
 import org.jose4j.jwa.AlgorithmConstraints.ConstraintType;
 import org.jose4j.jwk.RsaJsonWebKey;
-import org.jose4j.jwk.RsaJwkGenerator;
 import org.jose4j.jws.AlgorithmIdentifiers;
 import org.jose4j.jws.JsonWebSignature;
 import org.jose4j.jwt.JwtClaims;
 import org.jose4j.jwt.MalformedClaimException;
 import org.jose4j.jwt.NumericDate;
-import org.jose4j.jwt.consumer.ErrorCodes;
 import org.jose4j.jwt.consumer.InvalidJwtException;
 import org.jose4j.jwt.consumer.JwtConsumer;
 import org.jose4j.jwt.consumer.JwtConsumerBuilder;
@@ -53,8 +33,8 @@ public class AdvancedJWTokenUtil {
 	
 	
 	public static String buildJWT(UserToken usertoken, String userTicket,String applicationId) {
-		
-		System.out.println("RSA hash code... " + rsaJsonWebKey.hashCode());
+
+		log.debug("RSA hash code... " + rsaJsonWebKey.hashCode());
 		JwtClaims claims = new JwtClaims();
 		claims.setSubject(usertoken.getUserName()); // the subject/principal is whom the token is about
 		claims.setJwtId(usertoken.getUserTokenId());
