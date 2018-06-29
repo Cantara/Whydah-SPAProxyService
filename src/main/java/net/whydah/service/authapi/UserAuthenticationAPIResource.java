@@ -76,7 +76,7 @@ public class UserAuthenticationAPIResource {
         }
         //create a new ticket
         String newTicket = UUID.randomUUID().toString();
-        CommandCreateTicketForUserTokenID cmd = new CommandCreateTicketForUserTokenID(URI.create(credentialStore.getWas().getSTS()), applicationToken.getApplicationTokenId(), ApplicationTokenMapper.toXML(applicationToken), ticket, userToken.getUserTokenId());
+        CommandCreateTicketForUserTokenID cmd = new CommandCreateTicketForUserTokenID(URI.create(credentialStore.getWas().getSTS()), applicationToken.getApplicationTokenId(), ApplicationTokenMapper.toXML(applicationToken), newTicket, userToken.getUserTokenId());
         if(!cmd.execute()){
         	 log.warn("Unable to renew a ticket for this UserToken, returning 500");
              return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
@@ -113,7 +113,7 @@ public class UserAuthenticationAPIResource {
         }
         //create a new ticket
         String newTicket = UUID.randomUUID().toString();
-        CommandCreateTicketForUserTokenID cmd = new CommandCreateTicketForUserTokenID(URI.create(credentialStore.getWas().getSTS()), applicationToken.getApplicationTokenId(), ApplicationTokenMapper.toXML(applicationToken), ticket, userToken.getUserTokenId());
+        CommandCreateTicketForUserTokenID cmd = new CommandCreateTicketForUserTokenID(URI.create(credentialStore.getWas().getSTS()), applicationToken.getApplicationTokenId(), ApplicationTokenMapper.toXML(applicationToken), newTicket, userToken.getUserTokenId());
         if(!cmd.execute()){
         	 log.warn("Unable to renew a ticket for this UserToken, returning 500");
              return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
