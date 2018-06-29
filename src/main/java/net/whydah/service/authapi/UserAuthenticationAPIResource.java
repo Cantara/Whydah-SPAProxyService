@@ -105,7 +105,7 @@ public class UserAuthenticationAPIResource {
         }
         Application application=credentialStore.findApplication(applicationToken.getApplicationName());
 
-        
+        log.debug("Get usertoken from ticket {}", ticket);
         UserToken userToken = UserTokenMapper.fromUserTokenXml(new CommandGetUsertokenByUserticket(URI.create(credentialStore.getWas().getSTS()), applicationToken.getApplicationTokenId(), ApplicationTokenMapper.toXML(applicationToken), ticket).execute());
         if (userToken==null || !userToken.isValid()) {
             log.warn("Unable to resolve valid UserToken from ticket, returning 403");
