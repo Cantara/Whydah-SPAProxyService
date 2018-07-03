@@ -209,7 +209,11 @@ public class ProxyResource {
         Application application = credentialStore.findApplication(appname);
         if (application == null) {
             // No registered application found, return to default login
-            return Response.status(Response.Status.FOUND).header("Location", FALLBACk_URL).build();
+            return Response.status(Response.Status.FOUND)
+                    .header("Location", FALLBACk_URL)
+                    .header("Access-Control-Allow-Origin", "*")
+                    .header("Access-Control-Allow-Credentials", true)
+                    .header("Access-Control-Allow-Headers", "*").build();
         }
         //try to get a userticket from querystring, this can happen when we possibly retrieve from the localstorage
         String userticket = httpServletRequest.getParameter("ticket");
