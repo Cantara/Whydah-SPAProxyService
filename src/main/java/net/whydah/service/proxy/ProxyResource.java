@@ -267,7 +267,7 @@ public class ProxyResource {
         String origin = Configuration.getBoolean("allow.origin")?"*":credentialStore.findRedirectUrl(application);
         
         Response mresponse = Response.ok(js.toString())
-                .header("Access-Control-Allow-Origin", "*")
+                .header("Access-Control-Allow-Origin", origin)
                 .header("Access-Control-Allow-Credentials", true)
                 .header("Access-Control-Allow-Headers", "*").build();
         return mresponse;

@@ -2,6 +2,11 @@ package net.whydah.service.authapi;
 
 import net.whydah.service.CredentialStore;
 import net.whydah.service.SPAApplicationRepository;
+import net.whydah.service.inn.api.commands.CommandInnAPICheckSharingConsent;
+import net.whydah.service.inn.api.commands.CommandInnAPIGetDeliveryAddresses;
+import net.whydah.service.inn.api.commands.CommandInnAPIGetOnlyDeliveryAddresses;
+import net.whydah.service.inn.api.commands.CommandInnAPIGiveSharingConsent;
+import net.whydah.service.inn.api.commands.CommandInnAPIRemoveSharingConsent;
 import net.whydah.sso.application.mappers.ApplicationTokenMapper;
 import net.whydah.sso.application.types.Application;
 import net.whydah.sso.application.types.ApplicationCredential;
@@ -16,6 +21,8 @@ import net.whydah.sso.user.types.UserCredential;
 import net.whydah.sso.user.types.UserToken;
 import net.whydah.util.AdvancedJWTokenUtil;
 import net.whydah.util.Configuration;
+
+import org.constretto.annotation.Configure;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -47,6 +54,7 @@ public class UserAuthenticationAPIResource {
     private static final Logger log = LoggerFactory.getLogger(UserAuthenticationAPIResource.class);
     private final CredentialStore credentialStore;
     private final SPAApplicationRepository spaApplicationRepository;
+    private static String logonurl = net.whydah.util.Configuration.getString("logonservice");
 
     @Autowired
     public UserAuthenticationAPIResource(CredentialStore credentialStore, SPAApplicationRepository spaApplicationRepository) {
@@ -128,7 +136,6 @@ public class UserAuthenticationAPIResource {
                 .build();
     }
 
-
     @POST
     @Path("/{secret}/authenticate_user/")
     public Response authenticateUser(@Context HttpServletRequest httpServletRequest, @Context HttpServletResponse httpServletResponse, @Context HttpHeaders headers, @PathParam("secret") String secret, @RequestBody String payload) {
@@ -194,7 +201,7 @@ public class UserAuthenticationAPIResource {
         String origin = Configuration.getBoolean("allow.origin")?"*":credentialStore.findRedirectUrl(application);
         
         return Response.ok(getResponseTextJson(userToken, ticket, applicationToken.getApplicationID()))
-                .header("Access-Control-Allow-Origin", "*")
+                .header("Access-Control-Allow-Origin", origin)
                 .header("Access-Control-Allow-Credentials", true)
                 .header("Access-Control-Allow-Headers", "*")
                 .build();
@@ -205,6 +212,118 @@ public class UserAuthenticationAPIResource {
     	return AdvancedJWTokenUtil.buildJWT(userToken, userticket,applicationId);
     }
 
+    @POST
+    @Path("/{secret}/give_sharing_consent/{userTokenId}")
+    public Response giveSharingConsent(@PathParam("secret") String secret,  @Context HttpHeaders headers, @PathParam("userTokenId") String userTokenId) {
+        log.info("Invoked get_token_from_ticket with secret: {} userTokenId: {} and headers: {}", secret, userTokenId, headers.getRequestHeaders());
 
+      
+        ApplicationToken applicationToken = spaApplicationRepository.getApplicationTokenBySecret(secret);
+        if (applicationToken == null) {
+            log.warn("Unable to locate applicationsession from secret, returning 403");
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
+        Application application=credentialStore.findApplication(applicationToken.getApplicationName());        
+        String data = new CommandInnAPIGiveSharingConsent(URI.create(logonurl), applicationToken.getApplicationTokenId(), userTokenId).execute();
+        String origin = Configuration.getBoolean("allow.origin")?"*":credentialStore.findRedirectUrl(application);
+        
+        Response mresponse = Response.ok(data)
+                .header("Access-Control-Allow-Origin", origin)
+                .header("Access-Control-Allow-Credentials", true)
+                .header("Access-Control-Allow-Headers", "*").build();
+        return mresponse;
+        
+    }
+
+    @POST
+    @Path("/{secret}/remove_sharing_consent/{userTokenId}")
+    public Response removeSharingConsent(@PathParam("secret") String secret,  @Context HttpHeaders headers, @PathParam("userTokenId") String userTokenId) {
+        log.info("Invoked get_token_from_ticket with secret: {} userTokenId: {} and headers: {}", secret, userTokenId, headers.getRequestHeaders());
+
+      
+        ApplicationToken applicationToken = spaApplicationRepository.getApplicationTokenBySecret(secret);
+        if (applicationToken == null) {
+            log.warn("Unable to locate applicationsession from secret, returning 403");
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
+        Application application=credentialStore.findApplication(applicationToken.getApplicationName());        
+        String data = new CommandInnAPIRemoveSharingConsent(URI.create(logonurl), applicationToken.getApplicationTokenId(), userTokenId).execute();
+        String origin = Configuration.getBoolean("allow.origin")?"*":credentialStore.findRedirectUrl(application);
+        
+        Response mresponse = Response.ok(data)
+                .header("Access-Control-Allow-Origin", origin)
+                .header("Access-Control-Allow-Credentials", true)
+                .header("Access-Control-Allow-Headers", "*").build();
+        return mresponse;
+        
+    }
+    
+    @GET
+    @Path("/{secret}/check_sharing_consent/{userTokenId}")
+    public Response checkSharingConsent(@PathParam("secret") String secret,  @Context HttpHeaders headers, @PathParam("userTokenId") String userTokenId) {
+        log.info("Invoked get_token_from_ticket with secret: {} userTokenId: {} and headers: {}", secret, userTokenId, headers.getRequestHeaders());
+
+      
+        ApplicationToken applicationToken = spaApplicationRepository.getApplicationTokenBySecret(secret);
+        if (applicationToken == null) {
+            log.warn("Unable to locate applicationsession from secret, returning 403");
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
+        Application application=credentialStore.findApplication(applicationToken.getApplicationName());        
+        String data = new CommandInnAPICheckSharingConsent(URI.create(logonurl), applicationToken.getApplicationTokenId(), userTokenId).execute();
+        String origin = Configuration.getBoolean("allow.origin")?"*":credentialStore.findRedirectUrl(application);
+        
+        Response mresponse = Response.ok(data)
+                .header("Access-Control-Allow-Origin", origin)
+                .header("Access-Control-Allow-Credentials", true)
+                .header("Access-Control-Allow-Headers", "*").build();
+        return mresponse;
+        
+    }
+    @GET
+    @Path("/{secret}/get_delivery_address/{userTokenId}")
+    public Response getDeliveryAddress(@PathParam("secret") String secret,  @Context HttpHeaders headers, @PathParam("userTokenId") String userTokenId) {
+        log.info("Invoked get_token_from_ticket with secret: {} userTokenId: {} and headers: {}", secret, userTokenId, headers.getRequestHeaders());
+
+      
+        ApplicationToken applicationToken = spaApplicationRepository.getApplicationTokenBySecret(secret);
+        if (applicationToken == null) {
+            log.warn("Unable to locate applicationsession from secret, returning 403");
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
+        Application application=credentialStore.findApplication(applicationToken.getApplicationName());        
+        String data = new CommandInnAPIGetOnlyDeliveryAddresses(URI.create(logonurl), applicationToken.getApplicationTokenId(), userTokenId).execute();
+        String origin = Configuration.getBoolean("allow.origin")?"*":credentialStore.findRedirectUrl(application);
+        
+        Response mresponse = Response.ok(data)
+                .header("Access-Control-Allow-Origin", origin)
+                .header("Access-Control-Allow-Credentials", true)
+                .header("Access-Control-Allow-Headers", "*").build();
+        return mresponse;
+        
+    }
+
+    @GET
+    @Path("/{secret}/get_crmdata/{userTokenId}")
+    public Response getCrmData(@PathParam("secret") String secret,  @Context HttpHeaders headers, @PathParam("userTokenId") String userTokenId) {
+        log.info("Invoked get_token_from_ticket with secret: {} userTokenId: {} and headers: {}", secret, userTokenId, headers.getRequestHeaders());
+
+      
+        ApplicationToken applicationToken = spaApplicationRepository.getApplicationTokenBySecret(secret);
+        if (applicationToken == null) {
+            log.warn("Unable to locate applicationsession from secret, returning 403");
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
+        Application application=credentialStore.findApplication(applicationToken.getApplicationName());        
+        String data = new CommandInnAPIGetDeliveryAddresses(URI.create(logonurl), applicationToken.getApplicationTokenId(), userTokenId).execute();
+        String origin = Configuration.getBoolean("allow.origin")?"*":credentialStore.findRedirectUrl(application);
+        
+        Response mresponse = Response.ok(data)
+                .header("Access-Control-Allow-Origin", origin)
+                .header("Access-Control-Allow-Credentials", true)
+                .header("Access-Control-Allow-Headers", "*").build();
+        return mresponse;
+        
+    }
 
 }
