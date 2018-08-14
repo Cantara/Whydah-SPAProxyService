@@ -6,6 +6,12 @@ import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import com.hazelcast.config.Config;
+import com.hazelcast.config.XmlConfigBuilder;
+import com.hazelcast.core.Hazelcast;
+import com.hazelcast.core.HazelcastInstance;
+
+import java.io.FileNotFoundException;
 import java.net.URI;
 import java.util.Collection;
 import java.util.Date;
@@ -22,13 +28,34 @@ public class SPAApplicationRepository {
     private static final Logger log = getLogger(SPAApplicationRepository.class);
     private final CredentialStore credentialStore;
 
-    private Map<String, ApplicationToken> map = new HashMap<>();
+    private Map<String, ApplicationToken> map;
     private static boolean isRunning = false;
 
     @Autowired
     public SPAApplicationRepository(CredentialStore credentialStore){
         this.credentialStore=credentialStore;
+      
+        String xmlFileName = System.getProperty("hazelcast.config");
+        log.info("Loading hazelcast configuration from :" + xmlFileName);
+        Config hazelcastConfig = new Config();
+        if (xmlFileName != null && xmlFileName.length() > 10) {
+            try {
+                hazelcastConfig = new XmlConfigBuilder(xmlFileName).build();
+                log.info("Loading hazelcast configuration from :" + xmlFileName);
+            } catch (FileNotFoundException notFound) {
+                log.error("Error - not able to load hazelcast.xml configuration.  Using embedded configuration as fallback");
+            }
+        }
+
+        hazelcastConfig.setProperty("hazelcast.logging.type", "slf4j");
+        //hazelcastConfig.getGroupConfig().setName("OID_HAZELCAST");
+        HazelcastInstance hazelcastInstance = Hazelcast.newHazelcastInstance(hazelcastConfig);
+        String gridPrefix = "SPAPROXY";
+        map = hazelcastInstance.getMap(gridPrefix + "_applicationTokenMap");
+        log.info("Connecting to map {}", gridPrefix + "_applicationTokenMap");
+
         this.credentialStore.getWas().updateApplinks();
+        
         startProcessWorker();
     }
 
