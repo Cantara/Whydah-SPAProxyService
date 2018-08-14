@@ -199,7 +199,7 @@ public class UserAuthenticationAPIResource {
 	@POST
 	@Path("/{secret}/give_sharing_consent/{userTokenId}")
 	public Response giveSharingConsent(@PathParam("secret") String secret,  @Context HttpHeaders headers, @PathParam("userTokenId") String userTokenId) {
-		log.info("Invoked get_token_from_ticket with secret: {} userTokenId: {} and headers: {}", secret, userTokenId, headers.getRequestHeaders());
+		log.info("Invoked give_sharing_consent with secret: {} userTokenId: {} and headers: {}", secret, userTokenId, headers.getRequestHeaders());
 
 
 		ApplicationToken applicationToken = spaApplicationRepository.getApplicationTokenBySecret(secret);
@@ -222,7 +222,7 @@ public class UserAuthenticationAPIResource {
 	@POST
 	@Path("/{secret}/remove_sharing_consent/{userTokenId}")
 	public Response removeSharingConsent(@PathParam("secret") String secret,  @Context HttpHeaders headers, @PathParam("userTokenId") String userTokenId) {
-		log.info("Invoked get_token_from_ticket with secret: {} userTokenId: {} and headers: {}", secret, userTokenId, headers.getRequestHeaders());
+		log.info("Invoked remove_sharing_consent with secret: {} userTokenId: {} and headers: {}", secret, userTokenId, headers.getRequestHeaders());
 
 
 		ApplicationToken applicationToken = spaApplicationRepository.getApplicationTokenBySecret(secret);
@@ -245,7 +245,7 @@ public class UserAuthenticationAPIResource {
 	@GET
 	@Path("/{secret}/check_sharing_consent/{userTokenId}")
 	public Response checkSharingConsent(@PathParam("secret") String secret,  @Context HttpHeaders headers, @PathParam("userTokenId") String userTokenId) {
-		log.info("Invoked get_token_from_ticket with secret: {} userTokenId: {} and headers: {}", secret, userTokenId, headers.getRequestHeaders());
+		log.info("Invoked check_sharing_consent with secret: {} userTokenId: {} and headers: {}", secret, userTokenId, headers.getRequestHeaders());
 
 
 		ApplicationToken applicationToken = spaApplicationRepository.getApplicationTokenBySecret(secret);
@@ -269,7 +269,7 @@ public class UserAuthenticationAPIResource {
 	@GET
 	@Path("/{secret}/get_delivery_address/{userTokenId}")
 	public Response getDeliveryAddress(@PathParam("secret") String secret,  @Context HttpHeaders headers, @PathParam("userTokenId") String userTokenId) {
-		log.info("Invoked get_token_from_ticket with secret: {} userTokenId: {} and headers: {}", secret, userTokenId, headers.getRequestHeaders());
+		log.info("Invoked get_delivery_address with secret: {} userTokenId: {} and headers: {}", secret, userTokenId, headers.getRequestHeaders());
 
 
 		ApplicationToken applicationToken = spaApplicationRepository.getApplicationTokenBySecret(secret);
@@ -292,7 +292,7 @@ public class UserAuthenticationAPIResource {
 	@GET
 	@Path("/{secret}/get_crmdata/{userTokenId}")
 	public Response getCrmData(@PathParam("secret") String secret,  @Context HttpHeaders headers, @PathParam("userTokenId") String userTokenId) {
-		log.info("Invoked get_token_from_ticket with secret: {} userTokenId: {} and headers: {}", secret, userTokenId, headers.getRequestHeaders());
+		log.info("Invoked get_crmdata with secret: {} userTokenId: {} and headers: {}", secret, userTokenId, headers.getRequestHeaders());
 
 
 		ApplicationToken applicationToken = spaApplicationRepository.getApplicationTokenBySecret(secret);
@@ -332,7 +332,7 @@ public class UserAuthenticationAPIResource {
 			@FormParam("comment") String comment,
 			@FormParam("select") boolean select
 			) {
-		log.info("Invoked get_token_from_ticket with secret: {} userTokenId: {} and headers: {}", secret, userTokenId, headers.getRequestHeaders());
+		log.info("Invoked create_delivery_address with secret: {} userTokenId: {} and headers: {}", secret, userTokenId, headers.getRequestHeaders());
 
 
 		ApplicationToken applicationToken = spaApplicationRepository.getApplicationTokenBySecret(secret);
@@ -365,7 +365,7 @@ public class UserAuthenticationAPIResource {
 	public Response select_deliveryAddress(@PathParam("secret") String secret,  @Context HttpHeaders headers,
 			@PathParam("userTokenId") String userTokenId,
 			@FormParam("tag") String tag) {
-		log.info("Invoked get_token_from_ticket with secret: {} userTokenId: {} and headers: {}", secret, userTokenId, headers.getRequestHeaders());
+		log.info("Invoked select_delivery_address with secret: {} userTokenId: {} and headers: {}", secret, userTokenId, headers.getRequestHeaders());
 
 
 		ApplicationToken applicationToken = spaApplicationRepository.getApplicationTokenBySecret(secret);
@@ -391,7 +391,7 @@ public class UserAuthenticationAPIResource {
 	public Response delete_deliveryAddress(@PathParam("secret") String secret,  @Context HttpHeaders headers,
 			@PathParam("userTokenId") String userTokenId,
 			@FormParam("tag") String tag) {
-		log.info("Invoked get_token_from_ticket with secret: {} userTokenId: {} and headers: {}", secret, userTokenId, headers.getRequestHeaders());
+		log.info("Invoked delete_delivery_address with secret: {} userTokenId: {} and headers: {}", secret, userTokenId, headers.getRequestHeaders());
 
 
 		ApplicationToken applicationToken = spaApplicationRepository.getApplicationTokenBySecret(secret);
