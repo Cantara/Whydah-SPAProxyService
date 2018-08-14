@@ -5,30 +5,39 @@ import net.whydah.commands.basecommands.MyBaseHttpPostHystrixCommand;
 
 import javax.ws.rs.core.MediaType;
 import java.net.URI;
+import java.util.Map;
 import java.util.Random;
 
 public class CommandAPIUserLoginToJWT  extends MyBaseHttpPostHystrixCommand<String> {
 
     String contentType= MediaType.APPLICATION_JSON;
     static Random r = new Random();
-    String payload="";
+    String userName="";
+    String password="";
     String secret="";
 
 
-    public CommandAPIUserLoginToJWT(String url,String secret, String payload) {
+    public CommandAPIUserLoginToJWT(String url,String secret, String userName, String password) {
         super(URI.create(url), "CommandAPIUserLoginToJWT" + r.nextInt(100), HystrixCommandTimeoutConfig.defaultTimeout);
-        this.payload=payload;
-        
+        this.userName=userName;
+        this.password = password;
         this.secret=secret;
     }
 
 
+//    @Override
+//    protected HttpRequest dealWithRequestBeforeSend(HttpRequest request) {
+//        return request.contentType(contentType).accept(contentType).send(this.payload);
+//    }
+
+
     @Override
-    protected HttpRequest dealWithRequestBeforeSend(HttpRequest request) {
-        return request.contentType(contentType).accept(contentType).send(this.payload);
+    protected Map<String, String> getFormParameters() {
+    	Map<String, String> data = super.getFormParameters(); 
+    	data.put("username", userName);
+    	data.put("password", password);
+    	return data;
     }
-
-
 
     @Override
     protected String dealWithFailedResponse(String responseBody, int statusCode) {
