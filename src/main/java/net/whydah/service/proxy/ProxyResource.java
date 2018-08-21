@@ -165,10 +165,10 @@ public class ProxyResource {
         String secret2 = stringXORer.encode(secretPart1, application.getId());
 
         log.info("Created secret: part1:{}, part2:{} = secret:{}", secretPart1, secretPart2, secret);
-        spaApplicationRepository.add(secret, createSessionForApplication(application));
+        spaApplicationRepository.add(secret, getOrCreateSessionForApplication(application));
         if (Configuration.getBoolean("allow.simple.secret")) {
             log.info("Created secret: part1:{}, part2:{} = secret:{}", secretPart1, application.getId(), secret2);
-            spaApplicationRepository.add(secret2, createSessionForApplication(application));
+            spaApplicationRepository.add(secret2, getOrCreateSessionForApplication(application));
         }
 
         // 5. store part one of secret in user cookie for the domain of the redircet URI and add it to the Response
@@ -217,13 +217,17 @@ public class ProxyResource {
         String userticket = httpServletRequest.getParameter("ticket");
         String newTicket = null;
         if (userticket != null) {
-            CommandGetUsertokenByUserticket cmd = new CommandGetUsertokenByUserticket(URI.create(credentialStore.getWas().getSTS()), credentialStore.getWas().getActiveApplicationTokenId(), credentialStore.getWas().getActiveApplicationTokenXML(), userticket);
-            String userTokenXml = cmd.execute();
+            String userTokenXml = new CommandGetUsertokenByUserticket(
+                    URI.create(credentialStore.getWas().getSTS()),
+                    credentialStore.getWas().getActiveApplicationTokenId(),
+                    credentialStore.getWas().getActiveApplicationTokenXML(),
+                    userticket
+            ).execute();
+
             if (userTokenXml != null) {
                 String userTokenId = UserTokenXpathHelper.getUserTokenId(userTokenXml);
-                newTicket = UUID.randomUUID().toString();
-                if (!generateAUserTicket(userTokenId, newTicket)) {
-                    newTicket = null;
+                if (generateAUserTicket(userTokenId, newTicket)) {
+                    newTicket = UUID.randomUUID().toString();
                 }
             }
         }
@@ -231,11 +235,8 @@ public class ProxyResource {
         if (newTicket == null) {
             //try finding from cookie possibly? or maybe not?
             String userTokenId = CookieManager.getUserTokenIdFromCookie(httpServletRequest);
-            if (userTokenId != null) {
+            if (userTokenId != null && generateAUserTicket(userTokenId, newTicket)) {
                 newTicket = UUID.randomUUID().toString();
-                if (!generateAUserTicket(userTokenId, newTicket)) {
-                    newTicket = null;
-                }
             }
         }
 
@@ -246,10 +247,10 @@ public class ProxyResource {
         String secret2 = stringXORer.encode(secretPart1, application.getId());
 
         log.info("Created secret: part1:{}, part2:{} = secret:{}", secretPart1, secretPart2, secret);
-        spaApplicationRepository.add(secret, createSessionForApplication(application));
+        spaApplicationRepository.add(secret, getOrCreateSessionForApplication(application));
         if (Configuration.getBoolean("allow.simple.secret")) {
             log.info("Created secret: part1:{}, part2:{} = secret:{}", secretPart1, application.getId(), secret2);
-            spaApplicationRepository.add(secret2, createSessionForApplication(application));
+            spaApplicationRepository.add(secret2, getOrCreateSessionForApplication(application));
         }
 
         String origin = Configuration.getBoolean("allow.origin") ? "*" : credentialStore.findRedirectUrl(application);
@@ -286,27 +287,15 @@ public class ProxyResource {
         return result;
     }
 
-    private ApplicationToken createSessionForApplication(Application application) {
-        log.info("Finding application token from sessions [name={} id={}]", application.getName(), application.getId());
+    private ApplicationToken getOrCreateSessionForApplication(Application application) {
         for (ApplicationToken applicationToken : spaApplicationRepository.allSessions()) {
-            log.info("Checking application token [name={} id={}]", applicationToken.getApplicationName(), applicationToken.getApplicationID());
             if (applicationToken.getApplicationID().equalsIgnoreCase(application.getId())) {
                 return applicationToken;
             }
         }
-        log.info("Creating new application token [name={} id={}]", application.getName(), application.getId());
         ApplicationCredential appCredential = new ApplicationCredential(application.getId(), application.getName(), application.getSecurity().getSecret());
-        log.info("App credentials created");
         String myAppTokenXml = new CommandLogonApplication(URI.create(credentialStore.getWas().getSTS()), appCredential).execute();
-        log.info("App token created");
         ApplicationToken applicationToken = ApplicationTokenMapper.fromXml(myAppTokenXml);
-        if (applicationToken != null) {
-            log.info("App token converted from xml [name={} id={}]",
-                    applicationToken.getApplicationName(),
-                    applicationToken.getApplicationID());
-        } else {
-            log.info("App token is null");
-        }
         return applicationToken;
     }
 
