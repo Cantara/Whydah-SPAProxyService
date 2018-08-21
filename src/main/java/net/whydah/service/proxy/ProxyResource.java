@@ -300,6 +300,13 @@ public class ProxyResource {
         String myAppTokenXml = new CommandLogonApplication(URI.create(credentialStore.getWas().getSTS()), appCredential).execute();
         log.info("App token created");
         ApplicationToken applicationToken = ApplicationTokenMapper.fromXml(myAppTokenXml);
+        if (applicationToken != null) {
+            log.info("App token converted from xml [name={} id={}]",
+                    applicationToken.getApplicationName(),
+                    applicationToken.getApplicationID());
+        } else {
+            log.info("App token is null");
+        }
         return applicationToken;
     }
 
