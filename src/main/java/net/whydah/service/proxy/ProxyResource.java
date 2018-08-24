@@ -228,14 +228,16 @@ public class ProxyResource {
             if (userTokenXml != null) {
                 String userTokenId = UserTokenXpathHelper.getUserTokenId(userTokenXml);
                 log.debug("User token from STS is {}", userTokenId);
-                if (generateAUserTicket(userTokenId, newTicket)) {
-                    log.debug("Should generate a new ticket 1");
-                    newTicket = UUID.randomUUID().toString();
+
+                newTicket = UUID.randomUUID().toString();
+                if (!generateAUserTicket(userTokenId, newTicket)) {
+                    log.debug("Should not generate a new ticket. Reverting to null");
+                    newTicket = null;
                 } else {
-                    log.debug("Should not generate a new ticket 1");
+                    log.debug("Generated a new ticket");
                 }
             } else {
-               log.debug("User token xml is null");
+                log.debug("User token xml is null");
             }
         }
 
