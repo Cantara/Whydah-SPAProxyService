@@ -217,6 +217,7 @@ public class ProxyResource {
         String userticket = httpServletRequest.getParameter("ticket");
         String newTicket = null;
         if (userticket != null) {
+            log.debug("User ticket from request params is {}", userticket);
             String userTokenXml = new CommandGetUsertokenByUserticket(
                     URI.create(credentialStore.getWas().getSTS()),
                     credentialStore.getWas().getActiveApplicationTokenId(),
@@ -226,18 +227,31 @@ public class ProxyResource {
 
             if (userTokenXml != null) {
                 String userTokenId = UserTokenXpathHelper.getUserTokenId(userTokenXml);
+                log.debug("User token from STS is {}", userTokenId);
                 if (generateAUserTicket(userTokenId, newTicket)) {
+                    log.debug("Should generate a new ticket 1");
                     newTicket = UUID.randomUUID().toString();
+                } else {
+                    log.debug("Should not generate a new ticket 1");
                 }
+            } else {
+               log.debug("User token xml is null");
             }
         }
 
         if (newTicket == null) {
+            log.debug("New ticket is null");
             //try finding from cookie possibly? or maybe not?
             String userTokenId = CookieManager.getUserTokenIdFromCookie(httpServletRequest);
+            log.debug("User token id from cookie is {}", userTokenId);
             if (userTokenId != null && generateAUserTicket(userTokenId, newTicket)) {
+                log.debug("Should generate a new ticket 2");
                 newTicket = UUID.randomUUID().toString();
+            } else {
+                log.debug("Should not generate a new ticket 2");
             }
+        } else {
+            log.debug("New ticket is {}", newTicket);
         }
 
         // 4. establish new SPA secret and store it in secret-applicationsession map
