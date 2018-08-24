@@ -302,6 +302,7 @@ public class UserAuthenticationAPIResource {
 		}
 		Application application=credentialStore.findApplication(applicationToken.getApplicationName());        
 		String data = new CommandInnAPIGetDeliveryAddresses(URI.create(logonurl), applicationToken.getApplicationTokenId(), userTokenId).execute();
+		log.debug("Received crm data {}", data);
 		String origin = Configuration.getBoolean("allow.origin")?"*":credentialStore.findRedirectUrl(application);
 
 		Response mresponse = Response.ok(data)
