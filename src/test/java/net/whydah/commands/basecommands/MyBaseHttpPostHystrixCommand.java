@@ -17,7 +17,6 @@ import java.util.Map;
 
 import static net.whydah.sso.util.LoggerUtil.first50;
 
-
 public abstract class MyBaseHttpPostHystrixCommand<R> extends HystrixCommand<R> {
 
     protected Logger log;
@@ -32,14 +31,12 @@ public abstract class MyBaseHttpPostHystrixCommand<R> extends HystrixCommand<R> 
         threadProperties.withCoreSize(10);
         threadProperties.withMaxQueueSize(10000);
         HystrixRequestContext.initializeContext();
-
     }
-
 
     protected MyBaseHttpPostHystrixCommand(URI serviceUri, String hystrixGroupKey, int hystrixExecutionTimeOut) {
         super(HystrixCommand.Setter.withGroupKey(HystrixCommandGroupKey.Factory.asKey(hystrixGroupKey)).
                 andCommandPropertiesDefaults(HystrixCommandProperties.Setter()
-                                                                     .withExecutionTimeoutInMilliseconds(hystrixExecutionTimeOut)));
+                        .withExecutionTimeoutInMilliseconds(hystrixExecutionTimeOut)));
         init(serviceUri, hystrixGroupKey);
     }
 

@@ -5,7 +5,6 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import java.io.IOException;
 import java.net.HttpURLConnection;
 
 import static com.jayway.restassured.RestAssured.given;
@@ -16,10 +15,9 @@ public class ProxyResourceTest {
 
     @BeforeClass
     public void startServer() throws Exception {
-        testServer = new TestServer(getClass());
+        testServer = new TestServer();
         testServer.start();
         Thread.sleep(2000);
-
     }
 
     @AfterClass
@@ -28,12 +26,14 @@ public class ProxyResourceTest {
     }
 
     @Test(enabled = false)
-    public void testProxy() throws IOException {
+    public void testProxy() {
         given()
-                .log().everything()
+                .log()
+                .everything()
                 .expect()
                 .statusCode(HttpURLConnection.HTTP_OK)
-                .log().everything()
+                .log()
+                .everything()
                 .when()
                 .get(ProxyResource.PROXY_PATH);
     }

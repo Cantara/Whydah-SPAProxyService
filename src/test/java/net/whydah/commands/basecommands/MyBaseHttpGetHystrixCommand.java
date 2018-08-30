@@ -34,7 +34,7 @@ public abstract class MyBaseHttpGetHystrixCommand<R> extends HystrixCommand<R> {
     protected MyBaseHttpGetHystrixCommand(URI serviceUri, String hystrixGroupKey, int hystrixExecutionTimeOut) {
         super(Setter.withGroupKey(HystrixCommandGroupKey.Factory.asKey(hystrixGroupKey)).
                 andCommandPropertiesDefaults(HystrixCommandProperties.Setter()
-                                                                     .withExecutionTimeoutInMilliseconds(hystrixExecutionTimeOut)));
+                        .withExecutionTimeoutInMilliseconds(hystrixExecutionTimeOut)));
         init(serviceUri, hystrixGroupKey);
     }
 
@@ -89,7 +89,7 @@ public abstract class MyBaseHttpGetHystrixCommand<R> extends HystrixCommand<R> {
 
             responseBody = request.bytes();
             String location = "";
-            String cookie="";
+            String cookie = "";
             int statusCode = request.code();
             String responseAsText = StringConv.UTF8(responseBody);
             if (statusCode == 302) {
