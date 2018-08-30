@@ -4,7 +4,6 @@ import com.jayway.restassured.RestAssured;
 import net.whydah.service.Main;
 
 public class TestServer {
-
     private Main main;
 
     public TestServer() {

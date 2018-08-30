@@ -9,7 +9,6 @@ import java.net.URI;
 import java.util.Random;
 
 public class CommandGetProxyResponse extends MyBaseHttpGetHystrixCommand<String> {
-
     static Random r = new Random();
 
     public CommandGetProxyResponse(String uri) {
@@ -26,6 +25,7 @@ public class CommandGetProxyResponse extends MyBaseHttpGetHystrixCommand<String>
         if (statusCode < 300 && statusCode >= 200) {
             return responseBody;
         }
+
         if (statusCode == 302) {
             log.info("ResponseBody: {}", responseBody);
 
@@ -51,10 +51,10 @@ public class CommandGetProxyResponse extends MyBaseHttpGetHystrixCommand<String>
                             "}";
                 }
             } catch (JSONException e) {
-
             }
             return responseBody;
         }
+
         return "StatusCode:" + statusCode + ":" + responseBody;
     }
 
@@ -62,7 +62,6 @@ public class CommandGetProxyResponse extends MyBaseHttpGetHystrixCommand<String>
     protected String dealWithResponse(String response) {
         return super.dealWithResponse(response);
     }
-
 
     @Override
     protected String getTargetPath() {

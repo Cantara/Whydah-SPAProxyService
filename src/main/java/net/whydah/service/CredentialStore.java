@@ -26,14 +26,17 @@ import java.util.List;
 @Singleton
 @Repository
 public class CredentialStore {
+    public static final String FALLBACK_URL = net.whydah.util.Configuration.getString("fallbackurl");
+
+    private static final Logger log = LoggerFactory.getLogger(CredentialStore.class);
+
     private final String stsUri;
     private final String uasUri;
     private final ApplicationCredential myApplicationCredential;
-    private static WhydahApplicationSession was = null;
     private final UserCredential adminUserCredential;
+
+    private static WhydahApplicationSession was = null;
     private static WhydahUserSession adminUserSession = null;
-    private static final Logger log = LoggerFactory.getLogger(CredentialStore.class);
-    public static final String FALLBACK_URL =  net.whydah.util.Configuration.getString("fallbackurl");
 
     @Autowired
     @Configure
@@ -47,16 +50,14 @@ public class CredentialStore {
         this.stsUri = stsUri;
         this.uasUri = uasUri;
         this.myApplicationCredential = new ApplicationCredential(applicationid, applicationname, applicationsecret);
-        this.adminUserCredential = new UserCredential(adminuserid,adminusersecret);
-
+        this.adminUserCredential = new UserCredential(adminuserid, adminusersecret);
     }
-
 
     public String getUserAdminServiceTokenId() {
         if (was == null) {
             was = WhydahApplicationSession.getInstance(stsUri, uasUri, myApplicationCredential);
         }
-        if (hasWhydahConnection()){
+        if (hasWhydahConnection()) {
             return was.getActiveApplicationTokenId();
         }
         return null;
@@ -69,7 +70,6 @@ public class CredentialStore {
         return getWas().checkActiveSession();
     }
 
-
     public String hasApplicationToken() {
         try {
             if (hasWhydahConnection()) {
@@ -77,6 +77,7 @@ public class CredentialStore {
             }
         } catch (Exception e) {
         }
+
         return Boolean.toString(false);
     }
 
@@ -87,6 +88,7 @@ public class CredentialStore {
             }
         } catch (Exception e) {
         }
+
         return Boolean.toString(false);
     }
 
@@ -98,9 +100,9 @@ public class CredentialStore {
             }
         } catch (Exception e) {
         }
+
         return Boolean.toString(false);
     }
-
 
     public WhydahApplicationSession getWas() {
         if (was == null) {
@@ -109,49 +111,52 @@ public class CredentialStore {
                 was.updateApplinks(true);
             }
         }
+
         return was;
     }
 
-    public String getAdminUserTokenId(){
+    public String getAdminUserTokenId() {
         if (adminUserSession == null) {
             adminUserSession = getAdminUserSession();
         }
         return adminUserSession.getActiveUserTokenId();
     }
+
     public WhydahUserSession getAdminUserSession() {
         if (adminUserSession == null) {
-            adminUserSession =  new WhydahUserSession(getWas(),adminUserCredential);
+            adminUserSession = new WhydahUserSession(getWas(), adminUserCredential);
         }
         return adminUserSession;
     }
 
-    public Application findApplication(String appName){
-
+    public Application findApplication(String appName) {
         List<Application> applicationList = getWas().getApplicationList();
-        log.debug("Found {} applications",applicationList.size());
+        log.debug("Found {} applications", applicationList.size());
         Application found = null;
-        for (Application application:applicationList){
-            log.info("Parsing application: {}",application.getName());
 
-            if (application.getName().equalsIgnoreCase(appName)){
+        for (Application application : applicationList) {
+            log.info("Parsing application: {}", application.getName());
+
+            if (application.getName().equalsIgnoreCase(appName)) {
                 found = application;
                 break;
             }
-            if (application.getId().equalsIgnoreCase(appName)){
+            if (application.getId().equalsIgnoreCase(appName)) {
                 found = application;
                 break;
             }
         }
 
-        if(found!=null){
+        if (found != null) {
             //HUY: we have to use admin function to get the full specification of this app
             //Problem is the app secret is obfuscated in application list
             CommandGetApplication app = new CommandGetApplication(URI.create(getWas().getUAS()), getWas().getActiveApplicationTokenId(), getAdminUserTokenId(), found.getId());
             String result = app.execute();
-            if(result!=null){
+            if (result != null) {
                 found = ApplicationMapper.fromJson(result);
             }
         }
+
         return found;
     }
 
@@ -168,14 +173,13 @@ public class CredentialStore {
             }
         }
 
-        if (redirectUrl==null && application!=null && application.getApplicationUrl()!=null && Validator.isValidURL(application.getApplicationUrl())){
-            redirectUrl=application.getApplicationUrl();
+        if (redirectUrl == null && application != null && application.getApplicationUrl() != null && Validator.isValidURL(application.getApplicationUrl())) {
+            redirectUrl = application.getApplicationUrl();
         }
-        if (redirectUrl==null){
-            redirectUrl= FALLBACK_URL;
+        if (redirectUrl == null) {
+            redirectUrl = FALLBACK_URL;
         }
 
         return redirectUrl;
     }
-
 }

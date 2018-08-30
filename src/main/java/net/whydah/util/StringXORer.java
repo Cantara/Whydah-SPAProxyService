@@ -14,7 +14,7 @@ public class StringXORer {
     private static byte[] xorWithKey(byte[] a, byte[] key) {
         byte[] out = new byte[a.length];
         for (int i = 0; i < a.length; i++) {
-            out[i] = (byte) (a[i] ^ key[i%key.length]);
+            out[i] = (byte) (a[i] ^ key[i % key.length]);
         }
         return out;
     }

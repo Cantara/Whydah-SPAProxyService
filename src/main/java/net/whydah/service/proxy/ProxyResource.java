@@ -40,13 +40,13 @@ import static net.whydah.service.proxy.ProxyResource.PROXY_PATH;
 @Path(PROXY_PATH)
 @Produces(MediaType.TEXT_HTML)
 public class ProxyResource {
-
     public static final String PROXY_PATH = "/load";
 
     private static final Logger log = LoggerFactory.getLogger(ProxyResource.class);
 
     private final CredentialStore credentialStore;
     private final SPAApplicationRepository spaApplicationRepository;
+
     private StringXORer stringXORer = new StringXORer();
 
     @Autowired
@@ -148,6 +148,7 @@ public class ProxyResource {
 
     private JSONObject createJSONBody(String secret, String ticket) {
         JSONObject jsonObject = new JSONObject();
+
         try {
             jsonObject.put("secret", secret);
             if (ticket != null) {
@@ -162,17 +163,21 @@ public class ProxyResource {
 
     private boolean generateAUserTicket(String userTokenId, String ticket) {
         CommandCreateTicketForUserTokenID cmt = new CommandCreateTicketForUserTokenID(URI.create(credentialStore.getWas().getSTS()), credentialStore.getWas().getActiveApplicationTokenId(), credentialStore.getWas().getActiveApplicationTokenXML(), ticket, userTokenId);
+
         boolean result = cmt.execute();
+
         if (result) {
             log.debug("create a ticket {} for usertoken {}", ticket, userTokenId);
         } else {
             log.warn("failed to create a ticket {} for usertoken {}", ticket, userTokenId);
         }
+
         return result;
     }
 
     private ApplicationToken getOrCreateSessionForApplication(Application application) {
         ApplicationToken applicationToken = getApplicationTokenFromSessions(application);
+
         if (applicationToken == null) {
             return createApplicationToken(application);
         } else {
@@ -184,6 +189,7 @@ public class ProxyResource {
         ApplicationCredential appCredential = new ApplicationCredential(application.getId(), application.getName(), application.getSecurity().getSecret());
         String appTokenXml = new CommandLogonApplication(URI.create(credentialStore.getWas().getSTS()), appCredential).execute();
         ApplicationToken applicationToken = ApplicationTokenMapper.fromXml(appTokenXml);
+
         return applicationToken;
     }
 

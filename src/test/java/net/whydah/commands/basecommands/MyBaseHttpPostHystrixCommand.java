@@ -18,7 +18,6 @@ import java.util.Map;
 import static net.whydah.sso.util.LoggerUtil.first50;
 
 public abstract class MyBaseHttpPostHystrixCommand<R> extends HystrixCommand<R> {
-
     protected Logger log;
     protected URI serviceUri;
     protected String TAG = "";
@@ -30,6 +29,7 @@ public abstract class MyBaseHttpPostHystrixCommand<R> extends HystrixCommand<R> 
         threadProperties = HystrixThreadPoolProperties.Setter();
         threadProperties.withCoreSize(10);
         threadProperties.withMaxQueueSize(10000);
+
         HystrixRequestContext.initializeContext();
     }
 
@@ -50,9 +50,9 @@ public abstract class MyBaseHttpPostHystrixCommand<R> extends HystrixCommand<R> 
         this.serviceUri = serviceUri;
         this.TAG = this.getClass().getName() + ", pool :" + hystrixGroupKey;
         this.log = LoggerFactory.getLogger(TAG);
+
         HystrixRequestContext.initializeContext();
     }
-
 
     @Override
     protected R run() {
@@ -138,7 +138,6 @@ public abstract class MyBaseHttpPostHystrixCommand<R> extends HystrixCommand<R> 
         log.debug(TAG + " - ok: " + first50(responseBody));
     }
 
-
     protected abstract String getTargetPath();
 
     protected Map<String, String> getFormParameters() {
@@ -166,4 +165,3 @@ public abstract class MyBaseHttpPostHystrixCommand<R> extends HystrixCommand<R> 
         return responseBody.clone();
     }
 }
-

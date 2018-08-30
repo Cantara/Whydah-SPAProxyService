@@ -28,7 +28,6 @@ public abstract class MyBaseHttpGetHystrixCommand<R> extends HystrixCommand<R> {
         threadProperties.withCoreSize(10);
         threadProperties.withMaxQueueSize(10000);
         HystrixRequestContext.initializeContext();
-
     }
 
     protected MyBaseHttpGetHystrixCommand(URI serviceUri, String hystrixGroupKey, int hystrixExecutionTimeOut) {
@@ -48,9 +47,9 @@ public abstract class MyBaseHttpGetHystrixCommand<R> extends HystrixCommand<R> {
         this.serviceUri = serviceUri;
         this.TAG = this.getClass().getName() + ", pool :" + hystrixGroupKey;
         this.log = LoggerFactory.getLogger(TAG);
+
         HystrixRequestContext.initializeContext();
     }
-
 
     @Override
     protected R run() {

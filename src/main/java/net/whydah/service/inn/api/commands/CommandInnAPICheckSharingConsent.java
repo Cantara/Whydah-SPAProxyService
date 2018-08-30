@@ -1,11 +1,10 @@
 package net.whydah.service.inn.api.commands;
 
-import java.net.URI;
-
 import net.whydah.sso.commands.baseclasses.BaseHttpGetHystrixCommand;
 
-public class CommandInnAPICheckSharingConsent extends BaseHttpGetHystrixCommand<String> {
+import java.net.URI;
 
+public class CommandInnAPICheckSharingConsent extends BaseHttpGetHystrixCommand<String> {
     int retryCnt = 0;
     private String myApplicationTokenId;
     private String nyUserTokenId;
@@ -14,16 +13,10 @@ public class CommandInnAPICheckSharingConsent extends BaseHttpGetHystrixCommand<
         super(serviceUri, null, myAppTokenId, "InnGetaAPI", 10000);
         this.myApplicationTokenId = myAppTokenId;
         this.nyUserTokenId = nyUserTokenId;
-
-
     }
 
     @Override
     protected String getTargetPath() {
         return this.myApplicationTokenId + "/api/" + this.nyUserTokenId + "/consent_exist";
     }
-
-
 }
-
-

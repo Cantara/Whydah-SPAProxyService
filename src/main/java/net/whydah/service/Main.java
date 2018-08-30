@@ -39,7 +39,6 @@ public class Main {
     private Integer webappPort;
     private Server server;
 
-
     public Main() {
         this.server = new Server();
     }
@@ -82,7 +81,6 @@ public class Main {
         ServletContextHandler context = new ServletContextHandler();
         context.setContextPath(CONTEXT_PATH);
 
-
         ConstraintSecurityHandler securityHandler = buildSecurityHandler();
         context.setSecurityHandler(securityHandler);
 
@@ -102,6 +100,7 @@ public class Main {
         if (webappPort != null) {
             connector.setPort(webappPort);
         }
+
         NCSARequestLog requestLog = buildRequestLog();
         server.setRequestLog(requestLog);
         server.addConnector(connector);
@@ -169,7 +168,7 @@ public class Main {
         // Allow userAuthEndpointConstraintMapping to be accessed without authentication
         ConstraintMapping userAuthEndpointConstraintMapping = new ConstraintMapping();
         userAuthEndpointConstraintMapping.setConstraint(new Constraint(Constraint.NONE, Constraint.ANY_ROLE));
-        userAuthEndpointConstraintMapping.setPathSpec(UserAuthenticationAPIResource.API_PATH+"/*");
+        userAuthEndpointConstraintMapping.setPathSpec(UserAuthenticationAPIResource.API_PATH + "/*");
         securityHandler.addConstraintMapping(userAuthEndpointConstraintMapping);
 
         HashLoginService loginService = new HashLoginService("Whydah-SPAProxyService");
@@ -190,9 +189,9 @@ public class Main {
 
         log.debug("Main instantiated with basic auth clientuser={} and adminuser={}", clientUsername, adminUsername);
         securityHandler.setLoginService(loginService);
+
         return securityHandler;
     }
-
 
     public void stop() {
         try {
@@ -210,6 +209,7 @@ public class Main {
                 log.error("Interrupted while waiting for jetty to start", e);
             }
         }
+
         return webappPort;
     }
 

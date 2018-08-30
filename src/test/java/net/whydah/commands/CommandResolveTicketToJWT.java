@@ -8,13 +8,12 @@ import java.net.URI;
 import java.util.Random;
 
 public class CommandResolveTicketToJWT extends MyBaseHttpPostHystrixCommand<String> {
+    static Random r = new Random();
 
     String contentType = MediaType.APPLICATION_JSON;
-    static Random r = new Random();
     String payload = "";
     String secret = "";
     String ticket = "";
-
 
     public CommandResolveTicketToJWT(String url, String secret, String ticket, String payload) {
         super(URI.create(url), "CommandResolveTicketToJWT" + r.nextInt(100), HystrixCommandTimeoutConfig.defaultTimeout);
@@ -23,12 +22,10 @@ public class CommandResolveTicketToJWT extends MyBaseHttpPostHystrixCommand<Stri
         this.ticket = ticket;
     }
 
-
     @Override
     protected HttpRequest dealWithRequestBeforeSend(HttpRequest request) {
         return request.contentType(contentType).accept(contentType).send(this.payload);
     }
-
 
     @Override
     protected String dealWithFailedResponse(String responseBody, int statusCode) {
@@ -43,10 +40,8 @@ public class CommandResolveTicketToJWT extends MyBaseHttpPostHystrixCommand<Stri
         return "/" + secret + "/get_token_from_ticket/" + ticket;
     }
 
-
     @Override
     protected String dealWithResponse(String responseBody) {
         return responseBody;
     }
-
 }

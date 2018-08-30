@@ -1,11 +1,10 @@
 package net.whydah.service.inn.api.commands;
 
-import java.net.URI;
-
 import net.whydah.sso.commands.baseclasses.BaseHttpPostHystrixCommand;
 
-public class CommandInnAPIDeleteDeliveryAddress extends BaseHttpPostHystrixCommand<String> {
+import java.net.URI;
 
+public class CommandInnAPIDeleteDeliveryAddress extends BaseHttpPostHystrixCommand<String> {
     int retryCnt = 0;
     private String myApplicationTokenId;
     private String nyUserTokenId;
@@ -16,18 +15,10 @@ public class CommandInnAPIDeleteDeliveryAddress extends BaseHttpPostHystrixComma
         this.myApplicationTokenId = myAppTokenId;
         this.nyUserTokenId = nyUserTokenId;
         this.deliveryAddressLabel = deliveryAddressLabel;
-
     }
-    
+
     @Override
     protected String getTargetPath() {
         return this.myApplicationTokenId + "/api/" + this.nyUserTokenId + "/deliveryaddress/delete/" + deliveryAddressLabel;
-        
     }
-    
-   
-
-
 }
-
-

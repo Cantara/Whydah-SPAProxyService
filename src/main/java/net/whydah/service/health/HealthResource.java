@@ -23,8 +23,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-
-
 /**
  * Simple health endpoint for checking the server is running
  *
@@ -34,13 +32,13 @@ import java.util.Properties;
 @Produces(MediaType.APPLICATION_JSON)
 public class HealthResource {
     public static final String HEALTH_PATH = "/health";
+
     private static final Logger log = LoggerFactory.getLogger(HealthResource.class);
     private static final ObjectMapper mapper = new ObjectMapper();
-    private final CredentialStore credentialStore;
-    private final SPAApplicationRepository spaApplicationRepository;
     private static String applicationInstanceName = "";
 
-
+    private final CredentialStore credentialStore;
+    private final SPAApplicationRepository spaApplicationRepository;
 
     @Autowired
     public HealthResource(CredentialStore credentialStore, SPAApplicationRepository spaApplicationRepository) {
@@ -48,7 +46,6 @@ public class HealthResource {
         this.spaApplicationRepository = spaApplicationRepository;
         this.applicationInstanceName = Configuration.getString("applicationname");
     }
-
 
     @GET
     public Response healthCheck() {
@@ -68,13 +65,12 @@ public class HealthResource {
                 "  \"hasApplicationsMetadata\": \"" + credentialStore.hasApplicationsMetadata() + "\",\n" +
                 "  \"ConfiguredApplications\": \"" + credentialStore.getWas().getApplicationList().size() + "\",\n" +
 
-                "  \"now\": \"" + Instant.now()+ "\",\n" +
+                "  \"now\": \"" + Instant.now() + "\",\n" +
                 "  \"running since\": \"" + WhydahUtil.getRunningSince() + "\",\n\n" +
 
                 "  \"applicationSessionStatistics\": " + getClientIdsJson() + "\n" +
                 "}\n";
     }
-
 
     private String getVersion() {
         Properties mavenProperties = new Properties();
@@ -92,11 +88,11 @@ public class HealthResource {
     }
 
     private synchronized String getClientIdsJson() {
-
         Collection<ApplicationToken> applicationSessions = spaApplicationRepository.allSessions();
         if (applicationSessions == null || applicationSessions.size() < 1) {
             return "{}";
         }
+
         Map<String, Integer> countMap = new HashMap();
         for (ApplicationToken applicationToken : applicationSessions) {
             if (countMap.get(applicationToken.getApplicationName()) == null) {
@@ -105,6 +101,7 @@ public class HealthResource {
                 countMap.put(applicationToken.getApplicationName(), 1 + countMap.get(applicationToken.getApplicationName()));
             }
         }
+
         try {
             String jsonString = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(countMap);
             return jsonString;
@@ -112,6 +109,4 @@ public class HealthResource {
             return "{}";
         }
     }
-
-
 }

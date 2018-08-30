@@ -7,12 +7,11 @@ import java.util.Map;
 import java.util.Random;
 
 public class CommandAPIUserLoginToJWT extends MyBaseHttpPostHystrixCommand<String> {
-
     static Random r = new Random();
+
     String userName = "";
     String password = "";
     String secret = "";
-
 
     public CommandAPIUserLoginToJWT(String url, String secret, String userName, String password) {
         super(URI.create(url), "CommandAPIUserLoginToJWT" + r.nextInt(100), HystrixCommandTimeoutConfig.defaultTimeout);
