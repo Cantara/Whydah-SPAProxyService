@@ -73,9 +73,9 @@ public class AdvancedJWTokenUtil {
             log.error("failed to generate JWT");
         }
 
-        System.out.println("Claim:\n" + claims);
-        System.out.println("JWS:\n" + jws);
-        System.out.println("JWT:\n" + jwt);
+        log.info("Claim:\n" + claims);
+        log.info("JWS:\n" + jws);
+        log.info("JWT:\n" + jwt);
         return jwt;
     }
 
