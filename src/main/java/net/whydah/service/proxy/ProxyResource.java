@@ -18,6 +18,7 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
@@ -28,7 +29,6 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.util.UUID;
@@ -38,7 +38,7 @@ import static net.whydah.service.proxy.ProxyResource.PROXY_PATH;
 
 @RestController
 @Path(PROXY_PATH)
-@Produces(MediaType.TEXT_HTML)
+@Produces(MediaType.APPLICATION_JSON_UTF8_VALUE)
 public class ProxyResource {
     public static final String PROXY_PATH = "/load";
 
