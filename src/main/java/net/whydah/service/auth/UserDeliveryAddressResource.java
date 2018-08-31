@@ -122,7 +122,6 @@ public class UserDeliveryAddressResource extends CoreUserResource {
                 addressLine1, addressLine2, comment, useAsMainAddress, select
         ).execute();
 
-
         return createResponseWithHeader(data, applicationToken.getApplicationName());
     }
 

@@ -18,32 +18,32 @@ public final class CookieManager {
     private static final Logger log = LoggerFactory.getLogger(CookieManager.class);
     private static final int DEFAULT_COOKIE_MAX_AGE = 365 * 24 * 60 * 60;
 
-    private static String cookiedomain = null;
-    private static String MY_APP_URI;
-    private static boolean IS_MY_URI_SECURED = false;
+    private static String cookieDomain = null;
+    private static boolean isMyUriSecured = false;
 
     private CookieManager() {
     }
 
     static {
         try {
-            cookiedomain = Configuration.getString("whydah.cookiedomain");
-            MY_APP_URI = Configuration.getString("myuri");
+            cookieDomain = Configuration.getString("whydah.cookiedomain");
+            String myAppUri = Configuration.getString("myuri");
             USER_TOKEN_REFERENCE_NAME = Configuration.getString("cookie_user_token_reference_name");
             //some overrides
             URL uri;
 
-            if (MY_APP_URI != null) {
-                uri = new URL(MY_APP_URI);
-                IS_MY_URI_SECURED = MY_APP_URI.indexOf("https") >= 0;
-                if (cookiedomain == null || cookiedomain.isEmpty()) {
+            if (myAppUri != null) {
+                uri = new URL(myAppUri);
+                isMyUriSecured = myAppUri.startsWith("https");
+
+                if (cookieDomain == null || cookieDomain.isEmpty()) {
                     String domain = uri.getHost();
                     domain = domain.startsWith("www.") ? domain.substring(4) : domain;
-                    cookiedomain = domain;
+                    cookieDomain = domain;
                 }
             }
         } catch (IOException e) {
-            log.warn("AppConfig.readProperties failed. cookiedomain was set to {}", cookiedomain, e);
+            log.warn("AppConfig.readProperties failed. cookieDomain was set to {}", cookieDomain, e);
         }
     }
 
@@ -118,11 +118,11 @@ public final class CookieManager {
         }
 //        cookie.setMaxAge(tokenRemainingLifetimeSeconds);
 //
-//        if (cookiedomain != null && !cookiedomain.isEmpty()) {
-//            cookie.setDomain(cookiedomain);
+//        if (cookieDomain != null && !cookieDomain.isEmpty()) {
+//            cookie.setDomain(cookieDomain);
 //        }
 //        cookie.setPath("; HttpOnly;");
-//        cookie.setSecure(IS_MY_URI_SECURED);
+//        cookie.setSecure(isMyUriSecured);
 //        log.debug("Created/updated cookie with name={}, value/userTokenId={}, domain={}, path={}, maxAge={}, secure={}",
 //                cookie.getName(), cookie.getValue(), cookie.getDomain(), cookie.getPath(), cookie.getMaxAge(), cookie.getSecure());
 //        response.addCookie(cookie);
@@ -135,18 +135,18 @@ public final class CookieManager {
         if (cookie != null) {
 //            cookie.setValue("");
 //            cookie.setMaxAge(0);
-//            if (cookiedomain != null && !cookiedomain.isEmpty()) {
-//                cookie.setDomain(cookiedomain);
+//            if (cookieDomain != null && !cookieDomain.isEmpty()) {
+//                cookie.setDomain(cookieDomain);
 //            }
 //            //cookie.setPath("/ ; HttpOnly;");
 //            //cookie.setPath("/; secure; HttpOnly");
 //            cookie.setPath("; HttpOnly;");
-//            cookie.setSecure(IS_MY_URI_SECURED);
+//            cookie.setSecure(isMyUriSecured);
 ////            if ("https".equalsIgnoreCase(request.getScheme())) {
 ////                cookie.setSecure(true);
 ////            } else {
 ////                log.warn("Unsecure session detected, using myuri to define coocie security");
-////                cookie.setSecure(secureCookie(MY_APP_URI));
+////                cookie.setSecure(secureCookie(myAppUri));
 ////            }
 //            response.addCookie(cookie);
 //            log.trace("Cleared cookie with name={}, value/userTokenId={}, domain={}, path={}, maxAge={}, secure={}",
@@ -223,7 +223,7 @@ public final class CookieManager {
         sb.append(";path=");
         sb.append("/");
         sb.append(";HttpOnly");
-        if (IS_MY_URI_SECURED) {
+        if (isMyUriSecured) {
             sb.append(";secure");
         }
         response.setHeader("SET-COOKIE", sb.toString());

@@ -93,11 +93,7 @@ public class SPAApplicationRepository {
 
             try {
                 Thread.sleep(10000);  // Do not start too early...
-                scheduledThreadPool.scheduleWithFixedDelay(new Runnable() {
-                    public void run() {
-                        renewApplicationSessions();
-                    }
-                }, 0, 10, TimeUnit.SECONDS);
+                scheduledThreadPool.scheduleWithFixedDelay(this::renewApplicationSessions, 0, 10, TimeUnit.SECONDS);
             } catch (Exception e) {
                 log.error("Error or interrupted trying to process dataflow from Proactor", e);
                 isRunning = false;
