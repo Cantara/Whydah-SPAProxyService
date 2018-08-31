@@ -131,9 +131,7 @@ public class ProxyResource {
 
         String origin = Configuration.getBoolean("allow.origin") ? "*" : credentialStore.findRedirectUrl(application);
 
-        log.debug("Found origin [origin={}]", origin);
-
-        return Response.ok(createJSONBody(secret, newTicket).toString(), origin)
+        return Response.ok(createJSONBody(secret, newTicket).toString())
                 .header("Access-Control-Allow-Origin", origin)
                 .header("Access-Control-Allow-Credentials", true)
                 .header("Access-Control-Allow-Headers", "*")
