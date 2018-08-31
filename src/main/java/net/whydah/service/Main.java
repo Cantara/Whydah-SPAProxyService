@@ -26,9 +26,6 @@ import org.springframework.web.context.ContextLoaderListener;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 
-/**
- * @author <a href="mailto:erik-dev@fjas.no">Erik Drolshammer</a> 2015-07-09
- */
 public class Main {
     public static final String CONTEXT_PATH = "/proxy";
     public static final String ADMIN_ROLE = "admin";

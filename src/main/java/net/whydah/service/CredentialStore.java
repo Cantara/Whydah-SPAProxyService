@@ -20,9 +20,6 @@ import javax.inject.Singleton;
 import java.net.URI;
 import java.util.List;
 
-/**
- * @author <a href="bard.lind@gmail.com">Bard Lind</a>
- */
 @Singleton
 @Repository
 public class CredentialStore {

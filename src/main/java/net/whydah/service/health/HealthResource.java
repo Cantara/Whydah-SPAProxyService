@@ -26,8 +26,6 @@ import static net.whydah.service.health.HealthResource.HEALTH_PATH;
 
 /**
  * Simple health endpoint for checking the server is running
- *
- * @author <a href="mailto:asbjornwillersrud@gmail.com">Asbjørn Willersrud</a> 30/03/2016.
  */
 @Path(HEALTH_PATH)
 @Produces(MediaType.APPLICATION_JSON)
