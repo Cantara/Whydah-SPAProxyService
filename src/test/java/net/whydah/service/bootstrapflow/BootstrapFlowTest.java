@@ -34,7 +34,8 @@ public class BootstrapFlowTest {
 
         Thread.sleep(5000);
 
-        CommandGetProxyResponse commandGetProxyResponse = new CommandGetProxyResponse(testServer.getUrl() + ProxyResource.PROXY_PATH + "/" + TEST_APPLICATION_NAME);
+        CommandGetProxyResponse commandGetProxyResponse = new CommandGetProxyResponse(
+                testServer.getUrl() + ProxyResource.PROXY_PATH + "/" + TEST_APPLICATION_NAME);
         String response = commandGetProxyResponse.execute();
         log.info(response);
 
@@ -95,7 +96,9 @@ public class BootstrapFlowTest {
         userCredential.setPassword(Configuration.getString("adminusersecret"));
 
         //log on
-        CommandAPIUserLoginToJWT commandAPIUserLoginToJWT = new CommandAPIUserLoginToJWT(testServer.getUrl() + UserAuthenticationResource.API_PATH, secret, userCredential.getUserName(), userCredential.getPassword());
+        CommandAPIUserLoginToJWT commandAPIUserLoginToJWT = new CommandAPIUserLoginToJWT(
+                testServer.getUrl() + UserAuthenticationResource.API_PATH, secret,
+                userCredential.getUserName(), userCredential.getPassword());
         String response2 = commandAPIUserLoginToJWT.execute();
         assertTrue(response2 != null);
 
@@ -105,7 +108,8 @@ public class BootstrapFlowTest {
         log.info(body);
         String userticket = JsonPathHelper.findJsonPathValue(body, "$.userticket");
 
-        CommandResolveTicketToJWT commandResolveTicketToJWT = new CommandResolveTicketToJWT(testServer.getUrl() + UserAuthenticationResource.API_PATH, secret, userticket, "{}");
+        CommandResolveTicketToJWT commandResolveTicketToJWT = new CommandResolveTicketToJWT(
+                testServer.getUrl() + UserAuthenticationResource.API_PATH, secret, userticket, "{}");
         response2 = commandResolveTicketToJWT.execute();
         assertTrue(response2 != null);
         log.info(response2);
@@ -125,7 +129,9 @@ public class BootstrapFlowTest {
         userCredential.setUserName(Configuration.getString("adminuserid"));
         userCredential.setPassword(Configuration.getString("adminusersecret"));
         //CommandAPIUserLoginToJWT commandAPIUserLoginToJWT = new CommandAPIUserLoginToJWT("http://localhost:9898/proxy"+ UserAuthenticationAPIResource.API_PATH,secret, UserCredentialMapper.toXML(userCredential));
-        CommandAPIUserLoginToJWT commandAPIUserLoginToJWT = new CommandAPIUserLoginToJWT(testServer.getUrl() + UserAuthenticationResource.API_PATH, secret, userCredential.getUserName(), userCredential.getPassword());
+        CommandAPIUserLoginToJWT commandAPIUserLoginToJWT = new CommandAPIUserLoginToJWT(
+                testServer.getUrl() + UserAuthenticationResource.API_PATH, secret,
+                userCredential.getUserName(), userCredential.getPassword());
         String response2 = commandAPIUserLoginToJWT.execute();
         assertTrue(response2 != null);
 

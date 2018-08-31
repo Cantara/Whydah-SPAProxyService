@@ -136,7 +136,8 @@ public abstract class MyBaseHttpGetHystrixCommand<R> extends HystrixCommand<R> {
     }
 
     protected void onFailed(String responseBody, int statusCode) {
-        log.debug(TAG + " - Unexpected response from {}. Status code is {} content is {} ", serviceUri, String.valueOf(statusCode) + responseBody);
+        log.debug(TAG + " - Unexpected response from {}. Status code is {} content is {} ",
+                serviceUri, String.valueOf(statusCode) + responseBody);
     }
 
     protected void onCompleted(String responseBody) {

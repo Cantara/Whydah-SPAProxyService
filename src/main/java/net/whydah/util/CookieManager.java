@@ -72,18 +72,21 @@ public final class CookieManager {
         return (int) (remainingLifeMs / 1000);
     }
 
-    public static void createAndSetUserTokenCookie(UserToken ut, HttpServletRequest request, HttpServletResponse response) {
+    public static void createAndSetUserTokenCookie(UserToken ut, HttpServletRequest request,
+                                                   HttpServletResponse response) {
         Integer tokenRemainingLifetimeSeconds = calculateTokenRemainingLifetimeInSeconds(ut);
         CookieManager.createAndSetUserTokenCookie(ut.getUserTokenId(), tokenRemainingLifetimeSeconds, request, response);
     }
 
-    public static void createAndSetUserTokenCookie(String userTokenXml, HttpServletRequest request, HttpServletResponse response) {
+    public static void createAndSetUserTokenCookie(String userTokenXml, HttpServletRequest request,
+                                                   HttpServletResponse response) {
         UserToken ut = UserTokenMapper.fromUserTokenXml(userTokenXml);
         Integer tokenRemainingLifetimeSeconds = calculateTokenRemainingLifetimeInSeconds(ut);
         CookieManager.createAndSetUserTokenCookie(ut.getUserTokenId(), tokenRemainingLifetimeSeconds, request, response);
     }
 
-    public static void createAndSetUserTokenCookie(String userTokenId, Integer tokenRemainingLifetimeSeconds, HttpServletRequest request, HttpServletResponse response) {
+    public static void createAndSetUserTokenCookie(String userTokenId, Integer tokenRemainingLifetimeSeconds,
+                                                   HttpServletRequest request, HttpServletResponse response) {
         Cookie cookie = new Cookie(USER_TOKEN_REFERENCE_NAME, userTokenId);
         cookie.setValue(userTokenId);
 
@@ -93,7 +96,8 @@ public final class CookieManager {
         addCookie(cookie.getValue(), tokenRemainingLifetimeSeconds, response);
     }
 
-    public static void updateUserTokenCookie(String userTokenId, Integer tokenRemainingLifetimeSeconds, HttpServletRequest request, HttpServletResponse response) {
+    public static void updateUserTokenCookie(String userTokenId, Integer tokenRemainingLifetimeSeconds,
+                                             HttpServletRequest request, HttpServletResponse response) {
         Cookie cookie = getUserTokenCookie(request);
         if (cookie == null) {
             cookie = new Cookie(USER_TOKEN_REFERENCE_NAME, userTokenId);
@@ -101,7 +105,8 @@ public final class CookieManager {
         updateCookie(cookie, userTokenId, tokenRemainingLifetimeSeconds, response);
     }
 
-    private static void updateCookie(Cookie cookie, String cookieValue, Integer tokenRemainingLifetimeSeconds, HttpServletResponse response) {
+    private static void updateCookie(Cookie cookie, String cookieValue, Integer tokenRemainingLifetimeSeconds,
+                                     HttpServletResponse response) {
         if (cookieValue != null) {
             cookie.setValue(cookieValue);
         }
@@ -181,7 +186,8 @@ public final class CookieManager {
         }
 
         for (Cookie cookie : cookies) {
-            log.debug("getUserTokenCookie: cookie with name={}, value={}", cookie.getName(), cookie.getValue(), cookie.getDomain(), cookie.getPath());
+            log.debug("getUserTokenCookie: cookie with name={}, value={}",
+                    cookie.getName(), cookie.getValue(), cookie.getDomain(), cookie.getPath());
             if (USER_TOKEN_REFERENCE_NAME.equalsIgnoreCase(cookie.getName())) {
                 return cookie;
             }
@@ -197,7 +203,8 @@ public final class CookieManager {
         }
 
         for (Cookie cookie : cookies) {
-            log.info("getCodeCookie: cookie with name={}, value={}", cookie.getName(), cookie.getValue(), cookie.getDomain(), cookie.getPath());
+            log.info("getCodeCookie: cookie with name={}, value={}",
+                    cookie.getName(), cookie.getValue(), cookie.getDomain(), cookie.getPath());
             if ("code".equalsIgnoreCase(cookie.getName())) {
                 return cookie;
             }

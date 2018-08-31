@@ -57,8 +57,7 @@ public class UserAuthenticationResource extends CoreUserResource {
                                      @Context HttpHeaders headers,
                                      @PathParam("secret") String secret,
                                      @FormParam("username") String username,
-                                     @FormParam("password") String password
-    ) {
+                                     @FormParam("password") String password) {
         log.info("Invoked authenticateUser with secret: {} and headers: {}", secret, headers.getRequestHeaders());
 
         if (username == null || password == null) {
@@ -78,21 +77,27 @@ public class UserAuthenticationResource extends CoreUserResource {
         UserCredential userCredential = new UserCredential(username, password);
 
         String ticket = UUID.randomUUID().toString();
-        UserToken userToken = UserTokenMapper.fromUserTokenXml(new CommandLogonUserByUserCredential(URI.create(credentialStore.getWas().getSTS()), applicationToken.getApplicationTokenId(), ApplicationTokenMapper.toXML(applicationToken), userCredential, ticket).execute());
+        UserToken userToken = UserTokenMapper.fromUserTokenXml(new CommandLogonUserByUserCredential(
+                URI.create(credentialStore.getWas().getSTS()), applicationToken.getApplicationTokenId(),
+                ApplicationTokenMapper.toXML(applicationToken), userCredential, ticket).execute());
         if (userToken == null) {
             // Most likely timeout in application sesssion, lets create a new here..
-            ApplicationCredential appCredential = new ApplicationCredential(application.getId(), application.getName(), application.getSecurity().getSecret());
+            ApplicationCredential appCredential = new ApplicationCredential(application.getId(), application.getName(),
+                    application.getSecurity().getSecret());
             String myAppTokenXml = new CommandLogonApplication(URI.create(credentialStore.getWas().getSTS()), appCredential).execute();
             applicationToken = ApplicationTokenMapper.fromXml(myAppTokenXml);
             spaApplicationRepository.add(secret, applicationToken);
-            userToken = UserTokenMapper.fromUserTokenXml(new CommandLogonUserByUserCredential(URI.create(credentialStore.getWas().getSTS()), applicationToken.getApplicationTokenId(), ApplicationTokenMapper.toXML(applicationToken), userCredential, ticket).execute());
+            userToken = UserTokenMapper.fromUserTokenXml(new CommandLogonUserByUserCredential(
+                    URI.create(credentialStore.getWas().getSTS()), applicationToken.getApplicationTokenId(),
+                    ApplicationTokenMapper.toXML(applicationToken), userCredential, ticket).execute());
         }
         if (userToken == null && !userToken.isValid()) {
             log.warn("Unable to resolve valid UserToken from supplied usercredentials, returning 403");
             return Response.status(Response.Status.FORBIDDEN).build();
         }
 
-        return createResponseWithHeader(getResponseTextJson(userToken, ticket, applicationToken.getApplicationID()), applicationToken.getApplicationName());
+        return createResponseWithHeader(getResponseTextJson(userToken, ticket,
+                applicationToken.getApplicationID()), applicationToken.getApplicationName());
     }
 
     @POST
@@ -124,7 +129,9 @@ public class UserAuthenticationResource extends CoreUserResource {
         }
 
         log.debug("Get usertoken from ticket {}", ticket);
-        UserToken userToken = UserTokenMapper.fromUserTokenXml(new CommandGetUsertokenByUserticket(URI.create(credentialStore.getWas().getSTS()), applicationToken.getApplicationTokenId(), ApplicationTokenMapper.toXML(applicationToken), ticket).execute());
+        UserToken userToken = UserTokenMapper.fromUserTokenXml(new CommandGetUsertokenByUserticket(
+                URI.create(credentialStore.getWas().getSTS()), applicationToken.getApplicationTokenId(),
+                ApplicationTokenMapper.toXML(applicationToken), ticket).execute());
         if (userToken == null || !userToken.isValid()) {
             log.warn("Unable to resolve valid UserToken from ticket, returning 403");
             return Response.status(Response.Status.FORBIDDEN).build();
@@ -132,13 +139,16 @@ public class UserAuthenticationResource extends CoreUserResource {
 
         //create a new ticket
         String newTicket = UUID.randomUUID().toString();
-        CommandCreateTicketForUserTokenID cmd = new CommandCreateTicketForUserTokenID(URI.create(credentialStore.getWas().getSTS()), applicationToken.getApplicationTokenId(), ApplicationTokenMapper.toXML(applicationToken), newTicket, userToken.getUserTokenId());
+        CommandCreateTicketForUserTokenID cmd = new CommandCreateTicketForUserTokenID(
+                URI.create(credentialStore.getWas().getSTS()), applicationToken.getApplicationTokenId(),
+                ApplicationTokenMapper.toXML(applicationToken), newTicket, userToken.getUserTokenId());
         if (!cmd.execute()) {
             log.warn("Unable to renew a ticket for this UserToken, returning 500");
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
 
-        return createResponseWithHeader(getResponseTextJson(userToken, newTicket, applicationToken.getApplicationID()), applicationToken.getApplicationName());
+        return createResponseWithHeader(getResponseTextJson(userToken, newTicket,
+                applicationToken.getApplicationID()), applicationToken.getApplicationName());
     }
 
     private String getResponseTextJson(UserToken userToken, String userticket, String applicationId) {

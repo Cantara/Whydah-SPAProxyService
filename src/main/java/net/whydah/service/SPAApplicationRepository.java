@@ -107,7 +107,8 @@ public class SPAApplicationRepository {
 
     private void renewApplicationSessions() {
         for (ApplicationToken applicationToken : allSessions()) {
-            CommandRenewApplicationSession commandRenewApplicationSession = new CommandRenewApplicationSession(URI.create(credentialStore.getWas().getSTS()), applicationToken.getApplicationTokenId());
+            CommandRenewApplicationSession commandRenewApplicationSession = new CommandRenewApplicationSession(
+                    URI.create(credentialStore.getWas().getSTS()), applicationToken.getApplicationTokenId());
             commandRenewApplicationSession.execute();
         }
     }

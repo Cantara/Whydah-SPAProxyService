@@ -16,7 +16,8 @@ public class CommandResolveTicketToJWT extends MyBaseHttpPostHystrixCommand<Stri
     String ticket = "";
 
     public CommandResolveTicketToJWT(String url, String secret, String ticket, String payload) {
-        super(URI.create(url), "CommandResolveTicketToJWT" + r.nextInt(100), HystrixCommandTimeoutConfig.defaultTimeout);
+        super(URI.create(url), "CommandResolveTicketToJWT" + r.nextInt(100),
+                HystrixCommandTimeoutConfig.defaultTimeout);
         this.payload = payload;
         this.secret = secret;
         this.ticket = ticket;

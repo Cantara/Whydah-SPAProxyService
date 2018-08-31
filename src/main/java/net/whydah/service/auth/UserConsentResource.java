@@ -43,7 +43,8 @@ public class UserConsentResource extends CoreUserResource {
     public Response giveSharingConsent(@Context HttpHeaders headers,
                                        @PathParam("secret") String secret,
                                        @PathParam("userTokenId") String userTokenId) {
-        log.info("Invoked giveSharingConsent with secret: {} userTokenId: {} and headers: {}", secret, userTokenId, headers.getRequestHeaders());
+        log.info("Invoked giveSharingConsent with secret: {} userTokenId: {} and headers: {}",
+                secret, userTokenId, headers.getRequestHeaders());
 
         ApplicationToken applicationToken = spaApplicationRepository.getApplicationTokenBySecret(secret);
 
@@ -52,7 +53,8 @@ public class UserConsentResource extends CoreUserResource {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
 
-        String data = new CommandInnAPIGiveSharingConsent(URI.create(logonUrl), applicationToken.getApplicationTokenId(), userTokenId).execute();
+        String data = new CommandInnAPIGiveSharingConsent(URI.create(logonUrl),
+                applicationToken.getApplicationTokenId(), userTokenId).execute();
 
         return createResponseWithHeader(data, applicationToken.getApplicationName());
     }
@@ -62,7 +64,8 @@ public class UserConsentResource extends CoreUserResource {
     public Response removeSharingConsent(@Context HttpHeaders headers,
                                          @PathParam("secret") String secret,
                                          @PathParam("userTokenId") String userTokenId) {
-        log.info("Invoked removeSharingConsent with secret: {} userTokenId: {} and headers: {}", secret, userTokenId, headers.getRequestHeaders());
+        log.info("Invoked removeSharingConsent with secret: {} userTokenId: {} and headers: {}",
+                secret, userTokenId, headers.getRequestHeaders());
 
         ApplicationToken applicationToken = spaApplicationRepository.getApplicationTokenBySecret(secret);
 
@@ -71,7 +74,8 @@ public class UserConsentResource extends CoreUserResource {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
 
-        String data = new CommandInnAPIRemoveSharingConsent(URI.create(logonUrl), applicationToken.getApplicationTokenId(), userTokenId).execute();
+        String data = new CommandInnAPIRemoveSharingConsent(URI.create(logonUrl),
+                applicationToken.getApplicationTokenId(), userTokenId).execute();
 
         return createResponseWithHeader(data, applicationToken.getApplicationName());
     }
@@ -81,7 +85,8 @@ public class UserConsentResource extends CoreUserResource {
     public Response checkSharingConsent(@Context HttpHeaders headers,
                                         @PathParam("secret") String secret,
                                         @PathParam("userTokenId") String userTokenId) {
-        log.info("Invoked checkSharingConsent with secret: {} userTokenId: {} and headers: {}", secret, userTokenId, headers.getRequestHeaders());
+        log.info("Invoked checkSharingConsent with secret: {} userTokenId: {} and headers: {}",
+                secret, userTokenId, headers.getRequestHeaders());
 
         ApplicationToken applicationToken = spaApplicationRepository.getApplicationTokenBySecret(secret);
 
@@ -90,7 +95,8 @@ public class UserConsentResource extends CoreUserResource {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
 
-        String data = new CommandInnAPICheckSharingConsent(URI.create(logonUrl), applicationToken.getApplicationTokenId(), userTokenId).execute();
+        String data = new CommandInnAPICheckSharingConsent(URI.create(logonUrl),
+                applicationToken.getApplicationTokenId(), userTokenId).execute();
 
         return createResponseWithHeader(data, applicationToken.getApplicationName());
     }

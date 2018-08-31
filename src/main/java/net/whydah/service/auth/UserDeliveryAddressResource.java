@@ -47,7 +47,8 @@ public class UserDeliveryAddressResource extends CoreUserResource {
     public Response getDeliveryAddress(@Context HttpHeaders headers,
                                        @PathParam("secret") String secret,
                                        @PathParam("userTokenId") String userTokenId) {
-        log.info("Invoked get_delivery_address with secret: {} userTokenId: {} and headers: {}", secret, userTokenId, headers.getRequestHeaders());
+        log.info("Invoked get_delivery_address with secret: {} userTokenId: {} and headers: {}",
+                secret, userTokenId, headers.getRequestHeaders());
 
         ApplicationToken applicationToken = spaApplicationRepository.getApplicationTokenBySecret(secret);
 
@@ -56,7 +57,8 @@ public class UserDeliveryAddressResource extends CoreUserResource {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
 
-        String data = new CommandInnAPIGetOnlyDeliveryAddresses(URI.create(logonUrl), applicationToken.getApplicationTokenId(), userTokenId).execute();
+        String data = new CommandInnAPIGetOnlyDeliveryAddresses(URI.create(logonUrl),
+                applicationToken.getApplicationTokenId(), userTokenId).execute();
 
         return createResponseWithHeader(data, applicationToken.getApplicationName());
     }
@@ -66,7 +68,8 @@ public class UserDeliveryAddressResource extends CoreUserResource {
     public Response getCrmData(@Context HttpHeaders headers,
                                @PathParam("secret") String secret,
                                @PathParam("userTokenId") String userTokenId) {
-        log.info("Invoked getCrmdata with secret: {} userTokenId: {} and headers: {}", secret, userTokenId, headers.getRequestHeaders());
+        log.info("Invoked getCrmdata with secret: {} userTokenId: {} and headers: {}",
+                secret, userTokenId, headers.getRequestHeaders());
 
         ApplicationToken applicationToken = spaApplicationRepository.getApplicationTokenBySecret(secret);
 
@@ -75,7 +78,8 @@ public class UserDeliveryAddressResource extends CoreUserResource {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
 
-        String data = new CommandInnAPIGetDeliveryAddresses(URI.create(logonUrl), applicationToken.getApplicationTokenId(), userTokenId).execute();
+        String data = new CommandInnAPIGetDeliveryAddresses(URI.create(logonUrl),
+                applicationToken.getApplicationTokenId(), userTokenId).execute();
         log.debug("Received crm data {}", data);
 
         return createResponseWithHeader(data, applicationToken.getApplicationName());
@@ -99,9 +103,9 @@ public class UserDeliveryAddressResource extends CoreUserResource {
                                           @FormParam("addressLine1") String addressLine1,
                                           @FormParam("addressLine2") String addressLine2,
                                           @FormParam("comment") String comment,
-                                          @FormParam("select") boolean select
-    ) {
-        log.info("Invoked createDeliveryAddress with secret: {} userTokenId: {} and headers: {}", secret, userTokenId, headers.getRequestHeaders());
+                                          @FormParam("select") boolean select) {
+        log.info("Invoked createDeliveryAddress with secret: {} userTokenId: {} and headers: {}",
+                secret, userTokenId, headers.getRequestHeaders());
 
         ApplicationToken applicationToken = spaApplicationRepository.getApplicationTokenBySecret(secret);
 
@@ -128,7 +132,8 @@ public class UserDeliveryAddressResource extends CoreUserResource {
                                            @PathParam("secret") String secret,
                                            @PathParam("userTokenId") String userTokenId,
                                            @FormParam("tag") String tag) {
-        log.info("Invoked selectDeliveryAddress with secret: {} userTokenId: {} and headers: {}", secret, userTokenId, headers.getRequestHeaders());
+        log.info("Invoked selectDeliveryAddress with secret: {} userTokenId: {} and headers: {}",
+                secret, userTokenId, headers.getRequestHeaders());
 
         ApplicationToken applicationToken = spaApplicationRepository.getApplicationTokenBySecret(secret);
 
@@ -137,7 +142,8 @@ public class UserDeliveryAddressResource extends CoreUserResource {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
 
-        String data = new CommandInnAPISelectDeliveryAddress(URI.create(logonUrl), applicationToken.getApplicationTokenId(), userTokenId, tag).execute();
+        String data = new CommandInnAPISelectDeliveryAddress(URI.create(logonUrl),
+                applicationToken.getApplicationTokenId(), userTokenId, tag).execute();
 
         return createResponseWithHeader(data, applicationToken.getApplicationName());
     }
@@ -148,7 +154,8 @@ public class UserDeliveryAddressResource extends CoreUserResource {
                                           @PathParam("secret") String secret,
                                           @PathParam("userTokenId") String userTokenId,
                                           @FormParam("tag") String tag) {
-        log.info("Invoked deleteDeliveryAddress with secret: {} userTokenId: {} and headers: {}", secret, userTokenId, headers.getRequestHeaders());
+        log.info("Invoked deleteDeliveryAddress with secret: {} userTokenId: {} and headers: {}",
+                secret, userTokenId, headers.getRequestHeaders());
 
         ApplicationToken applicationToken = spaApplicationRepository.getApplicationTokenBySecret(secret);
 
@@ -157,7 +164,8 @@ public class UserDeliveryAddressResource extends CoreUserResource {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
 
-        String data = new CommandInnAPIDeleteDeliveryAddress(URI.create(logonUrl), applicationToken.getApplicationTokenId(), userTokenId, tag).execute();
+        String data = new CommandInnAPIDeleteDeliveryAddress(URI.create(logonUrl),
+                applicationToken.getApplicationTokenId(), userTokenId, tag).execute();
 
         return createResponseWithHeader(data, applicationToken.getApplicationName());
     }

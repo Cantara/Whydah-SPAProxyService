@@ -147,7 +147,8 @@ public class CredentialStore {
         if (found != null) {
             //HUY: we have to use admin function to get the full specification of this app
             //Problem is the app secret is obfuscated in application list
-            CommandGetApplication app = new CommandGetApplication(URI.create(getWas().getUAS()), getWas().getActiveApplicationTokenId(), getAdminUserTokenId(), found.getId());
+            CommandGetApplication app = new CommandGetApplication(URI.create(getWas().getUAS()),
+                    getWas().getActiveApplicationTokenId(), getAdminUserTokenId(), found.getId());
             String result = app.execute();
             if (result != null) {
                 found = ApplicationMapper.fromJson(result);
@@ -170,7 +171,8 @@ public class CredentialStore {
             }
         }
 
-        if (redirectUrl == null && application != null && application.getApplicationUrl() != null && Validator.isValidURL(application.getApplicationUrl())) {
+        if (redirectUrl == null && application != null && application.getApplicationUrl() != null
+                && Validator.isValidURL(application.getApplicationUrl())) {
             redirectUrl = application.getApplicationUrl();
         }
         if (redirectUrl == null) {

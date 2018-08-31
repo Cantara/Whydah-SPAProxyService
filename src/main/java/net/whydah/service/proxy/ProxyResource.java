@@ -160,7 +160,9 @@ public class ProxyResource {
     }
 
     private boolean generateAUserTicket(String userTokenId, String ticket) {
-        CommandCreateTicketForUserTokenID cmt = new CommandCreateTicketForUserTokenID(URI.create(credentialStore.getWas().getSTS()), credentialStore.getWas().getActiveApplicationTokenId(), credentialStore.getWas().getActiveApplicationTokenXML(), ticket, userTokenId);
+        CommandCreateTicketForUserTokenID cmt = new CommandCreateTicketForUserTokenID(URI.create(credentialStore.getWas().getSTS()),
+                credentialStore.getWas().getActiveApplicationTokenId(), credentialStore.getWas().getActiveApplicationTokenXML(),
+                ticket, userTokenId);
 
         boolean result = cmt.execute();
 
@@ -184,7 +186,8 @@ public class ProxyResource {
     }
 
     private ApplicationToken createApplicationToken(Application application) {
-        ApplicationCredential appCredential = new ApplicationCredential(application.getId(), application.getName(), application.getSecurity().getSecret());
+        ApplicationCredential appCredential = new ApplicationCredential(application.getId(), application.getName(),
+                application.getSecurity().getSecret());
         String appTokenXml = new CommandLogonApplication(URI.create(credentialStore.getWas().getSTS()), appCredential).execute();
         ApplicationToken applicationToken = ApplicationTokenMapper.fromXml(appTokenXml);
 
