@@ -11,7 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URL;
 
-public class CookieManager {
+public final class CookieManager {
     public static String USER_TOKEN_REFERENCE_NAME = "whydahusertoken_sso";
 
     //private static final String LOGOUT_COOKIE_VALUE = "logout";

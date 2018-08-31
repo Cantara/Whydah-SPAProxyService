@@ -47,8 +47,6 @@ public class ProxyResource {
     private final CredentialStore credentialStore;
     private final SPAApplicationRepository spaApplicationRepository;
 
-    private StringXORer stringXORer = new StringXORer();
-
     @Autowired
     public ProxyResource(CredentialStore credentialStore, SPAApplicationRepository spaApplicationRepository) {
         this.credentialStore = credentialStore;
@@ -119,8 +117,8 @@ public class ProxyResource {
         // 4. establish new SPA secret and store it in secret-applicationsession map
         String secretPart1 = UUID.randomUUID().toString();
         String secretPart2 = UUID.randomUUID().toString();
-        String secret = stringXORer.encode(secretPart1, secretPart2);
-        String secret2 = stringXORer.encode(secretPart1, application.getId());
+        String secret = StringXORer.encode(secretPart1, secretPart2);
+        String secret2 = StringXORer.encode(secretPart1, application.getId());
 
         log.info("Created secret: part1:{}, part2:{} = secret:{}", secretPart1, secretPart2, secret);
         spaApplicationRepository.add(secret, getOrCreateSessionForApplication(application));

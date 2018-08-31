@@ -32,10 +32,13 @@ import org.slf4j.LoggerFactory;
 //
 // The library supports the JWS/JWE compact serializations with the complete suite of JOSE algorithms.
 // A more detailed breakdown is available below in the Algorithm Support section.
-public class AdvancedJWTokenUtil {
+public final class AdvancedJWTokenUtil {
     private static final Logger log = LoggerFactory.getLogger(AdvancedJWTokenUtil.class);
 
     static RsaJsonWebKey rsaJsonWebKey = RsaJwkProducer.produce();
+
+    private AdvancedJWTokenUtil(){
+    }
 
     public static String buildJWT(UserToken usertoken, String userTicket, String applicationId) {
         log.debug("RSA hash code... " + rsaJsonWebKey.hashCode());

@@ -9,7 +9,7 @@ import javax.ws.rs.core.Response;
 abstract class CoreUserResource {
     public static final String API_PATH = "/api";
 
-    static final String logonUrl = net.whydah.util.Configuration.getString("logonservice");
+    static final String logonUrl = Configuration.getString("logonservice");
 
     final CredentialStore credentialStore;
 

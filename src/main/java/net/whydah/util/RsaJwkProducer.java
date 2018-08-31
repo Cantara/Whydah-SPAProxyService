@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class RsaJwkProducer {
+public final class RsaJwkProducer {
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(RsaJwkProducer.class);
 
     private RsaJwkProducer() {
