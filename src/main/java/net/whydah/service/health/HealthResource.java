@@ -20,15 +20,16 @@ import java.net.URL;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Properties;
+
+import static net.whydah.service.health.HealthResource.HEALTH_PATH;
 
 /**
  * Simple health endpoint for checking the server is running
  *
  * @author <a href="mailto:asbjornwillersrud@gmail.com">Asbjørn Willersrud</a> 30/03/2016.
  */
-@Path(HealthResource.HEALTH_PATH)
+@Path(HEALTH_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 public class HealthResource {
     public static final String HEALTH_PATH = "/health";
@@ -44,7 +45,7 @@ public class HealthResource {
     public HealthResource(CredentialStore credentialStore, SPAApplicationRepository spaApplicationRepository) {
         this.credentialStore = credentialStore;
         this.spaApplicationRepository = spaApplicationRepository;
-        this.applicationInstanceName = Configuration.getString("applicationname");
+        applicationInstanceName = Configuration.getString("applicationname");
     }
 
     @GET
@@ -93,7 +94,7 @@ public class HealthResource {
             return "{}";
         }
 
-        Map<String, Integer> countMap = new HashMap();
+        HashMap<String, Integer> countMap = new HashMap<>();
         for (ApplicationToken applicationToken : applicationSessions) {
             if (countMap.get(applicationToken.getApplicationName()) == null) {
                 countMap.put(applicationToken.getApplicationName(), 1);
@@ -103,8 +104,7 @@ public class HealthResource {
         }
 
         try {
-            String jsonString = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(countMap);
-            return jsonString;
+            return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(countMap);
         } catch (Exception e) {
             return "{}";
         }
