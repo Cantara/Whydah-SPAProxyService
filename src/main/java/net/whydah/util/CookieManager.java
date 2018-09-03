@@ -12,12 +12,11 @@ import java.io.IOException;
 import java.net.URL;
 
 public final class CookieManager {
-    public static String USER_TOKEN_REFERENCE_NAME = "whydahusertoken_sso";
-
     //private static final String LOGOUT_COOKIE_VALUE = "logout";
     private static final Logger log = LoggerFactory.getLogger(CookieManager.class);
     private static final int DEFAULT_COOKIE_MAX_AGE = 365 * 24 * 60 * 60;
 
+    private static String userTokenReferenceName = "whydahusertoken_sso";
     private static String cookieDomain = null;
     private static boolean isMyUriSecured = false;
 
@@ -28,7 +27,7 @@ public final class CookieManager {
         try {
             cookieDomain = Configuration.getString("whydah.cookiedomain");
             String myAppUri = Configuration.getString("myuri");
-            USER_TOKEN_REFERENCE_NAME = Configuration.getString("cookie_user_token_reference_name");
+            userTokenReferenceName = Configuration.getString("cookie_user_token_reference_name");
             //some overrides
             URL uri;
 
@@ -87,7 +86,7 @@ public final class CookieManager {
 
     public static void createAndSetUserTokenCookie(String userTokenId, Integer tokenRemainingLifetimeSeconds,
                                                    HttpServletRequest request, HttpServletResponse response) {
-        Cookie cookie = new Cookie(USER_TOKEN_REFERENCE_NAME, userTokenId);
+        Cookie cookie = new Cookie(userTokenReferenceName, userTokenId);
         cookie.setValue(userTokenId);
 
         if (tokenRemainingLifetimeSeconds == null) {
@@ -100,7 +99,7 @@ public final class CookieManager {
                                              HttpServletRequest request, HttpServletResponse response) {
         Cookie cookie = getUserTokenCookie(request);
         if (cookie == null) {
-            cookie = new Cookie(USER_TOKEN_REFERENCE_NAME, userTokenId);
+            cookie = new Cookie(userTokenReferenceName, userTokenId);
         }
         updateCookie(cookie, userTokenId, tokenRemainingLifetimeSeconds, response);
     }
@@ -156,7 +155,7 @@ public final class CookieManager {
     }
 
     public static String getUserTokenId(HttpServletRequest request) {
-        String userTokenId = request.getParameter(CookieManager.USER_TOKEN_REFERENCE_NAME);
+        String userTokenId = request.getParameter(CookieManager.userTokenReferenceName);
 
         if (userTokenId != null && userTokenId.length() > 1) {
             log.warn("getUserTokenId: userTokenIdFromRequest={}", userTokenId);
@@ -188,7 +187,7 @@ public final class CookieManager {
         for (Cookie cookie : cookies) {
             log.debug("getUserTokenCookie: cookie with name={}, value={}",
                     cookie.getName(), cookie.getValue(), cookie.getDomain(), cookie.getPath());
-            if (USER_TOKEN_REFERENCE_NAME.equalsIgnoreCase(cookie.getName())) {
+            if (userTokenReferenceName.equalsIgnoreCase(cookie.getName())) {
                 return cookie;
             }
         }
@@ -215,7 +214,7 @@ public final class CookieManager {
 
     private static void addCookie(String userTokenId,
                                   Integer tokenRemainingLifetimeSeconds, HttpServletResponse response) {
-        StringBuilder sb = new StringBuilder(USER_TOKEN_REFERENCE_NAME);
+        StringBuilder sb = new StringBuilder(userTokenReferenceName);
         sb.append("=");
         sb.append(userTokenId);
         sb.append(";expires=");

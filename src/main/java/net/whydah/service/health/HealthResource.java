@@ -20,6 +20,7 @@ import java.net.URL;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import static net.whydah.service.health.HealthResource.HEALTH_PATH;
@@ -91,7 +92,7 @@ public class HealthResource {
             return "{}";
         }
 
-        HashMap<String, Integer> countMap = new HashMap<>();
+        Map<String, Integer> countMap = new HashMap<>();
         for (ApplicationToken applicationToken : applicationSessions) {
             if (countMap.get(applicationToken.getApplicationName()) == null) {
                 countMap.put(applicationToken.getApplicationName(), 1);
