@@ -72,7 +72,7 @@ public class CredentialStore {
             if (hasWhydahConnection()) {
                 return Boolean.toString(getWas().getActiveApplicationTokenId() != null);
             }
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         }
 
         return Boolean.toString(false);
@@ -83,7 +83,7 @@ public class CredentialStore {
             if (hasWhydahConnection()) {
                 return Boolean.toString(getWas().checkActiveSession());
             }
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         }
 
         return Boolean.toString(false);
@@ -95,7 +95,7 @@ public class CredentialStore {
                 was.updateApplinks(true);
                 return Boolean.toString(getWas().getApplicationList().size() > 2);
             }
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         }
 
         return Boolean.toString(false);

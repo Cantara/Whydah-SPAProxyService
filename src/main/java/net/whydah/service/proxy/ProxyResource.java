@@ -189,9 +189,8 @@ public class ProxyResource {
         ApplicationCredential appCredential = new ApplicationCredential(application.getId(), application.getName(),
                 application.getSecurity().getSecret());
         String appTokenXml = new CommandLogonApplication(URI.create(credentialStore.getWas().getSTS()), appCredential).execute();
-        ApplicationToken applicationToken = ApplicationTokenMapper.fromXml(appTokenXml);
 
-        return applicationToken;
+        return ApplicationTokenMapper.fromXml(appTokenXml);
     }
 
     private ApplicationToken getApplicationTokenFromSessions(Application application) {
