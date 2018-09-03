@@ -29,8 +29,7 @@ public class StringXORer {
 
     private static String base64Encode(byte[] bytes) {
         return Base64.getEncoder()
-                .encode(bytes)
-                .toString()
+                .encodeToString(bytes)
                 .replaceAll("\\s", "");
     }
 }
