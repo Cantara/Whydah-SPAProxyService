@@ -202,7 +202,7 @@ public final class CookieManager {
         }
 
         for (Cookie cookie : cookies) {
-            log.info("getCodeCookie: cookie with name={}, value={}",
+            log.debug("getCodeCookie: cookie with name={}, value={}",
                     cookie.getName(), cookie.getValue(), cookie.getDomain(), cookie.getPath());
             if ("code".equalsIgnoreCase(cookie.getName())) {
                 return cookie;

@@ -65,39 +65,29 @@ public class UserAuthenticationResource extends CoreUserResource {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
 
-        // 1. lookup secret in secret-application session map
         ApplicationToken applicationToken = spaApplicationRepository.getApplicationTokenBySecret(secret);
-        // 2. execute Whydah API request using the found application
         if (applicationToken == null) {
             log.warn("Unable to locate applicationsession from secret, returning 403");
             return Response.status(Response.Status.FORBIDDEN).build();
         }
-        Application application = credentialStore.findApplication(applicationToken.getApplicationName());
 
         UserCredential userCredential = new UserCredential(username, password);
 
         String ticket = UUID.randomUUID().toString();
-        UserToken userToken = UserTokenMapper.fromUserTokenXml(new CommandLogonUserByUserCredential(
-                URI.create(credentialStore.getWas().getSTS()), applicationToken.getApplicationTokenId(),
-                ApplicationTokenMapper.toXML(applicationToken), userCredential, ticket).execute());
+        UserToken userToken = getUserTokenFromCredential(applicationToken, userCredential, ticket);
+
         if (userToken == null) {
-            // Most likely timeout in application sesssion, lets create a new here..
-            ApplicationCredential appCredential = new ApplicationCredential(application.getId(), application.getName(),
-                    application.getSecurity().getSecret());
-            String myAppTokenXml = new CommandLogonApplication(URI.create(credentialStore.getWas().getSTS()), appCredential).execute();
-            applicationToken = ApplicationTokenMapper.fromXml(myAppTokenXml);
-            spaApplicationRepository.add(secret, applicationToken);
-            userToken = UserTokenMapper.fromUserTokenXml(new CommandLogonUserByUserCredential(
-                    URI.create(credentialStore.getWas().getSTS()), applicationToken.getApplicationTokenId(),
-                    ApplicationTokenMapper.toXML(applicationToken), userCredential, ticket).execute());
+            applicationToken = createApplicationToken(applicationToken.getApplicationName(), secret);
+            userToken = getUserTokenFromCredential(applicationToken, userCredential, ticket);
         }
-        if (userToken == null && !userToken.isValid()) {
+        if (userToken == null || !userToken.isValid()) {
             log.warn("Unable to resolve valid UserToken from supplied usercredentials, returning 403");
             return Response.status(Response.Status.FORBIDDEN).build();
         }
 
-        return createResponseWithHeader(getResponseTextJson(userToken, ticket,
-                applicationToken.getApplicationID()), applicationToken.getApplicationName());
+        String jwt = AdvancedJWTokenUtil.buildJWT(userToken, ticket, applicationToken.getApplicationID());
+
+        return createResponseWithHeader(jwt, applicationToken.getApplicationName());
     }
 
     @POST
@@ -120,38 +110,64 @@ public class UserAuthenticationResource extends CoreUserResource {
     private Response getJWTFromTicket(HttpHeaders headers, String secret, String ticket) {
         log.info("Invoked getTokenFromTicket with secret: {} ticket: {} and headers: {}", secret, ticket, headers.getRequestHeaders());
 
-        // 1. lookup secret in secret-application session map
         ApplicationToken applicationToken = spaApplicationRepository.getApplicationTokenBySecret(secret);
-        // 2. execute Whydah API request using the found application
         if (applicationToken == null) {
             log.warn("Unable to locate applicationsession from secret, returning 403");
             return Response.status(Response.Status.FORBIDDEN).build();
         }
 
         log.debug("Get usertoken from ticket {}", ticket);
-        UserToken userToken = UserTokenMapper.fromUserTokenXml(new CommandGetUsertokenByUserticket(
-                URI.create(credentialStore.getWas().getSTS()), applicationToken.getApplicationTokenId(),
-                ApplicationTokenMapper.toXML(applicationToken), ticket).execute());
+        UserToken userToken = getUserTokenFromTicket(applicationToken, ticket);
         if (userToken == null || !userToken.isValid()) {
             log.warn("Unable to resolve valid UserToken from ticket, returning 403");
             return Response.status(Response.Status.FORBIDDEN).build();
         }
 
-        //create a new ticket
-        String newTicket = UUID.randomUUID().toString();
-        CommandCreateTicketForUserTokenID cmd = new CommandCreateTicketForUserTokenID(
-                URI.create(credentialStore.getWas().getSTS()), applicationToken.getApplicationTokenId(),
-                ApplicationTokenMapper.toXML(applicationToken), newTicket, userToken.getUserTokenId());
-        if (!cmd.execute()) {
+        String newTicketId = UUID.randomUUID().toString();
+        boolean successfullyCreatedTicket = createNewTicket(applicationToken, newTicketId, userToken.getUserTokenId());
+        if (!successfullyCreatedTicket) {
             log.warn("Unable to renew a ticket for this UserToken, returning 500");
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
 
-        return createResponseWithHeader(getResponseTextJson(userToken, newTicket,
-                applicationToken.getApplicationID()), applicationToken.getApplicationName());
+        String jwt = AdvancedJWTokenUtil.buildJWT(userToken, newTicketId, applicationToken.getApplicationID());
+
+        return createResponseWithHeader(jwt, applicationToken.getApplicationName());
     }
 
-    private String getResponseTextJson(UserToken userToken, String userticket, String applicationId) {
-        return AdvancedJWTokenUtil.buildJWT(userToken, userticket, applicationId);
+    private ApplicationToken createApplicationToken(String applicationName, String secret) {
+        Application application = credentialStore.findApplication(applicationName);
+
+        ApplicationCredential appCredential = new ApplicationCredential(application.getId(), application.getName(),
+                application.getSecurity().getSecret());
+        String myAppTokenXml = new CommandLogonApplication(URI.create(credentialStore.getWas().getSTS()),
+                appCredential).execute();
+
+        ApplicationToken applicationToken = ApplicationTokenMapper.fromXml(myAppTokenXml);
+
+        spaApplicationRepository.add(secret, applicationToken);
+        return applicationToken;
     }
+
+    private UserToken getUserTokenFromCredential(ApplicationToken applicationToken, UserCredential userCredential, String ticket) {
+        CommandLogonUserByUserCredential commandLogonUserByUserCredential = new CommandLogonUserByUserCredential(
+                URI.create(credentialStore.getWas().getSTS()), applicationToken.getApplicationTokenId(),
+                ApplicationTokenMapper.toXML(applicationToken), userCredential, ticket);
+        return UserTokenMapper.fromUserTokenXml(commandLogonUserByUserCredential.execute());
+    }
+
+    private UserToken getUserTokenFromTicket(ApplicationToken applicationToken, String ticket) {
+        CommandGetUsertokenByUserticket commandGetUsertokenByUserticket = new CommandGetUsertokenByUserticket(
+                URI.create(credentialStore.getWas().getSTS()), applicationToken.getApplicationTokenId(),
+                ApplicationTokenMapper.toXML(applicationToken), ticket);
+        return UserTokenMapper.fromUserTokenXml(commandGetUsertokenByUserticket.execute());
+    }
+
+    private boolean createNewTicket(ApplicationToken applicationToken, String ticketId, String userTokenId) {
+        CommandCreateTicketForUserTokenID cmd = new CommandCreateTicketForUserTokenID(
+                URI.create(credentialStore.getWas().getSTS()), applicationToken.getApplicationTokenId(),
+                ApplicationTokenMapper.toXML(applicationToken), ticketId, userTokenId);
+        return cmd.execute();
+    }
+
 }
