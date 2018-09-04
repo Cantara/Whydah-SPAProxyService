@@ -4,10 +4,11 @@ import org.jose4j.jwk.RsaJsonWebKey;
 import org.jose4j.jwk.RsaJwkGenerator;
 import org.jose4j.lang.JoseException;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class RsaJwkProducer {
+public final class RsaJwkProducer {
+    private static final Logger log = LoggerFactory.getLogger(RsaJwkProducer.class);
 
     private RsaJwkProducer() {
     }
@@ -19,11 +20,11 @@ public class RsaJwkProducer {
             try {
                 theOne = RsaJwkGenerator.generateJwk(2048);
             } catch (JoseException ex) {
-                Logger.getLogger(RsaJwkProducer.class.getName()).log(Level.SEVERE, null, ex);
+                log.error("Failed trying to generate Jwk", ex);
             }
         }
 
-        System.out.println("RSA Key setup... " + theOne.hashCode());
+        log.info("RSA Key setup... " + theOne.hashCode());
         return theOne;
     }
 }

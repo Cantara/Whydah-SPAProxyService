@@ -20,9 +20,6 @@ import javax.inject.Singleton;
 import java.net.URI;
 import java.util.List;
 
-/**
- * @author <a href="bard.lind@gmail.com">Bard Lind</a>
- */
 @Singleton
 @Repository
 public class CredentialStore {
@@ -75,7 +72,7 @@ public class CredentialStore {
             if (hasWhydahConnection()) {
                 return Boolean.toString(getWas().getActiveApplicationTokenId() != null);
             }
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         }
 
         return Boolean.toString(false);
@@ -86,7 +83,7 @@ public class CredentialStore {
             if (hasWhydahConnection()) {
                 return Boolean.toString(getWas().checkActiveSession());
             }
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         }
 
         return Boolean.toString(false);
@@ -98,7 +95,7 @@ public class CredentialStore {
                 was.updateApplinks(true);
                 return Boolean.toString(getWas().getApplicationList().size() > 2);
             }
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         }
 
         return Boolean.toString(false);
@@ -150,7 +147,8 @@ public class CredentialStore {
         if (found != null) {
             //HUY: we have to use admin function to get the full specification of this app
             //Problem is the app secret is obfuscated in application list
-            CommandGetApplication app = new CommandGetApplication(URI.create(getWas().getUAS()), getWas().getActiveApplicationTokenId(), getAdminUserTokenId(), found.getId());
+            CommandGetApplication app = new CommandGetApplication(URI.create(getWas().getUAS()),
+                    getWas().getActiveApplicationTokenId(), getAdminUserTokenId(), found.getId());
             String result = app.execute();
             if (result != null) {
                 found = ApplicationMapper.fromJson(result);
@@ -173,7 +171,8 @@ public class CredentialStore {
             }
         }
 
-        if (redirectUrl == null && application != null && application.getApplicationUrl() != null && Validator.isValidURL(application.getApplicationUrl())) {
+        if (redirectUrl == null && application != null && application.getApplicationUrl() != null
+                && Validator.isValidURL(application.getApplicationUrl())) {
             redirectUrl = application.getApplicationUrl();
         }
         if (redirectUrl == null) {

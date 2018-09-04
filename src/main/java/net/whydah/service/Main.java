@@ -1,6 +1,6 @@
 package net.whydah.service;
 
-import net.whydah.service.authapi.UserAuthenticationAPIResource;
+import net.whydah.service.auth.UserAuthenticationResource;
 import net.whydah.service.health.HealthResource;
 import net.whydah.service.proxy.ProxyResource;
 import net.whydah.util.Configuration;
@@ -26,9 +26,6 @@ import org.springframework.web.context.ContextLoaderListener;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 
-/**
- * @author <a href="mailto:erik-dev@fjas.no">Erik Drolshammer</a> 2015-07-09
- */
 public class Main {
     public static final String CONTEXT_PATH = "/proxy";
     public static final String ADMIN_ROLE = "admin";
@@ -168,7 +165,7 @@ public class Main {
         // Allow userAuthEndpointConstraintMapping to be accessed without authentication
         ConstraintMapping userAuthEndpointConstraintMapping = new ConstraintMapping();
         userAuthEndpointConstraintMapping.setConstraint(new Constraint(Constraint.NONE, Constraint.ANY_ROLE));
-        userAuthEndpointConstraintMapping.setPathSpec(UserAuthenticationAPIResource.API_PATH + "/*");
+        userAuthEndpointConstraintMapping.setPathSpec(UserAuthenticationResource.API_PATH + "/*");
         securityHandler.addConstraintMapping(userAuthEndpointConstraintMapping);
 
         HashLoginService loginService = new HashLoginService("Whydah-SPAProxyService");
