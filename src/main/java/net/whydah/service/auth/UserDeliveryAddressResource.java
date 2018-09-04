@@ -82,6 +82,13 @@ public class UserDeliveryAddressResource extends CoreUserResource {
                 applicationToken.getApplicationTokenId(), userTokenId).execute();
         log.debug("Received crm data {}", data);
 
+        // If the hystrix command returns null, it failed.
+        // The most likely cause is that a consent is not in place.
+        if (data == null) {
+            return createForbiddenResponseWithHeader(applicationToken.getApplicationName());
+        }
+
+
         return createResponseWithHeader(data, applicationToken.getApplicationName());
     }
 
