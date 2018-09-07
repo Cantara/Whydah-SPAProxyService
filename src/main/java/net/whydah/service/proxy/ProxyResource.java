@@ -18,6 +18,7 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
@@ -28,7 +29,6 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.util.UUID;
@@ -38,7 +38,7 @@ import static net.whydah.service.proxy.ProxyResource.PROXY_PATH;
 
 @RestController
 @Path(PROXY_PATH)
-@Produces(MediaType.TEXT_HTML)
+@Produces(MediaType.APPLICATION_JSON_UTF8_VALUE)
 public class ProxyResource {
     public static final String PROXY_PATH = "/load";
 
@@ -46,8 +46,6 @@ public class ProxyResource {
 
     private final CredentialStore credentialStore;
     private final SPAApplicationRepository spaApplicationRepository;
-
-    private StringXORer stringXORer = new StringXORer();
 
     @Autowired
     public ProxyResource(CredentialStore credentialStore, SPAApplicationRepository spaApplicationRepository) {
@@ -119,8 +117,8 @@ public class ProxyResource {
         // 4. establish new SPA secret and store it in secret-applicationsession map
         String secretPart1 = UUID.randomUUID().toString();
         String secretPart2 = UUID.randomUUID().toString();
-        String secret = stringXORer.encode(secretPart1, secretPart2);
-        String secret2 = stringXORer.encode(secretPart1, application.getId());
+        String secret = StringXORer.encode(secretPart1, secretPart2);
+        String secret2 = StringXORer.encode(secretPart1, application.getId());
 
         log.info("Created secret: part1:{}, part2:{} = secret:{}", secretPart1, secretPart2, secret);
         spaApplicationRepository.add(secret, getOrCreateSessionForApplication(application));
@@ -131,7 +129,7 @@ public class ProxyResource {
 
         String origin = Configuration.getBoolean("allow.origin") ? "*" : credentialStore.findRedirectUrl(application);
 
-        return Response.ok(createJSONBody(secret, newTicket).toString(), origin)
+        return Response.ok(createJSONBody(secret, newTicket).toString())
                 .header("Access-Control-Allow-Origin", origin)
                 .header("Access-Control-Allow-Credentials", true)
                 .header("Access-Control-Allow-Headers", "*")
@@ -162,7 +160,9 @@ public class ProxyResource {
     }
 
     private boolean generateAUserTicket(String userTokenId, String ticket) {
-        CommandCreateTicketForUserTokenID cmt = new CommandCreateTicketForUserTokenID(URI.create(credentialStore.getWas().getSTS()), credentialStore.getWas().getActiveApplicationTokenId(), credentialStore.getWas().getActiveApplicationTokenXML(), ticket, userTokenId);
+        CommandCreateTicketForUserTokenID cmt = new CommandCreateTicketForUserTokenID(URI.create(credentialStore.getWas().getSTS()),
+                credentialStore.getWas().getActiveApplicationTokenId(), credentialStore.getWas().getActiveApplicationTokenXML(),
+                ticket, userTokenId);
 
         boolean result = cmt.execute();
 
@@ -186,11 +186,11 @@ public class ProxyResource {
     }
 
     private ApplicationToken createApplicationToken(Application application) {
-        ApplicationCredential appCredential = new ApplicationCredential(application.getId(), application.getName(), application.getSecurity().getSecret());
+        ApplicationCredential appCredential = new ApplicationCredential(application.getId(), application.getName(),
+                application.getSecurity().getSecret());
         String appTokenXml = new CommandLogonApplication(URI.create(credentialStore.getWas().getSTS()), appCredential).execute();
-        ApplicationToken applicationToken = ApplicationTokenMapper.fromXml(appTokenXml);
 
-        return applicationToken;
+        return ApplicationTokenMapper.fromXml(appTokenXml);
     }
 
     private ApplicationToken getApplicationTokenFromSessions(Application application) {

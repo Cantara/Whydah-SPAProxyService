@@ -12,7 +12,8 @@ public class CommandGetProxyResponse extends MyBaseHttpGetHystrixCommand<String>
     static Random r = new Random();
 
     public CommandGetProxyResponse(String uri) {
-        super(URI.create(uri), "CommandGetProxyResponse_" + r.nextInt(100), HystrixCommandTimeoutConfig.defaultTimeout);
+        super(URI.create(uri), "CommandGetProxyResponse_" + r.nextInt(100),
+                HystrixCommandTimeoutConfig.defaultTimeout);
     }
 
     @Override

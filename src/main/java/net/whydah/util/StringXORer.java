@@ -2,7 +2,10 @@ package net.whydah.util;
 
 import java.util.Base64;
 
-public class StringXORer {
+public final class StringXORer {
+    private StringXORer(){
+    }
+
     public static String encode(String s, String key) {
         return base64Encode(xorWithKey(s.getBytes(), key.getBytes()));
     }
@@ -29,8 +32,7 @@ public class StringXORer {
 
     private static String base64Encode(byte[] bytes) {
         return Base64.getEncoder()
-                .encode(bytes)
-                .toString()
+                .encodeToString(bytes)
                 .replaceAll("\\s", "");
     }
 }

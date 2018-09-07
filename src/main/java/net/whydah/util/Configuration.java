@@ -6,7 +6,7 @@ import org.constretto.model.Resource;
 
 import java.util.Map;
 
-public class Configuration {
+public final class Configuration {
     private static final ConstrettoConfiguration configuration = new ConstrettoBuilder()
             .createPropertiesStore()
             .addResource(Resource.create("classpath:application.properties"))

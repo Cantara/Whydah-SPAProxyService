@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>net.whydah.service</groupId>
     <artifactId>Whydah-SPAProxyService</artifactId>
@@ -11,14 +12,13 @@
         <artifactId>parent</artifactId>
         <version>6</version>
     </parent>
+
     <scm>
         <developerConnection>scm:git:ssh://git@github.com/cantara/Whydah-SPAProxyService.git</developerConnection>
         <connection>scm:git:https://github.com/cantara/Whydah-SPAProxyService.git</connection>
         <url>https://wiki.cantara.no/display/whydah/SPAProxyService</url>
-      <tag>HEAD</tag>
-  </scm>
-
-
+        <tag>HEAD</tag>
+    </scm>
 
     <properties>
         <service.name>Whydah-SPAProxyService</service.name>
@@ -31,6 +31,7 @@
         <hystrix.version>1.4.21</hystrix.version>
         <maven.javadoc.skip>true</maven.javadoc.skip>
     </properties>
+
     <developers>
         <developer>
             <id>totto</id>
@@ -64,7 +65,6 @@
 
 
     <dependencies>
-
         <dependency>
             <groupId>net.whydah.sso</groupId>
             <artifactId>Whydah-Admin-SDK</artifactId>
@@ -80,7 +80,7 @@
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt</artifactId>
             <version>0.9.0</version>
-	    <exclusions>
+            <exclusions>
                 <exclusion>
                     <groupId>com.fasterxml.jackson.core</groupId>
                     <artifactId>jackson-databind</artifactId>
@@ -88,13 +88,13 @@
             </exclusions>
         </dependency>
 
-		 <!--this supports the JWS/JWE compact serializations with the complete suite of JOSE (Javascript Object Signing and Encryption) algorithms-->
-		 <dependency>
-		    <groupId>org.bitbucket.b_c</groupId>
-		    <artifactId>jose4j</artifactId>
-		    <version>0.6.3</version>
-		  </dependency>
-		  
+        <!--this supports the JWS/JWE compact serializations with the complete suite of JOSE (Javascript Object Signing and Encryption) algorithms-->
+        <dependency>
+            <groupId>org.bitbucket.b_c</groupId>
+            <artifactId>jose4j</artifactId>
+            <version>0.6.3</version>
+        </dependency>
+
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
@@ -222,8 +222,6 @@
             </exclusions>
         </dependency>
 
-
-
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
@@ -277,13 +275,13 @@
         </dependency>
 
 
-		<!-- https://mvnrepository.com/artifact/org.glassfish.jersey.core/jersey-common -->
-		<dependency>
-		    <groupId>org.glassfish.jersey.core</groupId>
-		    <artifactId>jersey-common</artifactId>
-		    <version>2.27</version>
-		</dependency>
-		
+        <!-- https://mvnrepository.com/artifact/org.glassfish.jersey.core/jersey-common -->
+        <dependency>
+            <groupId>org.glassfish.jersey.core</groupId>
+            <artifactId>jersey-common</artifactId>
+            <version>2.27</version>
+        </dependency>
+
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
@@ -321,7 +319,7 @@
             <version>1.10.19</version>
             <scope>test</scope>
         </dependency>
- 		<dependency>
+        <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
             <version>20090211</version>
@@ -332,6 +330,7 @@
             <version>3.9</version>
         </dependency>
     </dependencies>
+
     <build>
         <plugins>
             <plugin>
@@ -376,17 +375,21 @@
                                 </excludes>
                             </artifactSet>
                             <transformers>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <manifestEntries>
                                         <Main-Class>net.whydah.service.Main</Main-Class>
                                     </manifestEntries>
                                 </transformer>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
 
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
                                     <resource>META-INF/spring.handlers</resource>
                                 </transformer>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
                                     <resource>META-INF/spring.schemas</resource>
                                 </transformer>
                             </transformers>
