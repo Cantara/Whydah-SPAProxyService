@@ -2,23 +2,14 @@ package net.whydah.service.auth;
 
 import net.whydah.service.CredentialStore;
 import net.whydah.service.SPAApplicationRepository;
-import net.whydah.service.inn.api.commands.CommandInnAPICreateOrUpdateADeliveryAddress;
-import net.whydah.service.inn.api.commands.CommandInnAPIDeleteDeliveryAddress;
-import net.whydah.service.inn.api.commands.CommandInnAPIGetDeliveryAddresses;
-import net.whydah.service.inn.api.commands.CommandInnAPIGetOnlyDeliveryAddresses;
-import net.whydah.service.inn.api.commands.CommandInnAPISelectDeliveryAddress;
+import net.whydah.service.inn.api.commands.*;
 import net.whydah.sso.application.types.ApplicationToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.ws.rs.FormParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -88,7 +79,33 @@ public class UserDeliveryAddressResource extends CoreUserResource {
             return createForbiddenResponseWithHeader(applicationToken.getApplicationName());
         }
 
+        return createResponseWithHeader(data, applicationToken.getApplicationName());
+    }
 
+    @GET
+    @Path("/{secret}/get_shared_delivery_address/{userTokenId}")
+    public Response getSharedDeliveryAddress(@Context HttpHeaders headers,
+                                             @PathParam("secret") String secret,
+                                             @PathParam("userTokenId") String userTokenId) {
+        log.debug("Invoked getSharedDeliveryAddress");
+
+        ApplicationToken applicationToken = spaApplicationRepository.getApplicationTokenBySecret(secret);
+        if (applicationToken == null) {
+            log.warn("Unable to locate application session from secret, returning 403");
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
+
+        String data = new CommandInnAPIGetSharedDeliveryAddress(
+                URI.create(logonUrl),
+                applicationToken.getApplicationTokenId(),
+                userTokenId
+        ).execute();
+
+        log.debug("Received shared delivery address {}", data);
+
+        if (data == null) {
+            return createForbiddenResponseWithHeader(applicationToken.getApplicationName());
+        }
         return createResponseWithHeader(data, applicationToken.getApplicationName());
     }
 
