@@ -127,6 +127,7 @@ public class CredentialStore {
     }
 
     public Application findApplication(String appName) {
+    	getWas().updateApplinks(true);
         List<Application> applicationList = getWas().getApplicationList();
         log.debug("Found {} applications", applicationList.size());
         Application found = null;
