@@ -24,7 +24,7 @@
         <whydah-admin-sdk-version>2.5.4</whydah-admin-sdk-version>
         <jackson.version>2.9.7</jackson.version>
         <jersey.version>2.26</jersey.version>
-        <jetty.version>9.4.12.RC1</jetty.version>
+        <jetty.version>9.4.12.v20180830</jetty.version>
         <spring.version>5.1.1.RELEASE</spring.version>
         <slf4j.version>1.7.21</slf4j.version>
         <hystrix.version>1.4.21</hystrix.version>
