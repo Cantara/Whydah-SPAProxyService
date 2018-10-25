@@ -73,6 +73,12 @@
             <groupId>org.valuereporter</groupId>
             <artifactId>valuereporter-agent</artifactId>
             <version>0.8</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -125,6 +131,20 @@
             <groupId>org.glassfish.jersey.ext</groupId>
             <artifactId>jersey-spring4</artifactId>
             <version>${jersey.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.glassfish.hk2.external</groupId>
+                    <artifactId>aopalliance-repackaged</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>javax.inject</groupId>
+                    <artifactId>javax.inject</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.jvnet</groupId>
+                    <artifactId>tiger-types</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- https://jersey.java.net/documentation/latest/spring.html, allows Spring to inject into Jersey managed components -->
@@ -132,13 +152,14 @@
             <groupId>org.glassfish.jersey.ext</groupId>
             <artifactId>jersey-mvc-freemarker</artifactId>
             <version>${jersey.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>javax.servlet</groupId>
+                    <artifactId>servlet-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.glassfish.jersey.ext/jersey-spring3 -->
-        <!--       <dependency>
-                   <groupId>org.glassfish.jersey.ext</groupId>
-                   <artifactId>jersey-spring3</artifactId>
-                   <version>2.26-b03</version>
-               </dependency>-->
+
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-web</artifactId>
@@ -173,6 +194,10 @@
                     <groupId>commons-logging</groupId>
                     <artifactId>commons-logging</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-jcl</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -186,6 +211,7 @@
                 </exclusion>
             </exclusions>
         </dependency>
+
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
@@ -212,12 +238,10 @@
                 <exclusion>
                     <groupId>org.springframework</groupId>
                     <artifactId>spring-beans</artifactId>
-
                 </exclusion>
                 <exclusion>
                     <groupId>org.springframework</groupId>
                     <artifactId>spring-aop</artifactId>
-
                 </exclusion>
             </exclusions>
         </dependency>
@@ -252,6 +276,7 @@
             <artifactId>json</artifactId>
             <version>20090211</version>
         </dependency>
+
         <dependency>
             <groupId>com.hazelcast</groupId>
             <artifactId>hazelcast-all</artifactId>
