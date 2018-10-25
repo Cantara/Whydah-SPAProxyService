@@ -16,7 +16,7 @@
 
         <fileSet>
             <directory>src/main/assembly/config_override</directory>
-            <outputDirectory>/config_override</outputDirectory>
+            <outputDirectory>config_override</outputDirectory>
         </fileSet>
 
 
