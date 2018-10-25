@@ -41,14 +41,13 @@ This module is the backend/API support module for the Whydah SPA javascript npm 
     * Create 302-redirect with two secrets
       * secret 1 is the code=xxx param on the redirect-URI on the Location URL in the 302 response
       * secret 2 is in an embedded cookie in the 302-request
-
-1b. (Optional) if you are unable to get/process the cookie
+2. (Optional) if you are unable to get/process the cookie
     * do a js XREF request to  ../load/{myapp}/ping
       * this will pick up the cookie, and return it in a json response
-2. to get the secret (initial application ticket) fo a secret1 XOR secret2
-3. if the user is recognized, use the ticket from the 302-request and call /{secret}/get_token_from_ticket/{ticket}
+3. to get the secret (initial application ticket) fo a secret1 XOR secret2
+4. if the user is recognized, use the ticket from the 302-request and call /{secret}/get_token_from_ticket/{ticket}
     * You will get a JWT token back with the user roles for your application
-4. to log inn from username/password in your SPA, call /{secret}/authenticate_user/
+5. to log inn from username/password in your SPA, call /{secret}/authenticate_user/
     * You will get a JWT token back with the user roles for your application
  
  
