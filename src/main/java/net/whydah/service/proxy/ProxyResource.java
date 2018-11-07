@@ -136,6 +136,100 @@ public class ProxyResource {
                 .build();
     }
 
+    //This is added back for INN-279 (not fully tested just yet). We also have to adjust JS client
+    @GET
+    @Path("/{appName}")
+    public Response getProxyRedirect2(@Context HttpServletRequest httpServletRequest,
+                                     @Context HttpServletResponse httpServletResponse,
+                                     @Context HttpHeaders headers,
+                                     @PathParam("appName") String appName) {
+        log.info("Invoked getProxyRedirect with appname: {} and headers: {}", appName, headers.getRequestHeaders());
+        Application application = credentialStore.findApplication(appName);
+        if (application == null) {
+            // No registered application found, return to default login
+            return Response.status(Response.Status.FOUND)
+                    .header("Location", FALLBACK_URL)
+                    .header("Access-Control-Allow-Origin", "*")
+                    .header("Access-Control-Allow-Credentials", true)
+                    .header("Access-Control-Allow-Headers", "*")
+                    .build();
+        }
+
+        //try to get a userticket from querystring, this can happen when we possibly retrieve from the localstorage
+        String userticket = httpServletRequest.getParameter("ticket");
+        String newTicket = null;
+        if (userticket != null) {
+            log.debug("User ticket from request params is {}", userticket);
+            String userTokenXml = getUserTokenXml(userticket);
+
+            if (userTokenXml != null) {
+                String userTokenId = UserTokenXpathHelper.getUserTokenId(userTokenXml);
+                log.debug("User token from STS is {}", userTokenId);
+
+                newTicket = UUID.randomUUID().toString();
+                if (!generateAUserTicket(userTokenId, newTicket)) {
+                    log.debug("Should not generate a new ticket. Reverting to null");
+                    newTicket = null;
+                } else {
+                    log.debug("Generated a new ticket");
+                }
+            } else {
+                log.debug("User token xml is null");
+            }
+        }
+
+        if (newTicket == null) {
+            log.debug("New ticket is null");
+            //try finding from cookie possibly? or maybe not?
+            String userTokenId = CookieManager.getUserTokenIdFromCookie(httpServletRequest);
+            log.debug("User token id from cookie is {}", userTokenId);
+            if (userTokenId != null && generateAUserTicket(userTokenId, newTicket)) {
+                log.debug("Should generate a new ticket 2");
+                newTicket = UUID.randomUUID().toString();
+            } else {
+                log.debug("Should not generate a new ticket 2");
+            }
+        } else {
+            log.debug("New ticket is {}", newTicket);
+        }
+
+        // 4. establish new SPA secret and store it in secret-applicationsession map
+        String secretPart1 = UUID.randomUUID().toString();
+        String secretPart2 = UUID.randomUUID().toString();
+        String secret = StringXORer.encode(secretPart1, secretPart2);
+//        String secret2 = StringXORer.encode(secretPart1, application.getId());
+
+        log.info("Created secret: part1:{}, part2:{} = secret:{}", secretPart1, secretPart2, secret);
+        spaApplicationRepository.add(secret, getOrCreateSessionForApplication(application));
+//        if (Configuration.getBoolean("allow.simple.secret")) {
+//            log.info("Created secret: part1:{}, part2:{} = secret:{}", secretPart1, application.getId(), secret2);
+//            spaApplicationRepository.add(secret2, getOrCreateSessionForApplication(application));
+//        }
+
+        String origin = Configuration.getBoolean("allow.origin") ? "*" : credentialStore.findRedirectUrl(application);
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("code=");
+        sb.append(secretPart2);
+        sb.append(";expires=");
+        sb.append(846000);
+        sb.append(";path=");
+        sb.append("/");
+        sb.append(";HttpOnly");
+        sb.append(";secure");
+        
+        return Response.status(Response.Status.FOUND)
+                .header("Access-Control-Allow-Origin", origin)
+                .header("Access-Control-Allow-Credentials", true)
+                .header("Access-Control-Allow-Headers", "*")
+                .header("Access-Control-Expose-Headers", "Cookie")
+                .header("Location", credentialStore.findRedirectUrl(application) + "?code=" + secretPart1 + "&ticket=" + newTicket)
+                .header("SET-COOKIE", sb.toString()).build();
+             
+        
+    }
+    
+    
     private String getUserTokenXml(String userticket) {
         return new CommandGetUsertokenByUserticket(URI.create(credentialStore.getWas().getSTS()),
                 credentialStore.getWas().getActiveApplicationTokenId(),

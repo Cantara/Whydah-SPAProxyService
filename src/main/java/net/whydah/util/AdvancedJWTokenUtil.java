@@ -2,6 +2,9 @@ package net.whydah.util;
 
 import net.whydah.sso.user.types.UserApplicationRoleEntry;
 import net.whydah.sso.user.types.UserToken;
+
+import java.security.Key;
+
 import org.jose4j.jwa.AlgorithmConstraints;
 import org.jose4j.jwa.AlgorithmConstraints.ConstraintType;
 import org.jose4j.jwk.RsaJsonWebKey;
@@ -35,14 +38,11 @@ import org.slf4j.LoggerFactory;
 public final class AdvancedJWTokenUtil {
     private static final Logger log = LoggerFactory.getLogger(AdvancedJWTokenUtil.class);
 
-    static RsaJsonWebKey rsaJsonWebKey = RsaJwkProducer.produce();
-
     private AdvancedJWTokenUtil(){
     }
 
-    public static String buildJWT(UserToken usertoken, String userTicket, String applicationId) {
+    public static String buildJWT(RsaJsonWebKey rsaJsonWebKey, UserToken usertoken, String userTicket, String applicationId) {
         log.debug("RSA hash code... " + rsaJsonWebKey.hashCode());
-
         JwtClaims claims = new JwtClaims();
         claims.setSubject(usertoken.getUserName()); // the subject/principal is whom the token is about
         claims.setJwtId(usertoken.getUserTokenId());
@@ -63,10 +63,10 @@ public final class AdvancedJWTokenUtil {
         NumericDate numericDate = NumericDate.now();
         numericDate.addSeconds(Long.parseLong(usertoken.getLifespan()) / 1000);
         claims.setExpirationTime(numericDate);
-
+        
         JsonWebSignature jws = new JsonWebSignature();
         jws.setPayload(claims.toJson());
-
+        jws.setKeyIdHeaderValue(rsaJsonWebKey.getKeyId());
         jws.setKey(rsaJsonWebKey.getPrivateKey());
         jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
 
@@ -83,8 +83,8 @@ public final class AdvancedJWTokenUtil {
         return jwt;
     }
 
-    public static JwtClaims parseJWT(String jwt) {
-        RsaJsonWebKey rsaJsonWebKey = RsaJwkProducer.produce();
+    public static JwtClaims parseJWT(String jwt, Key key) {
+       
         // Use JwtConsumerBuilder to construct an appropriate JwtConsumer, which will
         // be used to validate and process the JWT.
         // The specific validation requirements for a JWT are context dependent, however,
@@ -96,7 +96,8 @@ public final class AdvancedJWTokenUtil {
                 .setRequireExpirationTime() // the JWT must have an expiration time
                 .setAllowedClockSkewInSeconds(30) // allow some leeway in validating time based claims to account for clock skew
                 .setRequireSubject() // the JWT must have a subject claim
-                .setVerificationKey(rsaJsonWebKey.getKey()) // verify the signature with the public key
+                .setVerificationKey(key) // verify the signature with the public key
+                .setExpectedAudience(false, "")
                 .setJwsAlgorithmConstraints( // only allow the expected signature algorithm(s) in the given context
                         new AlgorithmConstraints(ConstraintType.WHITELIST, // which is only RS256 here
                                 AlgorithmIdentifiers.RSA_USING_SHA256))

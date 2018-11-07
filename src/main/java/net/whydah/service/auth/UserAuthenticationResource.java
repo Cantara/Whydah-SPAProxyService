@@ -14,6 +14,9 @@ import net.whydah.sso.user.mappers.UserTokenMapper;
 import net.whydah.sso.user.types.UserCredential;
 import net.whydah.sso.user.types.UserToken;
 import net.whydah.util.AdvancedJWTokenUtil;
+import net.whydah.util.RsaJwkHelper;
+
+import org.jose4j.jwk.RsaJsonWebKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -85,7 +88,7 @@ public class UserAuthenticationResource extends CoreUserResource {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
 
-        String jwt = AdvancedJWTokenUtil.buildJWT(userToken, ticket, applicationToken.getApplicationID());
+        String jwt = AdvancedJWTokenUtil.buildJWT(RsaJwkHelper.loadARandomJWK(), userToken, ticket, applicationToken.getApplicationID());
 
         return createResponseWithHeader(jwt, applicationToken.getApplicationName());
     }
@@ -130,7 +133,7 @@ public class UserAuthenticationResource extends CoreUserResource {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
 
-        String jwt = AdvancedJWTokenUtil.buildJWT(userToken, newTicketId, applicationToken.getApplicationID());
+        String jwt = AdvancedJWTokenUtil.buildJWT(RsaJwkHelper.loadARandomJWK(), userToken, newTicketId, applicationToken.getApplicationID());
 
         return createResponseWithHeader(jwt, applicationToken.getApplicationName());
     }
