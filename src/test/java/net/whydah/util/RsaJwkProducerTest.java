@@ -19,7 +19,6 @@ public class RsaJwkProducerTest {
 	     
 	    
 	     //produce a new one and save to the key store
-	     //do not set param2 = true as it will save to the class path, we only want to test the external source 'somekeystore.jwks'
 	     RsaJwkHelper.saveToKeyStore(RsaJwkHelper.produce(), false);
 	     assertTrue(file.exists());
 	     assertTrue(RsaJwkHelper.loadJWKS().getJsonWebKeys().size()==1);
@@ -40,6 +39,12 @@ public class RsaJwkProducerTest {
 	     
 	     //clean up
 	     file.delete();
+	 }
+	 
+	 //enable this to generate a new spa-keystore.jwks stored in the project directory
+	 @Test(enabled = false)
+	 public void testProducingJWKs() throws Exception {
+		 RsaJwkHelper.saveToKeyStore(RsaJwkHelper.produce(), false);
 	 }
 	
 }
