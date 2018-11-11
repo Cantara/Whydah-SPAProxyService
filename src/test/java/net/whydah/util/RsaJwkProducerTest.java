@@ -1,15 +1,16 @@
 package net.whydah.util;
 
-import static org.testng.Assert.assertTrue;
-
-import java.io.File;
-
 import org.jose4j.jwk.JsonWebKey;
 import org.testng.annotations.Test;
 
+import java.io.File;
+
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
+
 public class RsaJwkProducerTest {
 	
-	 @Test(enabled = true)
+	 @Test()
 	 public void testProducingAndLoadingJwks() throws Exception {
 		 //set where to store the key store
 		 RsaJwkHelper.keyStoreSource = System.getProperty("java.io.tmpdir") + File.separator + "somekeystore.jwks"; 
@@ -21,19 +22,19 @@ public class RsaJwkProducerTest {
 	     //produce a new one and save to the key store
 	     RsaJwkHelper.saveToKeyStore(RsaJwkHelper.produce(), false);
 	     assertTrue(file.exists());
-	     assertTrue(RsaJwkHelper.loadJWKS().getJsonWebKeys().size()==1);
+		 assertEquals(1, RsaJwkHelper.loadJWKS().getJsonWebKeys().size());
 	     System.out.println("JWKS: " + RsaJwkHelper.loadJWKS().toJson(JsonWebKey.OutputControlLevel.PUBLIC_ONLY));
 	     
 	     //produce a new one and append this to the existing key store
 	     RsaJwkHelper.saveToKeyStore(RsaJwkHelper.produce(), true);
 	     assertTrue(file.exists());
-	     assertTrue(RsaJwkHelper.loadJWKS().getJsonWebKeys().size()==2);
+		 assertEquals(2, RsaJwkHelper.loadJWKS().getJsonWebKeys().size());
 	     System.out.println("JWKS: " + RsaJwkHelper.loadJWKS().toJson(JsonWebKey.OutputControlLevel.PUBLIC_ONLY));
 	     
 	     //produce a new one and override the key store
 	     RsaJwkHelper.saveToKeyStore(RsaJwkHelper.produce(), false);
 	     assertTrue(file.exists());
-	     assertTrue(RsaJwkHelper.loadJWKS().getJsonWebKeys().size()==1);
+		 assertEquals(1, RsaJwkHelper.loadJWKS().getJsonWebKeys().size());
 	     
 	     System.out.println("JWKS: " + RsaJwkHelper.loadJWKS().toJson(JsonWebKey.OutputControlLevel.PUBLIC_ONLY));
 	     
