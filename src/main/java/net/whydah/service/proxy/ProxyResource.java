@@ -59,11 +59,11 @@ public class ProxyResource {
     //Therefore, I make this for SPA client script
     @GET
     @Path("/api/{appName}")
-    public Response getProxyRedirect(@Context HttpServletRequest httpServletRequest,
-                                     @Context HttpServletResponse httpServletResponse,
-                                     @Context HttpHeaders headers,
-                                     @PathParam("appName") String appName) {
-        log.info("Invoked getProxyRedirect with appname: {} and headers: {}", appName, headers.getRequestHeaders());
+    public Response initSPASession(@Context HttpServletRequest httpServletRequest,
+                                   @Context HttpServletResponse httpServletResponse,
+                                   @Context HttpHeaders headers,
+                                   @PathParam("appName") String appName) {
+        log.info("Invoked initSPASession with appname: {} and headers: {}", appName, headers.getRequestHeaders());
         Application application = credentialStore.findApplication(appName);
         if (application == null) {
             // No registered application found, return to default login
@@ -72,46 +72,21 @@ public class ProxyResource {
 
         //try to get a userticket from querystring, this can happen when we possibly retrieve from the localstorage
         String userticket = httpServletRequest.getParameter("ticket");
-        String newTicket = null;
-        if (userticket != null) {
-            log.debug("User ticket from request params is {}", userticket);
-            String userTokenXml = getUserTokenXml(userticket);
-
-            if (userTokenXml != null) {
-                String userTokenId = UserTokenXpathHelper.getUserTokenId(userTokenXml);
-                log.debug("User token from STS is {}", userTokenId);
-
-                newTicket = UUID.randomUUID().toString();
-                if (!generateAUserTicket(userTokenId, newTicket)) {
-                    log.debug("Should not generate a new ticket. Reverting to null");
-                    newTicket = null;
-                } else {
-                    log.debug("Generated a new ticket");
-                }
-            } else {
-                log.debug("User token xml is null");
-            }
-        }
+        String newTicket = renewTicketWithUserTicket(userticket);
 
         if (newTicket == null) {
-            log.debug("New ticket is null");
             //try finding from cookie possibly? or maybe not?
             String userTokenId = CookieManager.getUserTokenIdFromCookie(httpServletRequest);
-            log.debug("User token id from cookie is {}", userTokenId);
-            if (userTokenId != null && generateAUserTicket(userTokenId, newTicket)) {
-                log.debug("Should generate a new ticket 2");
-                newTicket = UUID.randomUUID().toString();
-            } else {
-                log.debug("Should not generate a new ticket 2");
-            }
-        } else {
-            log.debug("New ticket is {}", newTicket);
+            newTicket = renewTicket(userTokenId);
         }
+
+        //TODO: ED, if newTicket is still null, we should probably send an error response
 
         // 4. establish new SPA secret and store it in secret-applicationsession map
         SPASessionSecret spaSessionSecret = new SPASessionSecret();
         log.info("Created " + spaSessionSecret);
         spaApplicationRepository.add(spaSessionSecret.getSecret(), getOrCreateSessionForApplication(application));
+
         if (Configuration.getBoolean("allow.simple.secret")) {
             String simpleSecret = spaSessionSecret.getSimpleSecret(application.getId());
             log.info("Created simple secret: secretPart1={}, applicationId={} = simpleSecret={}", spaSessionSecret.getSecretPart1(), application.getId(), simpleSecret);
@@ -120,12 +95,49 @@ public class ProxyResource {
 
         String origin = Configuration.getBoolean("allow.origin") ? "*" : credentialStore.findRedirectUrl(application);
 
-        return Response.ok(createJSONBody(spaSessionSecret.getSecret(), newTicket).toString())
+        String body = createJSONBody(spaSessionSecret.getSecret(), newTicket).toString();
+        return Response.ok(body)
                 .header("Access-Control-Allow-Origin", origin)
                 .header("Access-Control-Allow-Credentials", true)
                 .header("Access-Control-Allow-Headers", "*")
                 .build();
     }
+
+    private String renewTicketWithUserTicket(String userticket) {
+        log.debug("User ticket from request param is {}", userticket);
+
+        if (userticket == null) {
+            return null;
+        }
+        String userTokenXml = getUserTokenXml(userticket);
+        if (userTokenXml == null) {
+            log.debug("User token xml is null");
+            return null;
+        }
+
+        String userTokenId = UserTokenXpathHelper.getUserTokenId(userTokenXml);
+        return renewTicket(userTokenId);
+    }
+
+    private String renewTicket(String userTokenId) {
+        log.debug("Renewing userticket using userTokenId={}", userTokenId);
+
+        if (userTokenId == null) {
+            return null;
+        }
+
+        String newTicket = UUID.randomUUID().toString();
+        if (!generateAUserTicket(userTokenId, newTicket)) {
+            log.debug("Should not generate a new ticket. Reverting to null");
+            newTicket = null;
+        } else {
+            log.debug("Generated a new ticket");
+        }
+        return newTicket;
+    }
+
+
+
 
     //This is added back for INN-279 (not fully tested just yet). We also have to adjust JS client
     @GET
@@ -145,26 +157,7 @@ public class ProxyResource {
 
         //try to get a userticket from querystring, this can happen when we possibly retrieve from the localstorage
         String userticket = httpServletRequest.getParameter("ticket");
-        String newTicket = null;
-        if (userticket != null) {
-            log.debug("User ticket from request params is {}", userticket);
-            String userTokenXml = getUserTokenXml(userticket);
-
-            if (userTokenXml != null) {
-                String userTokenId = UserTokenXpathHelper.getUserTokenId(userTokenXml);
-                log.debug("User token from STS is {}", userTokenId);
-
-                newTicket = UUID.randomUUID().toString();
-                if (!generateAUserTicket(userTokenId, newTicket)) {
-                    log.debug("Should not generate a new ticket. Reverting to null");
-                    newTicket = null;
-                } else {
-                    log.debug("Generated a new ticket");
-                }
-            } else {
-                log.debug("User token xml is null");
-            }
-        }
+        String newTicket = renewTicketWithUserTicket(userticket);
 
         if (newTicket == null) {
             log.debug("New ticket is null");
@@ -205,10 +198,10 @@ public class ProxyResource {
         String location = spaRedirectUrl + "?code=" + secretPart1 + "&ticket=" + newTicket;
         String setCookie =
                 "code=" + secretPart2 +
-                ";expires=" + 846000 +
-                ";path=" + "/" +
-                ";HttpOnly" +
-                ";secure";
+                        ";expires=" + 846000 +
+                        ";path=" + "/" +
+                        ";HttpOnly" +
+                        ";secure";
         return Response.status(Response.Status.FOUND)
                 .header("Access-Control-Allow-Origin", origin)
                 .header("Access-Control-Allow-Credentials", true)
