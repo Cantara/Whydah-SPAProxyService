@@ -28,9 +28,11 @@ public class SPASessionSecret {
         return secret;
     }
 
+    /*
     String getSimpleSecret(String applicationId) {
         return StringXORer.encode(secretPart1, applicationId);
     }
+    */
 
     @Override
     public String toString() {

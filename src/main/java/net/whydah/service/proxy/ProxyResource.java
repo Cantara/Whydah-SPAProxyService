@@ -87,14 +87,18 @@ public class ProxyResource {
         log.info("Created " + spaSessionSecret);
         spaApplicationRepository.add(spaSessionSecret.getSecret(), getOrCreateSessionForApplication(application));
 
+        /*
         if (Configuration.getBoolean("allow.simple.secret")) {
             String simpleSecret = spaSessionSecret.getSimpleSecret(application.getId());
             log.info("Created simple secret: secretPart1={}, applicationId={} = simpleSecret={}", spaSessionSecret.getSecretPart1(), application.getId(), simpleSecret);
             spaApplicationRepository.add(simpleSecret, getOrCreateSessionForApplication(application));
         }
+        */
 
         String origin = Configuration.getBoolean("allow.origin") ? "*" : credentialStore.findRedirectUrl(application);
 
+        //TODO should send secretpart1 in body, not the xor'ed secret.
+        //TODO add spaSessionSecret.getSecretPart2() to cookie with secure set and httpOnly not set
         String body = createJSONBody(spaSessionSecret.getSecret(), newTicket).toString();
         return Response.ok(body)
                 .header("Access-Control-Allow-Origin", origin)
@@ -139,7 +143,9 @@ public class ProxyResource {
 
 
 
+    //ED commented out 2018-11-12 because not used by INN-JS.
     //This is added back for INN-279 (not fully tested just yet). We also have to adjust JS client
+    /*
     @GET
     @Path("/{appName}")
     public Response initSPASessionAndRedirectToSPADownload(@Context HttpServletRequest httpServletRequest,
@@ -211,6 +217,7 @@ public class ProxyResource {
                 .header("SET-COOKIE", setCookie)
                 .build();
     }
+    */
 
     private static Response redirectToFallbackUrl() {
         return Response.status(Response.Status.FOUND)
