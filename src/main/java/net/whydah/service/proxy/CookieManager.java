@@ -19,7 +19,7 @@ final class CookieManager {
     private static final Logger log = LoggerFactory.getLogger(CookieManager.class);
     //private static final int DEFAULT_COOKIE_MAX_AGE = 365 * 24 * 60 * 60;
 
-    private static String userTokenReferenceName = "whydahusertoken_sso";
+    static String userTokenReferenceName = "whydahusertoken_sso";
     private static String cookieDomain = null;
     private static boolean isMyUriSecured = false;
 
