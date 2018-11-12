@@ -1,7 +1,5 @@
 package net.whydah.service.proxy;
 
-import net.whydah.util.StringXORer;
-
 import java.util.UUID;
 
 /**

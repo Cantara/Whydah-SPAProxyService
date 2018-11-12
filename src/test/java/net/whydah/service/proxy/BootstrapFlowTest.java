@@ -1,15 +1,13 @@
-package net.whydah.service.bootstrapflow;
+package net.whydah.service.proxy;
 
 import net.whydah.commands.CommandAPIUserLoginToJWT;
 import net.whydah.commands.CommandGetProxyResponse;
 import net.whydah.commands.CommandResolveTicketToJWT;
 import net.whydah.demoservice.testsupport.TestServer;
 import net.whydah.service.auth.UserAuthenticationResource;
-import net.whydah.service.proxy.ProxyResource;
 import net.whydah.sso.basehelpers.JsonPathHelper;
 import net.whydah.sso.user.types.UserCredential;
 import net.whydah.util.Configuration;
-import net.whydah.util.StringXORer;
 import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

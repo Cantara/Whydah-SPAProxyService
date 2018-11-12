@@ -1,16 +1,16 @@
-package net.whydah.util;
+package net.whydah.service.proxy;
 
 import java.util.Base64;
 
-public final class StringXORer {
+final class StringXORer {
     private StringXORer(){
     }
 
-    public static String encode(String s, String key) {
+    static String encode(String s, String key) {
         return base64Encode(xorWithKey(s.getBytes(), key.getBytes()));
     }
 
-    public static String decode(String s, String key) {
+    static String decode(String s, String key) {
         return new String(xorWithKey(base64Decode(s), key.getBytes()));
     }
 
