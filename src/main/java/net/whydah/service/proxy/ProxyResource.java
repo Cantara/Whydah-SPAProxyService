@@ -12,7 +12,6 @@ import net.whydah.sso.commands.userauth.CommandGetUsertokenByUserticket;
 import net.whydah.sso.user.helpers.UserTokenXpathHelper;
 import net.whydah.util.Configuration;
 import net.whydah.util.CookieManager;
-import net.whydah.util.StringXORer;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -110,21 +109,18 @@ public class ProxyResource {
         }
 
         // 4. establish new SPA secret and store it in secret-applicationsession map
-        String secretPart1 = UUID.randomUUID().toString();
-        String secretPart2 = UUID.randomUUID().toString();
-        String secret = StringXORer.encode(secretPart1, secretPart2);
-        String secret2 = StringXORer.encode(secretPart1, application.getId());
-
-        log.info("Created secret: part1:{}, part2:{} = secret:{}", secretPart1, secretPart2, secret);
-        spaApplicationRepository.add(secret, getOrCreateSessionForApplication(application));
+        SPASessionSecret spaSessionSecret = new SPASessionSecret();
+        log.info("Created " + spaSessionSecret);
+        spaApplicationRepository.add(spaSessionSecret.getSecret(), getOrCreateSessionForApplication(application));
         if (Configuration.getBoolean("allow.simple.secret")) {
-            log.info("Created secret: part1:{}, part2:{} = secret:{}", secretPart1, application.getId(), secret2);
-            spaApplicationRepository.add(secret2, getOrCreateSessionForApplication(application));
+            String simpleSecret = spaSessionSecret.getSimpleSecret(application.getId());
+            log.info("Created simple secret: secretPart1={}, applicationId={} = simpleSecret={}", spaSessionSecret.getSecretPart1(), application.getId(), simpleSecret);
+            spaApplicationRepository.add(simpleSecret, getOrCreateSessionForApplication(application));
         }
 
         String origin = Configuration.getBoolean("allow.origin") ? "*" : credentialStore.findRedirectUrl(application);
 
-        return Response.ok(createJSONBody(secret, newTicket).toString())
+        return Response.ok(createJSONBody(spaSessionSecret.getSecret(), newTicket).toString())
                 .header("Access-Control-Allow-Origin", origin)
                 .header("Access-Control-Allow-Credentials", true)
                 .header("Access-Control-Allow-Headers", "*")
@@ -186,18 +182,13 @@ public class ProxyResource {
         }
 
 
-
         // 4. establish new SPA secret and store it in secret-applicationsession map
         //ED: 2. it initiates the session, it provision the SPA application with an unique session represented by two secrets
-        String secretPart1 = UUID.randomUUID().toString();
-        String secretPart2 = UUID.randomUUID().toString();
-        String secret = StringXORer.encode(secretPart1, secretPart2);
-//        String secret2 = StringXORer.encode(secretPart1, application.getId());
-        log.info("Created secret: part1:{}, part2:{} = secret:{}", secretPart1, secretPart2, secret);
-
+        SPASessionSecret spaSessionSecret = new SPASessionSecret();
+        log.info("Created " + spaSessionSecret);
 
         //ED: 3. it maps the SPA sessions (multiple) onto an single Whydah application session
-        spaApplicationRepository.add(secret, getOrCreateSessionForApplication(application));
+        spaApplicationRepository.add(spaSessionSecret.getSecret(), getOrCreateSessionForApplication(application));
 //        if (Configuration.getBoolean("allow.simple.secret")) {
 //            log.info("Created secret: part1:{}, part2:{} = secret:{}", secretPart1, application.getId(), secret2);
 //            spaApplicationRepository.add(secret2, getOrCreateSessionForApplication(application));
@@ -206,7 +197,7 @@ public class ProxyResource {
 
         //ED: 4. do a 302-redirect to the URI of the SPA application, loading the SPA application into the user's browser
         String spaRedirectUrl = credentialStore.findRedirectUrl(application);
-        return redirectToSPADownload(spaRedirectUrl, secretPart1, newTicket, secretPart2);
+        return redirectToSPADownload(spaRedirectUrl, spaSessionSecret.getSecretPart1(), newTicket, spaSessionSecret.getSecretPart2());
     }
 
     private static Response redirectToSPADownload(String spaRedirectUrl, String secretPart1, String newTicket, String secretPart2) {
