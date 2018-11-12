@@ -1,20 +1,23 @@
-package net.whydah.util;
+package net.whydah.service.proxy;
 
-import net.whydah.sso.user.mappers.UserTokenMapper;
-import net.whydah.sso.user.types.UserToken;
+//import net.whydah.sso.user.mappers.UserTokenMapper;
+//import net.whydah.sso.user.types.UserToken;
+
+import net.whydah.util.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URL;
 
-public final class CookieManager {
+//import javax.servlet.http.HttpServletResponse;
+
+final class CookieManager {
     //private static final String LOGOUT_COOKIE_VALUE = "logout";
     private static final Logger log = LoggerFactory.getLogger(CookieManager.class);
-    private static final int DEFAULT_COOKIE_MAX_AGE = 365 * 24 * 60 * 60;
+    //private static final int DEFAULT_COOKIE_MAX_AGE = 365 * 24 * 60 * 60;
 
     private static String userTokenReferenceName = "whydahusertoken_sso";
     private static String cookieDomain = null;
@@ -46,6 +49,7 @@ public final class CookieManager {
         }
     }
 
+    /*
     public static void addSecurityHTTPHeaders(HttpServletResponse response) {
         //TODO Vi trenger en plan her.
         //response.setHeader("X-Frame-Options", "sameorigin");
@@ -71,6 +75,7 @@ public final class CookieManager {
         return (int) (remainingLifeMs / 1000);
     }
 
+
     public static void createAndSetUserTokenCookie(UserToken ut, HttpServletRequest request,
                                                    HttpServletResponse response) {
         Integer tokenRemainingLifetimeSeconds = calculateTokenRemainingLifetimeInSeconds(ut);
@@ -84,8 +89,8 @@ public final class CookieManager {
         CookieManager.createAndSetUserTokenCookie(ut.getUserTokenId(), tokenRemainingLifetimeSeconds, request, response);
     }
 
-    public static void createAndSetUserTokenCookie(String userTokenId, Integer tokenRemainingLifetimeSeconds,
-                                                   HttpServletRequest request, HttpServletResponse response) {
+    private static void createAndSetUserTokenCookie(String userTokenId, Integer tokenRemainingLifetimeSeconds,
+                                                    HttpServletRequest request, HttpServletResponse response) {
         Cookie cookie = new Cookie(userTokenReferenceName, userTokenId);
         cookie.setValue(userTokenId);
 
@@ -94,6 +99,7 @@ public final class CookieManager {
         }
         addCookie(cookie.getValue(), tokenRemainingLifetimeSeconds, response);
     }
+
 
     public static void updateUserTokenCookie(String userTokenId, Integer tokenRemainingLifetimeSeconds,
                                              HttpServletRequest request, HttpServletResponse response) {
@@ -129,6 +135,7 @@ public final class CookieManager {
         addCookie(cookie.getValue(), tokenRemainingLifetimeSeconds, response);
     }
 
+
     public static void clearUserTokenCookies(HttpServletRequest request, HttpServletResponse response) {
         Cookie cookie = getUserTokenCookie(request);
         if (cookie != null) {
@@ -163,11 +170,11 @@ public final class CookieManager {
             userTokenId = CookieManager.getUserTokenIdFromCookie(request);
             log.warn("getUserTokenId: userTokenIdFromCookie={}", userTokenId);
         }
-
         return userTokenId;
     }
+    */
 
-    public static String getUserTokenIdFromCookie(HttpServletRequest request) {
+    static String getUserTokenIdFromCookie(HttpServletRequest request) {
         Cookie userTokenCookie = getUserTokenCookie(request);
         String userTokenId = null;
 
@@ -191,10 +198,10 @@ public final class CookieManager {
                 return cookie;
             }
         }
-
         return null;
     }
 
+    /*
     public static Cookie getCodeCookie(HttpServletRequest request) {
         Cookie[] cookies = request.getCookies();
         if (cookies == null) {
@@ -212,6 +219,7 @@ public final class CookieManager {
         return null;
     }
 
+
     private static void addCookie(String userTokenId,
                                   Integer tokenRemainingLifetimeSeconds, HttpServletResponse response) {
         StringBuilder sb = new StringBuilder(userTokenReferenceName);
@@ -227,4 +235,5 @@ public final class CookieManager {
         }
         response.setHeader("SET-COOKIE", sb.toString());
     }
+    */
 }

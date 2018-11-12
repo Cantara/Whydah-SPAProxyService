@@ -11,7 +11,6 @@ import net.whydah.sso.commands.userauth.CommandCreateTicketForUserTokenID;
 import net.whydah.sso.commands.userauth.CommandGetUsertokenByUserticket;
 import net.whydah.sso.user.helpers.UserTokenXpathHelper;
 import net.whydah.util.Configuration;
-import net.whydah.util.CookieManager;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
