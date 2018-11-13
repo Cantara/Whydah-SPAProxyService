@@ -133,7 +133,7 @@ public class ProxyResource {
         String origin = Configuration.getBoolean("allow.origin") ? "*" : spaRedirectUrl;
 
         return Response.ok(body)
-                .header("Access-Control-Allow-Origin", origin)
+                .header("Access-Control-Allow-Origin", spaRedirectUrl)
                 .header("Access-Control-Allow-Credentials", true)
                 .header("Access-Control-Allow-Headers", "*")
                 .cookie(getCookie(spaSessionSecret.getSecretPart2()))
@@ -148,8 +148,8 @@ public class ProxyResource {
                 "https://inn-webshop-demo-2.capra.tv",
                 1,
                 "",
-                1800,
-                new Date(Calendar.getInstance().getTimeInMillis() + (30 * 60000)),
+                1800, // 30 minutes lifetime
+                new Date(Calendar.getInstance().getTimeInMillis() + (30 * 60000)), // 30 minutes lifetime
                 true,
                 false
         );
