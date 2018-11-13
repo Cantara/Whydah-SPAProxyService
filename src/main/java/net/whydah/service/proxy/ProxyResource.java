@@ -127,11 +127,11 @@ public class ProxyResource {
 
 
     private Response okResponse(Application application, SPASessionSecret spaSessionSecret, String newTicket) {
-        String spaRedirectUrl = credentialStore.findRedirectUrl(application);
+        String redirectUrl = credentialStore.findRedirectUrl(application);
         String body = createJSONBody(spaSessionSecret.getSecret(), newTicket).toString();
 
         return Response.ok(body)
-                .header("Access-Control-Allow-Origin", spaRedirectUrl)
+                .header("Access-Control-Allow-Origin", redirectUrl)
                 .header("Access-Control-Allow-Credentials", true)
                 .header("Access-Control-Allow-Headers", "*")
 //                .cookie(getCookie(spaSessionSecret.getSecretPart2()))

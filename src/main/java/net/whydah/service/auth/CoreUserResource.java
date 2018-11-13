@@ -19,24 +19,23 @@ abstract class CoreUserResource {
 
     Response createResponseWithHeader(String data, String applicationName) {
         Application application = credentialStore.findApplication(applicationName);
-
-        String origin = Configuration.getBoolean("allow.origin") ? "*" : credentialStore.findRedirectUrl(application);
+        String redirectUrl = credentialStore.findRedirectUrl(application);
 
         return Response.ok(data)
-                .header("Access-Control-Allow-Origin", origin)
+                .header("Access-Control-Allow-Origin", redirectUrl)
                 .header("Access-Control-Allow-Credentials", true)
-                .header("Access-Control-Allow-Headers", "*").build();
+                .header("Access-Control-Allow-Headers", "*")
+                .build();
     }
 
     Response createForbiddenResponseWithHeader(String applicationName) {
         Application application = credentialStore.findApplication(applicationName);
-
-        String origin = Configuration.getBoolean("allow.origin") ? "*" : credentialStore.findRedirectUrl(application);
+        String redirectUrl = credentialStore.findRedirectUrl(application);
 
         return Response.status(Response.Status.FORBIDDEN)
-                .header("Access-Control-Allow-Origin", origin)
+                .header("Access-Control-Allow-Origin", redirectUrl)
                 .header("Access-Control-Allow-Credentials", true)
-                .header("Access-Control-Allow-Headers", "*").build();
-
+                .header("Access-Control-Allow-Headers", "*")
+                .build();
     }
 }
