@@ -19,7 +19,10 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
+import java.util.Calendar;
+import java.util.Date;
 
 import static net.whydah.service.CredentialStore.FALLBACK_URL;
 import static net.whydah.service.proxy.ProxyResource.PROXY_PATH;
@@ -48,8 +51,8 @@ public class ProxyResource {
     @GET
     @Path("/{appName}")
     public Response initSPASessionAndRedirectToSPA(@Context HttpServletRequest httpServletRequest,
-                                                           @Context HttpHeaders headers,
-                                                           @PathParam("appName") String appName) {
+                                                   @Context HttpHeaders headers,
+                                                   @PathParam("appName") String appName) {
         log.info("Invoked initSPASessionAndRedirectToSPA with appname: {} and headers: {}", appName, headers.getRequestHeaders());
 
         Application application = credentialStore.findApplication(appName);
@@ -128,19 +131,28 @@ public class ProxyResource {
         String body = createJSONBody(spaSessionSecret.getSecretPart1(), newTicket).toString();
 
         String origin = Configuration.getBoolean("allow.origin") ? "*" : spaRedirectUrl;
-        String setCookie =
-                "code=" + spaSessionSecret.getSecretPart2() +
-                        ";expires=" + 846000 +
-                        ";path=" + "/" +
-                        //";HttpOnly" +
-                        ";secure";
 
         return Response.ok(body)
                 .header("Access-Control-Allow-Origin", origin)
                 .header("Access-Control-Allow-Credentials", true)
                 .header("Access-Control-Allow-Headers", "*")
-                .header("SET-COOKIE", setCookie)
+                .cookie(getCookie(spaSessionSecret.getSecretPart2()))
                 .build();
+    }
+
+    private static NewCookie getCookie(String secretPart2) {
+        return new NewCookie(
+                "code",
+                secretPart2,
+                "/",
+                "https://inn-webshop-demo-2.capra.tv",
+                1,
+                "",
+                1800,
+                new Date(Calendar.getInstance().getTimeInMillis() + (30 * 60000)),
+                true,
+                false
+        );
     }
 
     private static JSONObject createJSONBody(String secret, String ticket) {
