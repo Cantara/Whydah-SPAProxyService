@@ -4,8 +4,6 @@ import net.whydah.service.CredentialStore;
 import net.whydah.service.SPAApplicationRepository;
 import net.whydah.sso.application.types.Application;
 import net.whydah.util.Configuration;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,22 +44,23 @@ public class ProxyResource {
      * 2. Redirect to SSOLoginWebapp to login the user
      * 3. Redirect back to /load/{appName}
      * 4. Redirect to spa redirect url store in application
-     *
      */
     @GET
     @Path("/ssologin/{appName}")
     public Response redirectToSSOLoginWebapp(@Context HttpServletRequest httpServletRequest,
-                                                   @Context HttpHeaders headers,
-                                                   @PathParam("appName") String appName) {
+                                             @Context HttpHeaders headers,
+                                             @PathParam("appName") String appName) {
         log.info("Invoked redirectToSSOLoginWebapp with appname: {} and headers: {}", appName, headers.getRequestHeaders());
 
         Application application = credentialStore.findApplication(appName);
-        if (application == null) {
+        String ssoLoginUrl = Configuration.getString("logonservice");
+        String spaProxyUrl = Configuration.getString("myuri");
+        if (application == null || ssoLoginUrl == null || spaProxyUrl == null) {
+            log.warn("Redirecting to fallback URL for request with appName: {} due to null values", appName);
             return redirectToFallbackUrl();
         }
-
         //redirect to ssoLoginWebapp to login in the user
-        return null;
+        return ResponseUtil.ssoLoginRedirectUrl(ssoLoginUrl, spaProxyUrl, application);
     }
 
 
@@ -86,7 +85,7 @@ public class ProxyResource {
 
         SPASessionSecret spaSessionSecret = initializer.addReferenceToApplicationSession(application);
 
-        return spaRedirectUrl(application, spaSessionSecret, newTicket);
+        return ResponseUtil.spaRedirectUrl(credentialStore, application, spaSessionSecret, newTicket);
     }
 
     //HUY: There is trouble with CORS
@@ -111,7 +110,7 @@ public class ProxyResource {
 
         SPASessionSecret spaSessionSecret = initializer.addReferenceToApplicationSession(application);
 
-        return okResponse(application, spaSessionSecret, newTicket);
+        return ResponseUtil.okResponse(credentialStore, application, spaSessionSecret, newTicket);
     }
 
     private String renewTicket(HttpServletRequest httpServletRequest) {
@@ -130,41 +129,6 @@ public class ProxyResource {
     }
 
 
-    private Response spaRedirectUrl(Application application, SPASessionSecret spaSessionSecret, String newTicket) {
-        String spaRedirectUrl = credentialStore.findRedirectUrl(application);
-        String origin = Configuration.getBoolean("allow.origin") ? "*" : spaRedirectUrl;
-        String location = spaRedirectUrl + "?code=" + spaSessionSecret.getSecret() + "&ticket=" + newTicket;
-        /*
-        String setCookie =
-                "code=" + spaSessionSecret.getSecretPart2() +
-                        ";expires=" + 846000 +
-                        ";path=" + "/" +
-                        ";HttpOnly" +
-                        ";secure";
-        */
-        return Response.status(Response.Status.FOUND)
-                .header("Access-Control-Allow-Origin", origin)
-                .header("Access-Control-Allow-Credentials", true)
-                .header("Access-Control-Allow-Headers", "*")
-                .header("Access-Control-Expose-Headers", "Cookie")
-                .header("Location", location)
-                //.header("SET-COOKIE", setCookie)
-                .build();
-    }
-
-
-    private Response okResponse(Application application, SPASessionSecret spaSessionSecret, String newTicket) {
-        String redirectUrl = credentialStore.findRedirectUrl(application);
-        String body = createJSONBody(spaSessionSecret.getSecret(), newTicket).toString();
-
-        return Response.ok(body)
-                .header("Access-Control-Allow-Origin", redirectUrl)
-                .header("Access-Control-Allow-Credentials", true)
-                .header("Access-Control-Allow-Headers", "*")
-//                .cookie(getCookie(spaSessionSecret.getSecretPart2()))
-                .build();
-    }
-
 //    private static NewCookie getCookie(String secretPart2) {
 //        return new NewCookie(
 //                "code",
@@ -180,19 +144,7 @@ public class ProxyResource {
 //        );
 //    }
 
-    private static JSONObject createJSONBody(String secret, String ticket) {
-        JSONObject jsonObject = new JSONObject();
-        try {
-            jsonObject.put("secret", secret);
-            if (ticket != null) {
-                jsonObject.put("ticket", ticket);
-            }
-        } catch (JSONException e) {
-            log.error("JSON object with secret could not be created", e);
-        } finally {
-            return jsonObject;
-        }
-    }
+
 
     private static Response redirectToFallbackUrl() {
         return Response.status(Response.Status.FOUND)
