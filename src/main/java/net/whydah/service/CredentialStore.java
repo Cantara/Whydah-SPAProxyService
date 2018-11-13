@@ -195,7 +195,7 @@ public class CredentialStore {
             }
         }
 
-        if (redirectUrl == null && application != null && application.getApplicationUrl() != null
+        if ((redirectUrl == null || redirectUrl.isEmpty()) && application != null && application.getApplicationUrl() != null
                 && Validator.isValidURL(application.getApplicationUrl())) {
             redirectUrl = application.getApplicationUrl();
         }

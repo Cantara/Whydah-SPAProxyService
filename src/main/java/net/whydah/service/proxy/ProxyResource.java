@@ -131,6 +131,7 @@ public class ProxyResource {
         String body = createJSONBody(spaSessionSecret.getSecretPart1(), newTicket).toString();
 
         String origin = Configuration.getBoolean("allow.origin") ? "*" : spaRedirectUrl;
+        log.debug("Settings allow origin to redirectUrl: {}", spaRedirectUrl);
 
         return Response.ok(body)
                 .header("Access-Control-Allow-Origin", spaRedirectUrl)
