@@ -19,10 +19,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
-import java.util.Calendar;
-import java.util.Date;
 
 import static net.whydah.service.CredentialStore.FALLBACK_URL;
 import static net.whydah.service.proxy.ProxyResource.PROXY_PATH;
@@ -43,6 +40,30 @@ public class ProxyResource {
         this.credentialStore = credentialStore;
         this.initializer = new SPASessionHelper(credentialStore, spaApplicationRepository);
     }
+
+    /**
+     * 1. In SPA open pop-up window with this url.
+     * 2. Redirect to SSOLoginWebapp to login the user
+     * 3. Redirect back to /load/{appName}
+     * 4. Redirect to spa redirect url store in application
+     *
+     */
+    @GET
+    @Path("/ssologin/{appName}")
+    public Response redirectToSSOLoginWebapp(@Context HttpServletRequest httpServletRequest,
+                                                   @Context HttpHeaders headers,
+                                                   @PathParam("appName") String appName) {
+        log.info("Invoked redirectToSSOLoginWebapp with appname: {} and headers: {}", appName, headers.getRequestHeaders());
+
+        Application application = credentialStore.findApplication(appName);
+        if (application == null) {
+            return redirectToFallbackUrl();
+        }
+
+        //redirect to ssoLoginWebapp to login in the user
+        return null;
+    }
+
 
     /**
      * This endpoint will provision the SPA with two secrets using a redirect to the registered spaRedirectUrl.
@@ -97,10 +118,14 @@ public class ProxyResource {
         String userticket = httpServletRequest.getParameter("ticket");
         String newTicket = initializer.renewTicketWithUserTicket(userticket);
 
+
+        //ED: 2018-11-13 We do not know of any use case where this will be called
+        /*
         if (newTicket == null) {
             String userTokenId = CookieManager.getUserTokenIdFromCookie(httpServletRequest);
             newTicket = initializer.renewTicket(userTokenId);
         }
+        */
         return newTicket;
     }
 
@@ -108,20 +133,22 @@ public class ProxyResource {
     private Response spaRedirectUrl(Application application, SPASessionSecret spaSessionSecret, String newTicket) {
         String spaRedirectUrl = credentialStore.findRedirectUrl(application);
         String origin = Configuration.getBoolean("allow.origin") ? "*" : spaRedirectUrl;
-        String location = spaRedirectUrl + "?code=" + spaSessionSecret.getSecretPart1() + "&ticket=" + newTicket;
+        String location = spaRedirectUrl + "?code=" + spaSessionSecret.getSecret() + "&ticket=" + newTicket;
+        /*
         String setCookie =
                 "code=" + spaSessionSecret.getSecretPart2() +
                         ";expires=" + 846000 +
                         ";path=" + "/" +
                         ";HttpOnly" +
                         ";secure";
+        */
         return Response.status(Response.Status.FOUND)
                 .header("Access-Control-Allow-Origin", origin)
                 .header("Access-Control-Allow-Credentials", true)
                 .header("Access-Control-Allow-Headers", "*")
                 .header("Access-Control-Expose-Headers", "Cookie")
                 .header("Location", location)
-                .header("SET-COOKIE", setCookie)
+                //.header("SET-COOKIE", setCookie)
                 .build();
     }
 
