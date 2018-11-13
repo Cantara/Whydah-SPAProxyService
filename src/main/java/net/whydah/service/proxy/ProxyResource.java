@@ -128,33 +128,30 @@ public class ProxyResource {
 
     private Response okResponse(Application application, SPASessionSecret spaSessionSecret, String newTicket) {
         String spaRedirectUrl = credentialStore.findRedirectUrl(application);
-        String body = createJSONBody(spaSessionSecret.getSecretPart1(), newTicket).toString();
-
-        String origin = Configuration.getBoolean("allow.origin") ? "*" : spaRedirectUrl;
-        log.debug("Settings allow origin to redirectUrl: {}", spaRedirectUrl);
+        String body = createJSONBody(spaSessionSecret.getSecret(), newTicket).toString();
 
         return Response.ok(body)
                 .header("Access-Control-Allow-Origin", spaRedirectUrl)
                 .header("Access-Control-Allow-Credentials", true)
                 .header("Access-Control-Allow-Headers", "*")
-                .cookie(getCookie(spaSessionSecret.getSecretPart2()))
+//                .cookie(getCookie(spaSessionSecret.getSecretPart2()))
                 .build();
     }
 
-    private static NewCookie getCookie(String secretPart2) {
-        return new NewCookie(
-                "code",
-                secretPart2,
-                "/",
-                "https://inn-webshop-demo-2.capra.tv",
-                1,
-                "",
-                1800, // 30 minutes lifetime
-                new Date(Calendar.getInstance().getTimeInMillis() + (30 * 60000)), // 30 minutes lifetime
-                true,
-                false
-        );
-    }
+//    private static NewCookie getCookie(String secretPart2) {
+//        return new NewCookie(
+//                "code",
+//                secretPart2,
+//                "/",
+//                "https://inn-webshop-demo-2.capra.tv",
+//                1,
+//                "",
+//                1800, // 30 minutes lifetime
+//                new Date(Calendar.getInstance().getTimeInMillis() + (30 * 60000)), // 30 minutes lifetime
+//                true,
+//                false
+//        );
+//    }
 
     private static JSONObject createJSONBody(String secret, String ticket) {
         JSONObject jsonObject = new JSONObject();
