@@ -114,7 +114,12 @@ public class ProxyResource {
     }
 
     private String renewTicket(HttpServletRequest httpServletRequest) {
-        String userticket = httpServletRequest.getParameter("ticket");
+        // TODO: Temporarily support userticket and ticket. userticket is used by SSOLWA
+        // While ticket is used by other clients at the moment.
+        String userticket = httpServletRequest.getParameter("userticket");
+        if (userticket == null || userticket.isEmpty()) {
+            userticket = httpServletRequest.getParameter("ticket");
+        }
         String newTicket = initializer.renewTicketWithUserTicket(userticket);
 
 

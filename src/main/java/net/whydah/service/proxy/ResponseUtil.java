@@ -20,7 +20,7 @@ final class ResponseUtil {
     }
 
     /**
-     * Creates a response for the ssoLoginFlow, intended to work with inn-js SPA Library in popup mode.
+     * Creates a response for the ssoLoginFlow, intended to work with popup-like mode/flow.
      * @param ssoLoginUrl URL of SSO Login Webapp
      * @param spaProxyUrl URL external users use to access this application
      * @param application The SPA Application
