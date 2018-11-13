@@ -20,3 +20,5 @@ dependency-reduced-pom.xml
 /.classpath
 
 /bin/
+
+logback-override.xml

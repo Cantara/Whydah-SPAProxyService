@@ -1,39 +1,25 @@
 package net.whydah.service.health;
 
-import net.whydah.demoservice.testsupport.TestServer;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
+import net.whydah.demoservice.testsupport.AbstractEndpointTest;
 import org.testng.annotations.Test;
 
 import java.net.HttpURLConnection;
 
 import static com.jayway.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.equalTo;
 
-public class HealthResourceTest {
-    private TestServer testServer;
+public class HealthResourceTest extends AbstractEndpointTest {
 
-    @BeforeClass
-    public void startServer() throws Exception {
-        testServer = new TestServer();
-        testServer.start();
-        Thread.sleep(2000);
-    }
-
-    @AfterClass
-    public void stop() {
-        testServer.stop();
-    }
-
-    @Test(enabled = false) //TODO verify new health test
+    @Test
     public void testHealth() {
         given()
-                .log()
-                .everything()
-                .expect()
-                .statusCode(HttpURLConnection.HTTP_OK)
-                .log()
-                .everything()
                 .when()
-                .get(HealthResource.HEALTH_PATH);
+                .port(getServerPort())
+                .get(HealthResource.HEALTH_PATH)
+                .then().log().ifValidationFails()
+                .statusCode(HttpURLConnection.HTTP_OK)
+                .body("hasApplicationToken", equalTo("true"))
+                .body("hasValidApplicationToken", equalTo("true"))
+                .body("Status", equalTo("OK"));
     }
 }
