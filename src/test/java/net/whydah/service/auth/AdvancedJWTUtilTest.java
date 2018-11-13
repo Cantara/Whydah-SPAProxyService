@@ -1,4 +1,4 @@
-package net.whydah.util;
+package net.whydah.service.auth;
 
 import net.whydah.sso.user.helpers.UserHelper;
 import net.whydah.sso.user.mappers.UserTokenMapper;

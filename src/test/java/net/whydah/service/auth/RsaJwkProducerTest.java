@@ -1,4 +1,4 @@
-package net.whydah.util;
+package net.whydah.service.auth;
 
 import org.jose4j.jwk.JsonWebKey;
 import org.testng.annotations.Test;

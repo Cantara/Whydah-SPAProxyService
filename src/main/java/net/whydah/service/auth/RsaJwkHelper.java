@@ -1,21 +1,16 @@
-package net.whydah.util;
+package net.whydah.service.auth;
 
-import java.io.BufferedWriter;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.util.Random;
-import java.util.UUID;
-
-import org.apache.commons.lang.math.RandomUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.math.RandomUtils;
 import org.jose4j.jwk.JsonWebKey;
 import org.jose4j.jwk.JsonWebKeySet;
 import org.jose4j.jwk.RsaJsonWebKey;
 import org.jose4j.jwk.RsaJwkGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.*;
+import java.util.UUID;
 
 public final class RsaJwkHelper {
 	
