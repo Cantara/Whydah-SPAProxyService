@@ -8,11 +8,9 @@ import net.whydah.sso.basehelpers.Validator;
 import net.whydah.sso.commands.adminapi.application.CommandGetApplication;
 import net.whydah.sso.commands.userauth.CommandLogonUserByUserCredential;
 import net.whydah.sso.session.WhydahApplicationSession;
-import net.whydah.sso.session.WhydahUserSession;
 import net.whydah.sso.user.mappers.UserTokenMapper;
 import net.whydah.sso.user.types.UserCredential;
 import net.whydah.sso.user.types.UserToken;
-
 import org.constretto.annotation.Configuration;
 import org.constretto.annotation.Configure;
 import org.slf4j.Logger;
@@ -204,5 +202,10 @@ public class CredentialStore {
         }
 
         return redirectUrl;
+    }
+
+    public String findRedirectUrl(String appName) {
+        Application application = findApplication(appName);
+        return findRedirectUrl(application);
     }
 }

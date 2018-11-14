@@ -4,6 +4,7 @@ import net.whydah.service.CredentialStore;
 import net.whydah.service.SPAApplicationRepository;
 import net.whydah.service.inn.api.commands.*;
 import net.whydah.sso.application.types.ApplicationToken;
+import net.whydah.util.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,20 +17,23 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.net.URI;
 
-import static net.whydah.service.auth.CoreUserResource.API_PATH;
+import static net.whydah.service.auth.UserDeliveryAddressResource.API_PATH;
+
 
 @RestController
 @Path(API_PATH)
 @Produces(MediaType.APPLICATION_JSON)
-public class UserDeliveryAddressResource extends CoreUserResource {
+public class UserDeliveryAddressResource {
+    static final String API_PATH = "/api";
     private static final Logger log = LoggerFactory.getLogger(UserDeliveryAddressResource.class);
+    private static final String logonUrl = Configuration.getString("logonservice");
 
+    private final CredentialStore credentialStore;
     private final SPAApplicationRepository spaApplicationRepository;
 
     @Autowired
     public UserDeliveryAddressResource(CredentialStore credentialStore, SPAApplicationRepository spaApplicationRepository) {
-        super(credentialStore);
-
+        this.credentialStore = credentialStore;
         this.spaApplicationRepository = spaApplicationRepository;
     }
 
@@ -51,7 +55,7 @@ public class UserDeliveryAddressResource extends CoreUserResource {
         String data = new CommandInnAPIGetOnlyDeliveryAddresses(URI.create(logonUrl),
                 applicationToken.getApplicationTokenId(), userTokenId).execute();
 
-        return createResponseWithHeader(data, applicationToken.getApplicationName());
+        return UserResponseUtil.createResponseWithHeader(data, credentialStore.findRedirectUrl(applicationToken.getApplicationName()));
     }
 
     @GET
@@ -76,10 +80,10 @@ public class UserDeliveryAddressResource extends CoreUserResource {
         // If the hystrix command returns null, it failed.
         // The most likely cause is that a consent is not in place.
         if (data == null) {
-            return createForbiddenResponseWithHeader(applicationToken.getApplicationName());
+            return UserResponseUtil.createForbiddenResponseWithHeader(credentialStore.findRedirectUrl(applicationToken.getApplicationName()));
         }
 
-        return createResponseWithHeader(data, applicationToken.getApplicationName());
+        return UserResponseUtil.createResponseWithHeader(data, credentialStore.findRedirectUrl(applicationToken.getApplicationName()));
     }
 
     @GET
@@ -104,9 +108,9 @@ public class UserDeliveryAddressResource extends CoreUserResource {
         log.debug("Received shared delivery address {}", data);
 
         if (data == null) {
-            return createForbiddenResponseWithHeader(applicationToken.getApplicationName());
+            return UserResponseUtil.createForbiddenResponseWithHeader(credentialStore.findRedirectUrl(applicationToken.getApplicationName()));
         }
-        return createResponseWithHeader(data, applicationToken.getApplicationName());
+        return UserResponseUtil.createResponseWithHeader(data, credentialStore.findRedirectUrl(applicationToken.getApplicationName()));
     }
 
     @POST
@@ -146,7 +150,7 @@ public class UserDeliveryAddressResource extends CoreUserResource {
                 addressLine1, addressLine2, comment, useAsMainAddress, select
         ).execute();
 
-        return createResponseWithHeader(data, applicationToken.getApplicationName());
+        return UserResponseUtil.createResponseWithHeader(data, credentialStore.findRedirectUrl(applicationToken.getApplicationName()));
     }
 
     @POST
@@ -168,7 +172,7 @@ public class UserDeliveryAddressResource extends CoreUserResource {
         String data = new CommandInnAPISelectDeliveryAddress(URI.create(logonUrl),
                 applicationToken.getApplicationTokenId(), userTokenId, tag).execute();
 
-        return createResponseWithHeader(data, applicationToken.getApplicationName());
+        return UserResponseUtil.createResponseWithHeader(data, credentialStore.findRedirectUrl(applicationToken.getApplicationName()));
     }
 
     @POST
@@ -190,6 +194,6 @@ public class UserDeliveryAddressResource extends CoreUserResource {
         String data = new CommandInnAPIDeleteDeliveryAddress(URI.create(logonUrl),
                 applicationToken.getApplicationTokenId(), userTokenId, tag).execute();
 
-        return createResponseWithHeader(data, applicationToken.getApplicationName());
+        return UserResponseUtil.createResponseWithHeader(data, credentialStore.findRedirectUrl(applicationToken.getApplicationName()));
     }
 }

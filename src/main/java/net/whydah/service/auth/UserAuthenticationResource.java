@@ -28,19 +28,21 @@ import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.util.UUID;
 
-import static net.whydah.service.auth.CoreUserResource.API_PATH;
+import static net.whydah.service.auth.UserAuthenticationResource.API_PATH;
 
 @RestController
 @Path(API_PATH)
 @Produces(MediaType.APPLICATION_JSON)
-public class UserAuthenticationResource extends CoreUserResource {
+public class UserAuthenticationResource {
+    public static final String API_PATH = "/api";
     private static final Logger log = LoggerFactory.getLogger(UserAuthenticationResource.class);
 
+    private final CredentialStore credentialStore;
     private final SPAApplicationRepository spaApplicationRepository;
 
     @Autowired
     public UserAuthenticationResource(CredentialStore credentialStore, SPAApplicationRepository spaApplicationRepository) {
-        super(credentialStore);
+        this.credentialStore = credentialStore;
         this.spaApplicationRepository = spaApplicationRepository;
     }
 
@@ -81,7 +83,7 @@ public class UserAuthenticationResource extends CoreUserResource {
 
         String jwt = AdvancedJWTokenUtil.buildJWT(RsaJwkHelper.loadARandomJWK(), userToken, ticket, applicationToken.getApplicationID());
 
-        return createResponseWithHeader(jwt, applicationToken.getApplicationName());
+        return UserResponseUtil.createResponseWithHeader(jwt, credentialStore.findRedirectUrl(applicationToken.getApplicationName()));
     }
 
     @POST
@@ -126,7 +128,7 @@ public class UserAuthenticationResource extends CoreUserResource {
 
         String jwt = AdvancedJWTokenUtil.buildJWT(RsaJwkHelper.loadARandomJWK(), userToken, newTicketId, applicationToken.getApplicationID());
 
-        return createResponseWithHeader(jwt, applicationToken.getApplicationName());
+        return UserResponseUtil.createResponseWithHeader(jwt, credentialStore.findRedirectUrl(applicationToken.getApplicationName()));
     }
 
     private ApplicationToken createApplicationToken(String applicationName, String secret) {
