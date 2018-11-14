@@ -52,6 +52,7 @@ public abstract class AbstractEndpointTest {
 
         System.setProperty("securitytokenservice", "http://localhost:" + wiremockPort + "/tokenservice/");
         System.setProperty("useradminservice", "http://localhost:" + wiremockPort + "/useradminservice/");
+        System.setProperty("jetty.request.log.enabled", "false");
 
         setupExternalServicesMocks();
     }

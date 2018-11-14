@@ -98,8 +98,11 @@ public class Main {
             connector.setPort(webappPort);
         }
 
-        NCSARequestLog requestLog = buildRequestLog();
-        server.setRequestLog(requestLog);
+        if (Configuration.getBoolean("jetty.request.log.enabled")) {
+            NCSARequestLog requestLog = buildRequestLog();
+            server.setRequestLog(requestLog);
+        }
+
         server.addConnector(connector);
         server.setHandler(context);
 
