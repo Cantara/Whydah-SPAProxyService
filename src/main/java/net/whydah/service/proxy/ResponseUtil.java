@@ -3,12 +3,17 @@ package net.whydah.service.proxy;
 import net.whydah.service.CredentialStore;
 import net.whydah.sso.application.types.Application;
 import net.whydah.util.Configuration;
+import org.glassfish.jersey.uri.UriComponent;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
+import java.net.URI;
+import java.util.Arrays;
+import java.util.Map;
 
 /**
  *
@@ -21,18 +26,29 @@ final class ResponseUtil {
 
     /**
      * Creates a response for the ssoLoginFlow, intended to work with popup-like mode/flow.
-     * @param ssoLoginUrl URL of SSO Login Webapp
-     * @param spaProxyUrl URL external users use to access this application
-     * @param application The SPA Application
+     *
+     * @param ssoLoginUrl     URL of SSO Login Webapp
+     * @param spaProxyUrl     URL external users use to access this application
+     * @param application     The SPA Application
+     * @param queryParameters Query parameters that will be added to the redirect
      * @return A 302-FOUND {@link Response} with Location set to the desired new URL.
      */
-    static Response ssoLoginRedirectUrl(String ssoLoginUrl, String spaProxyUrl, Application application) {
+    static Response ssoLoginRedirectUrl(String ssoLoginUrl, String spaProxyUrl,
+                                        Application application, Map<String, String[]> queryParameters) {
         if (ssoLoginUrl != null && spaProxyUrl != null && application != null) {
-            String ssoLoginRedirectUri = spaProxyUrl+ "/load/" + application.getName();
-            String location = ssoLoginUrl + "login?redirectURI=" + ssoLoginRedirectUri;
+            URI redirectURI = UriBuilder.fromUri(URI.create(spaProxyUrl))
+                    .path("load")
+                    .path(application.getName())
+                    .build();
+            URI location = UriBuilder.fromUri(URI.create(ssoLoginUrl))
+                    .path("login")
+                    .queryParam("redirectURI", redirectURI)
+                    .build();
+
+            URI locationWithOriginalQueryParams = ResponseUtil.addQueryParameters(location, queryParameters);
             log.debug("Redirecting user to: {}", location);
             return Response.status(Response.Status.FOUND)
-                    .header("Location", location)
+                    .header("Location", locationWithOriginalQueryParams.toString())
                     .build();
         }
 
@@ -42,8 +58,19 @@ final class ResponseUtil {
 
     }
 
+    private static URI addQueryParameters(URI uri, Map<String, String[]> parameters) {
+        UriBuilder uriBuilder = UriBuilder.fromUri(uri);
+
+        for (Map.Entry<String, String[]> entry : parameters.entrySet()) {
+            if (entry.getValue() != null && entry.getValue().length > 0) {
+                uriBuilder.queryParam(entry.getKey(), entry.getValue()[0]);
+            }
+        }
+        return uriBuilder.build();
+    }
+
     static Response spaRedirectUrl(CredentialStore credentialStore, Application application,
-                            SPASessionSecret spaSessionSecret, String newTicket) {
+                                   SPASessionSecret spaSessionSecret, String newTicket) {
         String spaRedirectUrl = credentialStore.findRedirectUrl(application);
         String origin = Configuration.getBoolean("allow.origin") ? "*" : spaRedirectUrl;
         String location = spaRedirectUrl + "?code=" + spaSessionSecret.getSecret() + "&ticket=" + newTicket;
@@ -66,7 +93,7 @@ final class ResponseUtil {
     }
 
     static Response okResponse(CredentialStore credentialStore, Application application,
-                                SPASessionSecret spaSessionSecret, String newTicket) {
+                               SPASessionSecret spaSessionSecret, String newTicket) {
         String redirectUrl = credentialStore.findRedirectUrl(application);
         String body = createJSONBody(spaSessionSecret.getSecret(), newTicket).toString();
 

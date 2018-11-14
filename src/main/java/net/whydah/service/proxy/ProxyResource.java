@@ -19,6 +19,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 
+import java.util.Map;
+
 import static net.whydah.service.CredentialStore.FALLBACK_URL;
 import static net.whydah.service.proxy.ProxyResource.PROXY_PATH;
 
@@ -55,12 +57,13 @@ public class ProxyResource {
         Application application = credentialStore.findApplication(appName);
         String ssoLoginUrl = Configuration.getString("logonservice");
         String spaProxyUrl = Configuration.getString("myuri");
+        Map<String, String[]> parameterMap = httpServletRequest.getParameterMap();
         if (application == null || ssoLoginUrl == null || spaProxyUrl == null) {
             log.warn("Redirecting to fallback URL for request with appName: {} due to null values", appName);
             return redirectToFallbackUrl();
         }
         //redirect to ssoLoginWebapp to login in the user
-        return ResponseUtil.ssoLoginRedirectUrl(ssoLoginUrl, spaProxyUrl, application);
+        return ResponseUtil.ssoLoginRedirectUrl(ssoLoginUrl, spaProxyUrl, application, parameterMap);
     }
 
 
