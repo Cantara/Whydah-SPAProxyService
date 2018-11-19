@@ -2,6 +2,7 @@ package net.whydah.service.auth;
 
 import net.whydah.service.CredentialStore;
 import net.whydah.service.SPAApplicationRepository;
+import net.whydah.service.SPAKeyStoreRepository;
 import net.whydah.sso.application.mappers.ApplicationTokenMapper;
 import net.whydah.sso.application.types.Application;
 import net.whydah.sso.application.types.ApplicationCredential;
@@ -39,11 +40,13 @@ public class UserAuthenticationResource {
 
     private final CredentialStore credentialStore;
     private final SPAApplicationRepository spaApplicationRepository;
+    private final SPAKeyStoreRepository spaKeystoreRepository;
 
     @Autowired
-    public UserAuthenticationResource(CredentialStore credentialStore, SPAApplicationRepository spaApplicationRepository) {
+    public UserAuthenticationResource(CredentialStore credentialStore, SPAApplicationRepository spaApplicationRepository, SPAKeyStoreRepository spaKeystoreRepository) {
         this.credentialStore = credentialStore;
         this.spaApplicationRepository = spaApplicationRepository;
+        this.spaKeystoreRepository = spaKeystoreRepository;
     }
 
     @POST
@@ -53,7 +56,7 @@ public class UserAuthenticationResource {
                                      @Context HttpHeaders headers,
                                      @PathParam("secret") String secret,
                                      @FormParam("username") String username,
-                                     @FormParam("password") String password) {
+                                     @FormParam("password") String password) throws Exception {
         log.info("Invoked authenticateUser with secret: {} and headers: {}", secret, headers.getRequestHeaders());
 
         if (username == null || password == null) {
@@ -81,7 +84,7 @@ public class UserAuthenticationResource {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
 
-        String jwt = AdvancedJWTokenUtil.buildJWT(RsaJwkHelper.loadARandomJWK(), userToken, ticket, applicationToken.getApplicationID());
+        String jwt = AdvancedJWTokenUtil.buildJWT(spaKeystoreRepository.getARandomKey(), userToken, ticket, applicationToken.getApplicationID());
 
         return UserResponseUtil.createResponseWithHeader(jwt, credentialStore.findRedirectUrl(applicationToken.getApplicationName()));
     }
@@ -90,7 +93,7 @@ public class UserAuthenticationResource {
     @Path("/{secret}/get_token_from_ticket/{ticket}")
     public Response getJWTFromTicketWithPost(@Context HttpHeaders headers,
                                              @PathParam("secret") String secret,
-                                             @PathParam("ticket") String ticket) {
+                                             @PathParam("ticket") String ticket) throws Exception {
         return getJWTFromTicket(headers, secret, ticket);
     }
 
@@ -98,12 +101,12 @@ public class UserAuthenticationResource {
     @Path("/{secret}/get_token_from_ticket/{ticket}")
     public Response getJWTFromTicketWithGet(@Context HttpHeaders headers,
                                             @PathParam("secret") String secret,
-                                            @PathParam("ticket") String ticket) {
+                                            @PathParam("ticket") String ticket) throws Exception {
         return getJWTFromTicket(headers, secret, ticket);
     }
 
 
-    private Response getJWTFromTicket(HttpHeaders headers, String secret, String ticket) {
+    private Response getJWTFromTicket(HttpHeaders headers, String secret, String ticket) throws Exception {
         log.info("Invoked getTokenFromTicket with secret: {} ticket: {} and headers: {}", secret, ticket, headers.getRequestHeaders());
 
         ApplicationToken applicationToken = spaApplicationRepository.getApplicationTokenBySecret(secret);
@@ -126,7 +129,7 @@ public class UserAuthenticationResource {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
 
-        String jwt = AdvancedJWTokenUtil.buildJWT(RsaJwkHelper.loadARandomJWK(), userToken, newTicketId, applicationToken.getApplicationID());
+        String jwt = AdvancedJWTokenUtil.buildJWT(spaKeystoreRepository.getARandomKey(), userToken, newTicketId, applicationToken.getApplicationID());
 
         return UserResponseUtil.createResponseWithHeader(jwt, credentialStore.findRedirectUrl(applicationToken.getApplicationName()));
     }

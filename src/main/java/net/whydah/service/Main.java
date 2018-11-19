@@ -73,6 +73,10 @@ public class Main {
         }
     }
 
+    public void start2() {
+    	
+    }
+    
     // https://github.com/psamsotha/jersey-spring-jetty/blob/master/src/main/java/com/underdog/jersey/spring/jetty/JettyServerMain.java
     public void start() {
         ServletContextHandler context = new ServletContextHandler();
