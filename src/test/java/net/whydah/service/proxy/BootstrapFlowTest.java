@@ -87,7 +87,7 @@ public class BootstrapFlowTest {
         return "";
     }
 
-    @Test(enabled = false) //TODO verify new api verify ticket endpoint
+    @Test(enabled = false) //TODO verify new proxy verify ticket endpoint
     public void testResolveTicket() {
         UserCredential userCredential = new UserCredential();
         userCredential.setUserName(Configuration.getString("adminuserid"));
@@ -121,7 +121,7 @@ public class BootstrapFlowTest {
         assertTrue(userticket2 != null && !userticket.equals(userticket2));
     }
 
-    @Test(enabled = false) //TODO verify new api verify ticket endpoint
+    @Test(enabled = false) //TODO verify new proxy verify ticket endpoint
     public void testAPILogon() {
         UserCredential userCredential = new UserCredential();
         userCredential.setUserName(Configuration.getString("adminuserid"));

@@ -69,7 +69,7 @@ public class ProxyResource {
 
     /**
      * This endpoint will provision the SPA with two secrets using a redirect to the registered spaRedirectUrl.
-     * This is more secure than the /api/{appName} endpoint, so this endpoint should be preferred.
+     * This is more secure than the /proxy/{appName} endpoint, so this endpoint should be preferred.
      */
     @GET
     @Path("/{appName}")
@@ -97,7 +97,7 @@ public class ProxyResource {
     //We can possibly use a CORS proxy https://github.com/Rob--W/cors-anywhere/ but there is some limitation
     //Therefore, I make this for SPA client script
     @GET
-    @Path("/api/{appName}")
+    @Path("/proxy/{appName}")
     public Response initSPASession(@Context HttpServletRequest httpServletRequest,
                                    @Context HttpHeaders headers,
                                    @PathParam("appName") String appName) {

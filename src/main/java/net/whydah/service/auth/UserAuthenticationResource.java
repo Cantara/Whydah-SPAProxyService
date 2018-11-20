@@ -2,7 +2,7 @@ package net.whydah.service.auth;
 
 import net.whydah.service.CredentialStore;
 import net.whydah.service.SPAApplicationRepository;
-import net.whydah.service.SPAKeyStoreRepository;
+import net.whydah.service.inn.proxy.UserResponseUtil;
 import net.whydah.sso.application.mappers.ApplicationTokenMapper;
 import net.whydah.sso.application.types.Application;
 import net.whydah.sso.application.types.ApplicationCredential;
@@ -35,7 +35,7 @@ import static net.whydah.service.auth.UserAuthenticationResource.API_PATH;
 @Path(API_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 public class UserAuthenticationResource {
-    public static final String API_PATH = "/api";
+    public static final String API_PATH = "/proxy";
     private static final Logger log = LoggerFactory.getLogger(UserAuthenticationResource.class);
 
     private final CredentialStore credentialStore;

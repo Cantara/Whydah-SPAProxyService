@@ -4,8 +4,6 @@ import org.jose4j.jwk.JsonWebKey;
 import org.jose4j.jwk.JsonWebKeySet;
 import org.testng.annotations.Test;
 
-import net.whydah.service.SPAKeyStoreRepository;
-
 import java.io.File;
 
 import static org.testng.Assert.assertEquals;

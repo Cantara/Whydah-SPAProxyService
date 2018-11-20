@@ -1,4 +1,4 @@
-package net.whydah.service.inn.api.commands;
+package net.whydah.service.inn.proxy.commands;
 
 import net.whydah.sso.commands.baseclasses.BaseHttpPostHystrixCommand;
 
@@ -52,9 +52,9 @@ public class CommandInnAPICreateOrUpdateADeliveryAddress extends BaseHttpPostHys
     @Override
     protected String getTargetPath() {
         if (select) {
-            return this.myApplicationTokenId + "/api/" + this.nyUserTokenId + "/deliveryaddress/addAndSelect";
+            return this.myApplicationTokenId + "/proxy/" + this.nyUserTokenId + "/deliveryaddress/addAndSelect";
         } else {
-            return this.myApplicationTokenId + "/api/" + this.nyUserTokenId + "/deliveryaddress/add";
+            return this.myApplicationTokenId + "/proxy/" + this.nyUserTokenId + "/deliveryaddress/add";
         }
     }
 

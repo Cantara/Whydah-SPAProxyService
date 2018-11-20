@@ -1,15 +1,15 @@
-package net.whydah.service.inn.api.commands;
+package net.whydah.service.inn.proxy.commands;
 
 import net.whydah.sso.commands.baseclasses.BaseHttpGetHystrixCommand;
 
 import java.net.URI;
 
-public class CommandInnAPICheckSharingConsent extends BaseHttpGetHystrixCommand<String> {
+public class CommandInnAPIGetOnlyDeliveryAddresses extends BaseHttpGetHystrixCommand<String> {
     int retryCnt = 0;
     private String myApplicationTokenId;
     private String nyUserTokenId;
 
-    public CommandInnAPICheckSharingConsent(URI serviceUri, String myAppTokenId, String nyUserTokenId) {
+    public CommandInnAPIGetOnlyDeliveryAddresses(URI serviceUri, String myAppTokenId, String nyUserTokenId) {
         super(serviceUri, null, myAppTokenId, "InnGetaAPI", 10000);
         this.myApplicationTokenId = myAppTokenId;
         this.nyUserTokenId = nyUserTokenId;
@@ -17,6 +17,6 @@ public class CommandInnAPICheckSharingConsent extends BaseHttpGetHystrixCommand<
 
     @Override
     protected String getTargetPath() {
-        return this.myApplicationTokenId + "/api/" + this.nyUserTokenId + "/consent_exist";
+        return this.myApplicationTokenId + "/proxy/" + this.nyUserTokenId + "/deliveryaddress";
     }
 }

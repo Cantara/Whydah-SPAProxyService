@@ -1,4 +1,4 @@
-package net.whydah.service.inn.api.commands;
+package net.whydah.service.inn.proxy.commands;
 
 import net.whydah.sso.commands.baseclasses.BaseHttpPostHystrixCommand;
 
@@ -17,6 +17,6 @@ public class CommandInnAPIRemoveSharingConsent extends BaseHttpPostHystrixComman
 
     @Override
     protected String getTargetPath() {
-        return this.myApplicationTokenId + "/api/" + this.nyUserTokenId + "/remove_consentdata";
+        return this.myApplicationTokenId + "/proxy/" + this.nyUserTokenId + "/remove_consentdata";
     }
 }

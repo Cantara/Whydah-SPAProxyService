@@ -1,8 +1,8 @@
-package net.whydah.service.auth;
+package net.whydah.service.inn.proxy;
 
 import net.whydah.service.CredentialStore;
 import net.whydah.service.SPAApplicationRepository;
-import net.whydah.service.inn.api.commands.*;
+import net.whydah.service.inn.proxy.commands.*;
 import net.whydah.sso.application.types.ApplicationToken;
 import net.whydah.util.Configuration;
 import org.slf4j.Logger;
@@ -17,14 +17,14 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.net.URI;
 
-import static net.whydah.service.auth.UserDeliveryAddressResource.API_PATH;
+import static net.whydah.service.inn.proxy.UserDeliveryAddressResource.API_PATH;
 
 
 @RestController
 @Path(API_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 public class UserDeliveryAddressResource {
-    static final String API_PATH = "/api";
+    static final String API_PATH = "/proxy";
     private static final Logger log = LoggerFactory.getLogger(UserDeliveryAddressResource.class);
     private static final String logonUrl = Configuration.getString("logonservice");
 

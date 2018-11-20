@@ -1,4 +1,4 @@
-package net.whydah.service.inn.api.commands;
+package net.whydah.service.inn.proxy.commands;
 
 import net.whydah.sso.commands.baseclasses.BaseHttpPostHystrixCommand;
 
@@ -19,6 +19,6 @@ public class CommandInnAPIDeleteDeliveryAddress extends BaseHttpPostHystrixComma
 
     @Override
     protected String getTargetPath() {
-        return this.myApplicationTokenId + "/api/" + this.nyUserTokenId + "/deliveryaddress/delete/" + deliveryAddressLabel;
+        return this.myApplicationTokenId + "/proxy/" + this.nyUserTokenId + "/deliveryaddress/delete/" + deliveryAddressLabel;
     }
 }

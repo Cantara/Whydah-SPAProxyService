@@ -1,10 +1,10 @@
-package net.whydah.service.auth;
+package net.whydah.service.inn.proxy;
 
 import net.whydah.service.CredentialStore;
 import net.whydah.service.SPAApplicationRepository;
-import net.whydah.service.inn.api.commands.CommandInnAPICheckSharingConsent;
-import net.whydah.service.inn.api.commands.CommandInnAPIGiveSharingConsent;
-import net.whydah.service.inn.api.commands.CommandInnAPIRemoveSharingConsent;
+import net.whydah.service.inn.proxy.commands.CommandInnAPICheckSharingConsent;
+import net.whydah.service.inn.proxy.commands.CommandInnAPIGiveSharingConsent;
+import net.whydah.service.inn.proxy.commands.CommandInnAPIRemoveSharingConsent;
 import net.whydah.sso.application.types.ApplicationToken;
 import net.whydah.util.Configuration;
 import org.slf4j.Logger;
@@ -19,14 +19,14 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.net.URI;
 
-import static net.whydah.service.auth.UserConsentResource.API_PATH;
+import static net.whydah.service.inn.proxy.UserConsentResource.API_PATH;
 
 
 @RestController
 @Path(API_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 public class UserConsentResource {
-    static final String API_PATH = "/api";
+    static final String API_PATH = "/proxy";
     private static final Logger log = LoggerFactory.getLogger(UserConsentResource.class);
     private static final String logonUrl = Configuration.getString("logonservice");
 

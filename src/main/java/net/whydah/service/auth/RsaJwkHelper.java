@@ -13,11 +13,10 @@ import java.io.*;
 import java.util.UUID;
 
 public final class RsaJwkHelper {
-	
 	private static final Logger logger = LoggerFactory.getLogger(RsaJwkHelper.class);
 	
 	//get the key in the key store at a specific index
-	public static JsonWebKey getKeyFromKeyStore(final String jsonKeyStore, int index) throws Exception {
+	private static JsonWebKey getKeyFromKeyStore(final String jsonKeyStore, int index) throws Exception {
 		JsonWebKeySet jwks = new JsonWebKeySet(jsonKeyStore);
 		return getKeyFromKeyStore(jwks, index);
 	}
@@ -27,7 +26,7 @@ public final class RsaJwkHelper {
 		return getKeyFromKeyStore(jsonKeyStore, 0);
 	}
 	
-	public static JsonWebKey getKeyFromKeyStore(JsonWebKeySet jwks, int index) throws Exception {		
+	static JsonWebKey getKeyFromKeyStore(JsonWebKeySet jwks, int index) throws Exception {
 		if (jwks.getJsonWebKeys().isEmpty()) {
 			logger.warn("No JSON web keys are available in the keystore");
 			return null;
@@ -79,7 +78,7 @@ public final class RsaJwkHelper {
 		return null;
 	}
 
-	public static JsonWebKey getKeyFromKeyStore(JsonWebKeySet jwks, String keyId) throws Exception {
+	static JsonWebKey getKeyFromKeyStore(JsonWebKeySet jwks, String keyId) throws Exception {
 		if (jwks.getJsonWebKeys().isEmpty()) {
 			logger.warn("No JSON web keys are available in the keystore");
 			return null;
@@ -104,7 +103,7 @@ public final class RsaJwkHelper {
 	}
 	
 	//open the source input stream 
-	static InputStream openInputStream(String keyStoreSource) {
+	private static InputStream openInputStream(String keyStoreSource) {
 		InputStream is = null;
 		if (FileUtils.localFileExist(keyStoreSource)) {
 			logger.info("Importing keystore from local file {}", keyStoreSource);
@@ -114,7 +113,7 @@ public final class RsaJwkHelper {
 	}
 	
 	//get the key store (JWKS) from source
-	public static JsonWebKeySet loadJWKS(String keystoreSource) throws Exception {
+	static JsonWebKeySet loadJWKS(String keystoreSource) throws Exception {
 		InputStream is = openInputStream(keystoreSource);
 		if(is!=null) {
 			String json = FileUtils.read(is);
@@ -127,7 +126,7 @@ public final class RsaJwkHelper {
 	}
 	
 	//save a new key to key store
-	public static JsonWebKeySet addToKeyStore(String keystoreSource, JsonWebKey jwk) throws Exception {
+	static JsonWebKeySet addToKeyStore(String keystoreSource, JsonWebKey jwk) throws Exception {
 		JsonWebKeySet jsonWebKeySet = loadJWKS(keystoreSource);
 		if(jsonWebKeySet!=null) {
 			jsonWebKeySet.addJsonWebKey(jwk);
@@ -137,7 +136,7 @@ public final class RsaJwkHelper {
 		return saveKeystoretoFile(keystoreSource, jsonWebKeySet);
 	}
 
-	public static JsonWebKeySet saveKeystoretoFile(String keystoreSource, JsonWebKeySet jsonWebKeySet)
+	static JsonWebKeySet saveKeystoretoFile(String keystoreSource, JsonWebKeySet jsonWebKeySet)
 			throws IOException, UnsupportedEncodingException, FileNotFoundException {
 		String data = jsonWebKeySet.toJson(JsonWebKey.OutputControlLevel.INCLUDE_PRIVATE);
 		try (Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(keystoreSource), "utf-8"))) {
@@ -148,7 +147,7 @@ public final class RsaJwkHelper {
 	
 	
 	//produce a new Rsa key
-	public static RsaJsonWebKey produce() {
+	static RsaJsonWebKey produce() {
 		try {
 			RsaJsonWebKey theOne = RsaJwkGenerator.generateJwk(2048);
 			theOne.setKeyId(UUID.randomUUID().toString());
@@ -158,6 +157,4 @@ public final class RsaJwkHelper {
 		}
 		return null;
 	}
-
-
 }

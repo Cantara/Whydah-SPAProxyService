@@ -1,4 +1,4 @@
-package net.whydah.service.inn.api.commands;
+package net.whydah.service.inn.proxy.commands;
 
 import net.whydah.sso.commands.baseclasses.BaseHttpGetHystrixCommand;
 
@@ -17,6 +17,6 @@ public class CommandInnAPIGetSharedDeliveryAddress extends BaseHttpGetHystrixCom
 
     @Override
     protected String getTargetPath() {
-        return this.myApplicationTokenId + "/api/" + this.nyUserTokenId + "/shared-delivery-address";
+        return this.myApplicationTokenId + "/proxy/" + this.nyUserTokenId + "/shared-delivery-address";
     }
 }

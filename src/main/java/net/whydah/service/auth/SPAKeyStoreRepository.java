@@ -1,4 +1,4 @@
-package net.whydah.service;
+package net.whydah.service.auth;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -19,21 +19,17 @@ import com.hazelcast.config.XmlConfigBuilder;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 
-import net.whydah.service.auth.FileUtils;
-import net.whydah.service.auth.RsaJwkHelper;
-
 
 @Repository
 public class SPAKeyStoreRepository {
 	private static final Logger logger = getLogger(SPAKeyStoreRepository.class);
-	public static String keystoreSource = System.getProperty("user.dir") + "/spa-keystore.jwks";
+	private static String keystoreSource = System.getProperty("user.dir") + "/spa-keystore.jwks";
 	
 	private Map<String, JsonWebKey> map;
 	private JsonWebKeySet keySet; //our key store which should contain all JsonWebKey objects of the shared map  
 	
 	@Autowired
     public SPAKeyStoreRepository() throws Exception {
-       
         String xmlFileName = System.getProperty("hazelcast.config");
         logger.info("Loading hazelcast configuration from :" + xmlFileName);
         Config hazelcastConfig = new Config();
@@ -86,7 +82,7 @@ public class SPAKeyStoreRepository {
 		}
 	}
 	
-	public void syncMap() throws Exception {
+	private void syncMap() throws Exception {
 		for(JsonWebKey key:new ArrayList<>(map.values())) {
 			if(RsaJwkHelper.getKeyFromKeyStore(keySet, key.getKeyId())==null) {
 				//the key belongs to another hazelcast instance member
@@ -99,15 +95,13 @@ public class SPAKeyStoreRepository {
 		RsaJwkHelper.saveKeystoretoFile(keystoreSource, keySet);
 	}
 	
-	public RsaJsonWebKey getARandomKey() throws Exception {
+	RsaJsonWebKey getARandomKey() throws Exception {
 		syncMap();
 		return (RsaJsonWebKey) RsaJwkHelper.getKeyFromKeyStore(keySet, -1);
 	}
 	
-	public JsonWebKeySet getKeystore() throws Exception {
+	JsonWebKeySet getKeystore() throws Exception {
 		syncMap();
 		return keySet;
 	}
-	
-
 }

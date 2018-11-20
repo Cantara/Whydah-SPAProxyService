@@ -11,15 +11,12 @@ import org.springframework.web.bind.annotation.RestController;
 import org.jose4j.jwk.JsonWebKey;
 
 
-import net.whydah.service.SPAKeyStoreRepository;
-
 import static net.whydah.service.CredentialStore.FALLBACK_URL;
 
 @RestController
 @Path("jwks")
 @Produces(MediaType.APPLICATION_JSON_UTF8_VALUE)
 public class JwksEndpointController {
-
 	private final SPAKeyStoreRepository spaKeyStoreRepository;
 
 	@Autowired
@@ -30,7 +27,6 @@ public class JwksEndpointController {
 
 	@GET
 	public Response getJwks() {
-
 		try {
 			String body = spaKeyStoreRepository.getKeystore().toJson(JsonWebKey.OutputControlLevel.PUBLIC_ONLY);
 			return Response.ok(body).build();
