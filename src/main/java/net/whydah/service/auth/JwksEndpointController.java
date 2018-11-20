@@ -14,11 +14,12 @@ import org.jose4j.jwk.JsonWebKey;
 import static net.whydah.service.CredentialStore.FALLBACK_URL;
 
 @RestController
-@Path("jwks")
+@Path(JwksEndpointController.JWKS_PATH)
 @Produces(MediaType.APPLICATION_JSON_UTF8_VALUE)
 public class JwksEndpointController {
 	private final SPAKeyStoreRepository spaKeyStoreRepository;
-
+	public static final String JWKS_PATH = "/jwks";
+	
 	@Autowired
 	public JwksEndpointController(SPAKeyStoreRepository keystoreRepo) {
 		this.spaKeyStoreRepository = keystoreRepo;
