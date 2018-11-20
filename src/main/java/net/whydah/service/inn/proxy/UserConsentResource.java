@@ -26,7 +26,7 @@ import static net.whydah.service.inn.proxy.UserConsentResource.API_PATH;
 @Path(API_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 public class UserConsentResource {
-    static final String API_PATH = "/spasession";
+    static final String API_PATH = "/proxy";
     private static final Logger log = LoggerFactory.getLogger(UserConsentResource.class);
     private static final String logonUrl = Configuration.getString("logonservice");
 
