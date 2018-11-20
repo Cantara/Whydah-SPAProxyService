@@ -82,18 +82,6 @@
             </exclusions>
         </dependency>
 
-        <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt</artifactId>
-            <version>0.9.0</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.fasterxml.jackson.core</groupId>
-                    <artifactId>jackson-databind</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
         <!--this supports the JWS/JWE compact serializations with the complete suite of JOSE (Javascript Object Signing and Encryption) algorithms-->
         <dependency>
             <groupId>org.bitbucket.b_c</groupId>
