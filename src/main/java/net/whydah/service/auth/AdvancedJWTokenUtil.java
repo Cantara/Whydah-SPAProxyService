@@ -18,6 +18,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.security.Key;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 // The jose.4.j library is an open source (Apache 2.0) implementation of JWT and the JOSE specification suite.
 // It is written in Java and relies solely on the JCA APIs for cryptography.
@@ -37,7 +41,7 @@ import java.security.Key;
 final class AdvancedJWTokenUtil {
     private static final Logger log = LoggerFactory.getLogger(AdvancedJWTokenUtil.class);
 
-    private AdvancedJWTokenUtil(){
+    private AdvancedJWTokenUtil() {
     }
 
     static String buildJWT(RsaJsonWebKey rsaJsonWebKey, UserToken usertoken, String userTicket, String applicationId) {
@@ -52,17 +56,20 @@ final class AdvancedJWTokenUtil {
             claims.setClaim("userticket", userTicket);
         }
 
-        for (UserApplicationRoleEntry userApplicationRoleEntry : usertoken.getRoleList()) {
-            if (applicationId == null || applicationId.equalsIgnoreCase(userApplicationRoleEntry.getApplicationId())) {
-                claims.setClaim(userApplicationRoleEntry.getApplicationName(), userApplicationRoleEntry.getRoleName());
-            }
-        }
+        // group rolenames under application name and add to claims. If applicationId is null, all role entries for every
+        // application found in the UserToken is added
+        usertoken.getRoleList()
+                .stream()
+                .filter(entry -> applicationId == null || applicationId.equalsIgnoreCase(entry.getApplicationId()))
+                .collect(Collectors.groupingBy(UserApplicationRoleEntry::getApplicationName,
+                        Collectors.mapping(UserApplicationRoleEntry::getRoleName, Collectors.toList())))
+                .forEach(claims::setClaim);
 
         //add expiration date
         NumericDate numericDate = NumericDate.now();
         numericDate.addSeconds(Long.parseLong(usertoken.getLifespan()) / 1000);
         claims.setExpirationTime(numericDate);
-        
+
         JsonWebSignature jws = new JsonWebSignature();
         jws.setPayload(claims.toJson());
         jws.setKeyIdHeaderValue(rsaJsonWebKey.getKeyId());
@@ -83,7 +90,6 @@ final class AdvancedJWTokenUtil {
     }
 
     static JwtClaims parseJWT(String jwt, Key key) {
-       
         // Use JwtConsumerBuilder to construct an appropriate JwtConsumer, which will
         // be used to validate and process the JWT.
         // The specific validation requirements for a JWT are context dependent, however,
