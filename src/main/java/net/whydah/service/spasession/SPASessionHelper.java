@@ -1,4 +1,4 @@
-package net.whydah.service.proxy;
+package net.whydah.service.spasession;
 
 import net.whydah.service.CredentialStore;
 import net.whydah.service.SPAApplicationRepository;
@@ -17,7 +17,7 @@ import java.net.URI;
 import java.util.UUID;
 
 /**
- * Use a helper object to avoid duplication and hold logic shared by multiple endpoints in {@link ProxyResource}.
+ * Use a helper object to avoid duplication and hold logic shared by multiple endpoints in {@link SPASessionResource}.
  * Main responsibilities are ticket renewal and adding a new references to the application session map.
  *
  * @author Totto

@@ -1,4 +1,4 @@
-package net.whydah.service.proxy;
+package net.whydah.service.spasession;
 
 import net.whydah.commands.CommandAPIUserLoginToJWT;
 import net.whydah.commands.CommandGetProxyResponse;
@@ -33,7 +33,7 @@ public class BootstrapFlowTest {
         Thread.sleep(5000);
 
         CommandGetProxyResponse commandGetProxyResponse = new CommandGetProxyResponse(
-                testServer.getUrl() + ProxyResource.PROXY_PATH + "/" + TEST_APPLICATION_NAME);
+                testServer.getUrl() + SPASessionResource.PROXY_PATH + "/" + TEST_APPLICATION_NAME);
         String response = commandGetProxyResponse.execute();
         log.info(response);
 
@@ -87,7 +87,7 @@ public class BootstrapFlowTest {
         return "";
     }
 
-    @Test(enabled = false) //TODO verify new proxy verify ticket endpoint
+    @Test(enabled = false) //TODO verify new spasession verify ticket endpoint
     public void testResolveTicket() {
         UserCredential userCredential = new UserCredential();
         userCredential.setUserName(Configuration.getString("adminuserid"));
@@ -121,7 +121,7 @@ public class BootstrapFlowTest {
         assertTrue(userticket2 != null && !userticket.equals(userticket2));
     }
 
-    @Test(enabled = false) //TODO verify new proxy verify ticket endpoint
+    @Test(enabled = false) //TODO verify new spasession verify ticket endpoint
     public void testAPILogon() {
         UserCredential userCredential = new UserCredential();
         userCredential.setUserName(Configuration.getString("adminuserid"));

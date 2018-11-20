@@ -20,9 +20,9 @@ public class CommandInnAPISelectDeliveryAddress extends BaseHttpGetHystrixComman
     @Override
     protected String getTargetPath() {
         if (deliveryAddressLabel != null && deliveryAddressLabel.length() > 0) {
-            return this.myApplicationTokenId + "/proxy/" + this.nyUserTokenId + "/select_deliveryaddress/" + deliveryAddressLabel;
+            return this.myApplicationTokenId + "/spasession/" + this.nyUserTokenId + "/select_deliveryaddress/" + deliveryAddressLabel;
         } else {
-            return this.myApplicationTokenId + "/proxy/" + this.nyUserTokenId + "/select_default_deliveryaddress";
+            return this.myApplicationTokenId + "/spasession/" + this.nyUserTokenId + "/select_default_deliveryaddress";
         }
     }
 }

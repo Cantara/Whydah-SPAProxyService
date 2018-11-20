@@ -17,6 +17,6 @@ public class CommandInnAPIRemoveSharingConsent extends BaseHttpPostHystrixComman
 
     @Override
     protected String getTargetPath() {
-        return this.myApplicationTokenId + "/proxy/" + this.nyUserTokenId + "/remove_consentdata";
+        return this.myApplicationTokenId + "/spasession/" + this.nyUserTokenId + "/remove_consentdata";
     }
 }

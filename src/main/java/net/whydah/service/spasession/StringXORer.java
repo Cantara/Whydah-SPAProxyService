@@ -1,4 +1,4 @@
-package net.whydah.service.proxy;
+package net.whydah.service.spasession;
 
 import java.util.Base64;
 

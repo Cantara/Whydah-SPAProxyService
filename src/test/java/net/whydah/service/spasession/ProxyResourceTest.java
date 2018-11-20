@@ -1,4 +1,4 @@
-package net.whydah.service.proxy;
+package net.whydah.service.spasession;
 
 import net.whydah.demoservice.testsupport.TestServer;
 import org.testng.annotations.AfterClass;
@@ -34,6 +34,6 @@ public class ProxyResourceTest {
                 .log()
                 .everything()
                 .when()
-                .get(ProxyResource.PROXY_PATH);
+                .get(SPASessionResource.PROXY_PATH);
     }
 }

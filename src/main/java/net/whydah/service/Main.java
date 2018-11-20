@@ -2,7 +2,7 @@ package net.whydah.service;
 
 import net.whydah.service.auth.UserAuthenticationResource;
 import net.whydah.service.health.HealthResource;
-import net.whydah.service.proxy.ProxyResource;
+import net.whydah.service.spasession.SPASessionResource;
 import net.whydah.util.Configuration;
 import org.eclipse.jetty.security.ConstraintMapping;
 import org.eclipse.jetty.security.ConstraintSecurityHandler;
@@ -27,7 +27,7 @@ import java.util.logging.Level;
 import java.util.logging.LogManager;
 
 public class Main {
-    public static final String CONTEXT_PATH = "/proxy";
+    public static final String CONTEXT_PATH = "/spasession";
     public static final String ADMIN_ROLE = "admin";
     public static final String USER_ROLE = "user";
 
@@ -166,7 +166,7 @@ public class Main {
         // Allow proxyresource to be accessed without authentication
         ConstraintMapping proxyEndpointConstraintMapping = new ConstraintMapping();
         proxyEndpointConstraintMapping.setConstraint(new Constraint(Constraint.NONE, Constraint.ANY_ROLE));
-        proxyEndpointConstraintMapping.setPathSpec(ProxyResource.PROXY_PATH);
+        proxyEndpointConstraintMapping.setPathSpec(SPASessionResource.PROXY_PATH);
         securityHandler.addConstraintMapping(proxyEndpointConstraintMapping);
 
         // Allow userAuthEndpointConstraintMapping to be accessed without authentication

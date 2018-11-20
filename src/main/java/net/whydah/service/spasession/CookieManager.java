@@ -1,4 +1,4 @@
-package net.whydah.service.proxy;
+package net.whydah.service.spasession;
 
 //import net.whydah.sso.user.mappers.UserTokenMapper;
 //import net.whydah.sso.user.types.UserToken;

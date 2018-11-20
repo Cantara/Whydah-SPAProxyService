@@ -24,7 +24,7 @@ import static net.whydah.service.inn.proxy.UserDeliveryAddressResource.API_PATH;
 @Path(API_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 public class UserDeliveryAddressResource {
-    static final String API_PATH = "/proxy";
+    static final String API_PATH = "/spasession";
     private static final Logger log = LoggerFactory.getLogger(UserDeliveryAddressResource.class);
     private static final String logonUrl = Configuration.getString("logonservice");
 

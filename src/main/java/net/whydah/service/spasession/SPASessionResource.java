@@ -1,4 +1,4 @@
-package net.whydah.service.proxy;
+package net.whydah.service.spasession;
 
 import net.whydah.service.CredentialStore;
 import net.whydah.service.SPAApplicationRepository;
@@ -18,25 +18,24 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
-
 import java.util.Map;
 
 import static net.whydah.service.CredentialStore.FALLBACK_URL;
-import static net.whydah.service.proxy.ProxyResource.PROXY_PATH;
+import static net.whydah.service.spasession.SPASessionResource.PROXY_PATH;
 
 @RestController
 @Path(PROXY_PATH)
 @Produces(MediaType.APPLICATION_JSON_UTF8_VALUE)
-public class ProxyResource {
+public class SPASessionResource {
     public static final String PROXY_PATH = "/load";
 
-    private static final Logger log = LoggerFactory.getLogger(ProxyResource.class);
+    private static final Logger log = LoggerFactory.getLogger(SPASessionResource.class);
 
     private final CredentialStore credentialStore;
     private final SPASessionHelper initializer;
 
     @Autowired
-    public ProxyResource(CredentialStore credentialStore, SPAApplicationRepository spaApplicationRepository) {
+    public SPASessionResource(CredentialStore credentialStore, SPAApplicationRepository spaApplicationRepository) {
         this.credentialStore = credentialStore;
         this.initializer = new SPASessionHelper(credentialStore, spaApplicationRepository);
     }
@@ -69,7 +68,7 @@ public class ProxyResource {
 
     /**
      * This endpoint will provision the SPA with two secrets using a redirect to the registered spaRedirectUrl.
-     * This is more secure than the /proxy/{appName} endpoint, so this endpoint should be preferred.
+     * This is more secure than the /spasession/{appName} endpoint, so this endpoint should be preferred.
      */
     @GET
     @Path("/{appName}")
@@ -94,10 +93,10 @@ public class ProxyResource {
     //HUY: There is trouble with CORS
     //If a site doesn’t send the Access-Control-Allow-Origin header in its responses,
     //then there’s no way the frontend JavaScript code can directly access responses from that site.
-    //We can possibly use a CORS proxy https://github.com/Rob--W/cors-anywhere/ but there is some limitation
+    //We can possibly use a CORS spasession https://github.com/Rob--W/cors-anywhere/ but there is some limitation
     //Therefore, I make this for SPA client script
     @GET
-    @Path("/proxy/{appName}")
+    @Path("/spasession/{appName}")
     public Response initSPASession(@Context HttpServletRequest httpServletRequest,
                                    @Context HttpHeaders headers,
                                    @PathParam("appName") String appName) {

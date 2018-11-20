@@ -19,6 +19,6 @@ public class CommandInnAPIDeleteDeliveryAddress extends BaseHttpPostHystrixComma
 
     @Override
     protected String getTargetPath() {
-        return this.myApplicationTokenId + "/proxy/" + this.nyUserTokenId + "/deliveryaddress/delete/" + deliveryAddressLabel;
+        return this.myApplicationTokenId + "/spasession/" + this.nyUserTokenId + "/deliveryaddress/delete/" + deliveryAddressLabel;
     }
 }

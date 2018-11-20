@@ -1,9 +1,8 @@
-package net.whydah.service.proxy;
+package net.whydah.service.spasession;
 
 import net.whydah.service.CredentialStore;
 import net.whydah.sso.application.types.Application;
 import net.whydah.util.Configuration;
-import org.glassfish.jersey.uri.UriComponent;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -12,7 +11,6 @@ import org.slf4j.LoggerFactory;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import java.net.URI;
-import java.util.Arrays;
 import java.util.Map;
 
 /**

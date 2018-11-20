@@ -17,6 +17,6 @@ public class CommandInnAPIGetSharedDeliveryAddress extends BaseHttpGetHystrixCom
 
     @Override
     protected String getTargetPath() {
-        return this.myApplicationTokenId + "/proxy/" + this.nyUserTokenId + "/shared-delivery-address";
+        return this.myApplicationTokenId + "/spasession/" + this.nyUserTokenId + "/shared-delivery-address";
     }
 }

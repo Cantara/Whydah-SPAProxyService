@@ -35,7 +35,7 @@ import static net.whydah.service.auth.UserAuthenticationResource.API_PATH;
 @Path(API_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 public class UserAuthenticationResource {
-    public static final String API_PATH = "/proxy";
+    public static final String API_PATH = "/spasession";
     private static final Logger log = LoggerFactory.getLogger(UserAuthenticationResource.class);
 
     private final CredentialStore credentialStore;
