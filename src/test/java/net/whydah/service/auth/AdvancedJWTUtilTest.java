@@ -13,7 +13,9 @@ import org.testng.annotations.Test;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
@@ -40,26 +42,26 @@ public class AdvancedJWTUtilTest {
     @Test
     public void userTokenWithRoles_returnsTokenWithRoles() throws MalformedClaimException {
         UserToken ut = UserTokenMapper.fromUserTokenXml(UserHelper.getDummyUserToken());
-        UserApplicationRoleEntry entry1 = new UserApplicationRoleEntry(null, "appid1", "appname1", null, "roleName1", null);
-        UserApplicationRoleEntry entry2 = new UserApplicationRoleEntry(null, "appid2", "appname2", null, "roleName2", null);
-        UserApplicationRoleEntry entry3 = new UserApplicationRoleEntry(null, "appid2", "appname2", null, "roleName3", null);
-        UserApplicationRoleEntry entry4 = new UserApplicationRoleEntry(null, "appid2", "appname2", null, "roleName4", null);
+        UserApplicationRoleEntry entry1 = new UserApplicationRoleEntry(null, "appid1", "appname1", "The Best Firm", "roleName1", null);
+        UserApplicationRoleEntry entry2 = new UserApplicationRoleEntry(null, "appid2", "appWeWant", "Big Firm", "roleName2", "roleValue2");
+        UserApplicationRoleEntry entry3 = new UserApplicationRoleEntry(null, "appid2", "appWeWant", "Big Firm", "roleName3", "roleValue3");
+        UserApplicationRoleEntry entry4 = new UserApplicationRoleEntry(null, "appid2", "appWeWant", "Big Firm", "roleName4", "roleValue4");
         ut.setRoleList(Arrays.asList(entry1, entry2, entry3, entry4));
         RsaJsonWebKey rsaKey = RsaJwkHelper.produce();
 
-        String jwt = AdvancedJWTokenUtil.buildJWT(rsaKey, ut, UUID.randomUUID().toString(), null);
+        String jwt = AdvancedJWTokenUtil.buildJWT(rsaKey, ut, UUID.randomUUID().toString(), "appid2");
 
         JwtClaims jwtClaims = AdvancedJWTokenUtil.parseJWT(jwt, rsaKey.getKey());
         assertNotNull(jwtClaims);
 
-        @SuppressWarnings("unchecked")
-        List<String> appname1 = jwtClaims.getClaimValue("appname1", List.class);
-        assertEquals(appname1.size(), 1);
-        assertTrue(appname1.contains("roleName1"));
+        String appName = jwtClaims.getClaimValue("applicationName", String.class);
+        assertEquals("appWeWant", appName);
 
         @SuppressWarnings("unchecked")
-        List<String> appname2 = jwtClaims.getClaimValue("appname2", List.class);
-        assertEquals(appname2.size(), 3);
-        assertTrue(appname2.containsAll(Arrays.asList("roleName2", "roleName3", "roleName4")));
+        List<Map<String, String>> roles = jwtClaims.getClaimValue("roles", List.class);
+        assertEquals(roles.size(), 3);
+        roles.forEach(r -> assertEquals(r.get("orgName"), "Big Firm"));
+        roles.stream().map(r -> r.get("roleName")).collect(Collectors.toList()).containsAll(Arrays.asList("roleName2", "roleName3", "roleName4"));
+        roles.stream().map(r -> r.get("roleValue")).collect(Collectors.toList()).containsAll(Arrays.asList("roleValue2", "roleValue3", "roleValue"));
     }
 }

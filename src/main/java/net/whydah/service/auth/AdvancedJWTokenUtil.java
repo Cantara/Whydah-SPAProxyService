@@ -14,14 +14,17 @@ import org.jose4j.jwt.consumer.InvalidJwtException;
 import org.jose4j.jwt.consumer.JwtConsumer;
 import org.jose4j.jwt.consumer.JwtConsumerBuilder;
 import org.jose4j.lang.JoseException;
+import org.json.JSONArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.security.Key;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static java.util.Optional.ofNullable;
 
 // The jose.4.j library is an open source (Apache 2.0) implementation of JWT and the JOSE specification suite.
 // It is written in Java and relies solely on the JCA APIs for cryptography.
@@ -56,14 +59,23 @@ final class AdvancedJWTokenUtil {
             claims.setClaim("userticket", userTicket);
         }
 
-        // group rolenames under application name and add to claims. If applicationId is null, all role entries for every
-        // application found in the UserToken is added
-        usertoken.getRoleList()
+        // Filter on application id as an additional guard even though STS should for normal use cases only return a single application
+        List<UserApplicationRoleEntry> unmappedRoles = usertoken.getRoleList()
                 .stream()
-                .filter(entry -> applicationId == null || applicationId.equalsIgnoreCase(entry.getApplicationId()))
-                .collect(Collectors.groupingBy(UserApplicationRoleEntry::getApplicationName,
-                        Collectors.mapping(UserApplicationRoleEntry::getRoleName, Collectors.toList())))
-                .forEach(claims::setClaim);
+                .filter(role -> applicationId != null && applicationId.equalsIgnoreCase(role.getApplicationId()))
+                .collect(Collectors.toList());
+        unmappedRoles.stream().findFirst().ifPresent(role -> claims.setClaim("applicationName", role.getApplicationName()));
+
+        List<Map<String, String>> mappedRoles = unmappedRoles.stream()
+                .map(role -> {
+                    Map<String, String> rolesMap = new HashMap<>();
+                    ofNullable(role.getOrgName()).ifPresent(orgName -> rolesMap.put("orgName", orgName));
+                    ofNullable(role.getRoleName()).ifPresent(roleName -> rolesMap.put("roleName", roleName));
+                    ofNullable(role.getRoleValue()).ifPresent(roleValue -> rolesMap.put("roleValue", roleValue));
+                    return rolesMap;
+                })
+                .collect(Collectors.toList());
+        claims.setClaim("roles", mappedRoles);
 
         //add expiration date
         NumericDate numericDate = NumericDate.now();
