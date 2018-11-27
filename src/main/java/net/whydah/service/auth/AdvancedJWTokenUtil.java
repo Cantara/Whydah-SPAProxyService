@@ -64,7 +64,11 @@ final class AdvancedJWTokenUtil {
                 .stream()
                 .filter(role -> applicationId != null && applicationId.equalsIgnoreCase(role.getApplicationId()))
                 .collect(Collectors.toList());
-        unmappedRoles.stream().findFirst().ifPresent(role -> claims.setClaim("applicationName", role.getApplicationName()));
+        unmappedRoles.stream().findFirst().ifPresent(role -> {
+                    claims.setClaim("applicationName", role.getApplicationName());
+                    claims.setClaim("applicationId", role.getApplicationId());
+                }
+        );
 
         List<Map<String, String>> mappedRoles = unmappedRoles.stream()
                 .map(role -> {

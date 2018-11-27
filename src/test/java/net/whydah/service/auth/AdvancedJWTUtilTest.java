@@ -43,19 +43,21 @@ public class AdvancedJWTUtilTest {
     public void userTokenWithRoles_returnsTokenWithRoles() throws MalformedClaimException {
         UserToken ut = UserTokenMapper.fromUserTokenXml(UserHelper.getDummyUserToken());
         UserApplicationRoleEntry entry1 = new UserApplicationRoleEntry(null, "appid1", "appname1", "The Best Firm", "roleName1", null);
-        UserApplicationRoleEntry entry2 = new UserApplicationRoleEntry(null, "appid2", "appWeWant", "Big Firm", "roleName2", "roleValue2");
-        UserApplicationRoleEntry entry3 = new UserApplicationRoleEntry(null, "appid2", "appWeWant", "Big Firm", "roleName3", "roleValue3");
-        UserApplicationRoleEntry entry4 = new UserApplicationRoleEntry(null, "appid2", "appWeWant", "Big Firm", "roleName4", "roleValue4");
+        UserApplicationRoleEntry entry2 = new UserApplicationRoleEntry(null, "appIdWeWant", "appNameWeWant", "Big Firm", "roleName2", "roleValue2");
+        UserApplicationRoleEntry entry3 = new UserApplicationRoleEntry(null, "appIdWeWant", "appNameWeWant", "Big Firm", "roleName3", "roleValue3");
+        UserApplicationRoleEntry entry4 = new UserApplicationRoleEntry(null, "appIdWeWant", "appNameWeWant", "Big Firm", "roleName4", "roleValue4");
         ut.setRoleList(Arrays.asList(entry1, entry2, entry3, entry4));
         RsaJsonWebKey rsaKey = RsaJwkHelper.produce();
 
-        String jwt = AdvancedJWTokenUtil.buildJWT(rsaKey, ut, UUID.randomUUID().toString(), "appid2");
+        String jwt = AdvancedJWTokenUtil.buildJWT(rsaKey, ut, UUID.randomUUID().toString(), "appIdWeWant");
 
         JwtClaims jwtClaims = AdvancedJWTokenUtil.parseJWT(jwt, rsaKey.getKey());
         assertNotNull(jwtClaims);
 
         String appName = jwtClaims.getClaimValue("applicationName", String.class);
-        assertEquals("appWeWant", appName);
+        String appId = jwtClaims.getClaimValue("applicationId", String.class);
+        assertEquals(appName, "appNameWeWant");
+        assertEquals(appId, "appIdWeWant");
 
         @SuppressWarnings("unchecked")
         List<Map<String, String>> roles = jwtClaims.getClaimValue("roles", List.class);
