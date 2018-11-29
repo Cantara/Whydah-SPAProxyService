@@ -27,7 +27,7 @@ import java.util.logging.Level;
 import java.util.logging.LogManager;
 
 public class Main {
-    public static final String CONTEXT_PATH = "/spasession";
+    public static final String CONTEXT_PATH = "/proxy";
     public static final String ADMIN_ROLE = "admin";
     public static final String USER_ROLE = "user";
 

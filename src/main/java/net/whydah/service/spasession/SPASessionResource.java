@@ -68,7 +68,7 @@ public class SPASessionResource {
 
     /**
      * This endpoint will provision the SPA with two secrets using a redirect to the registered spaRedirectUrl.
-     * This is more secure than the /spasession/{appName} endpoint, so this endpoint should be preferred.
+     * This is more secure than the /api/{appName} endpoint, so this endpoint should be preferred.
      */
     @GET
     @Path("/{appName}")
@@ -83,7 +83,6 @@ public class SPASessionResource {
         }
 
         String newTicket = renewTicket(httpServletRequest);
-        //TODO: ED, if newTicket is still null, we should probably send an error response
 
         SPASessionSecret spaSessionSecret = initializer.addReferenceToApplicationSession(application);
 
@@ -96,7 +95,7 @@ public class SPASessionResource {
     //We can possibly use a CORS spasession https://github.com/Rob--W/cors-anywhere/ but there is some limitation
     //Therefore, I make this for SPA client script
     @GET
-    @Path("/spasession/{appName}")
+    @Path("/api/{appName}")
     public Response initSPASession(@Context HttpServletRequest httpServletRequest,
                                    @Context HttpHeaders headers,
                                    @PathParam("appName") String appName) {
@@ -108,7 +107,6 @@ public class SPASessionResource {
         }
 
         String newTicket = renewTicket(httpServletRequest);
-        //TODO: ED, if newTicket is still null, we should probably send an error response
 
         SPASessionSecret spaSessionSecret = initializer.addReferenceToApplicationSession(application);
 
