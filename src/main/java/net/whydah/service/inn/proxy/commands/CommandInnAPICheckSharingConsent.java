@@ -17,6 +17,6 @@ public class CommandInnAPICheckSharingConsent extends BaseHttpGetHystrixCommand<
 
     @Override
     protected String getTargetPath() {
-        return this.myApplicationTokenId + "/spasession/" + this.nyUserTokenId + "/consent_exist";
+        return this.myApplicationTokenId + "/api/" + this.nyUserTokenId + "/consent_exist";
     }
 }

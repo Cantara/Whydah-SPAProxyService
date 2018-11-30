@@ -17,6 +17,6 @@ public class CommandInnAPIGetOnlyDeliveryAddresses extends BaseHttpGetHystrixCom
 
     @Override
     protected String getTargetPath() {
-        return this.myApplicationTokenId + "/spasession/" + this.nyUserTokenId + "/deliveryaddress";
+        return this.myApplicationTokenId + "/api/" + this.nyUserTokenId + "/deliveryaddress";
     }
 }

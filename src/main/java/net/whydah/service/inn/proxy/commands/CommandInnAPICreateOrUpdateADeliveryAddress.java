@@ -52,9 +52,9 @@ public class CommandInnAPICreateOrUpdateADeliveryAddress extends BaseHttpPostHys
     @Override
     protected String getTargetPath() {
         if (select) {
-            return this.myApplicationTokenId + "/spasession/" + this.nyUserTokenId + "/deliveryaddress/addAndSelect";
+            return this.myApplicationTokenId + "/api/" + this.nyUserTokenId + "/deliveryaddress/addAndSelect";
         } else {
-            return this.myApplicationTokenId + "/spasession/" + this.nyUserTokenId + "/deliveryaddress/add";
+            return this.myApplicationTokenId + "/api/" + this.nyUserTokenId + "/deliveryaddress/add";
         }
     }
 
