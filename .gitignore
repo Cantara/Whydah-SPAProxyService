@@ -22,3 +22,5 @@ dependency-reduced-pom.xml
 /bin/
 
 logback-override.xml
+
+spa-keystore.jwks
