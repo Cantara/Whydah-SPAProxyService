@@ -45,7 +45,9 @@ public class SPASessionResource {
      * 2. Redirect to SSOLoginWebapp to login the user
      * 3. Redirect back to /load/{appName}
      * 4. Redirect to spa redirect url store in application
+     * @deprecated Deprecated in favor of UserAuthenticationResource.redirectToSSOLoginWeb()
      */
+    @Deprecated
     @GET
     @Path("/ssologin/{appName}")
     public Response redirectToSSOLoginWebapp(@Context HttpServletRequest httpServletRequest,
@@ -64,7 +66,6 @@ public class SPASessionResource {
         //redirect to ssoLoginWebapp to login in the user
         return ResponseUtil.ssoLoginRedirectUrl(ssoLoginUrl, spaProxyUrl, application, parameterMap);
     }
-
 
     /**
      * This endpoint will provision the SPA with two secrets using a redirect to the registered spaRedirectUrl.
