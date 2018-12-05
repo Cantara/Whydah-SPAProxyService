@@ -1,4 +1,4 @@
-package net.whydah.service.inn.proxy;
+package net.whydah.service.auth;
 
 import javax.ws.rs.core.Response;
 
@@ -14,11 +14,4 @@ public final class UserResponseUtil {
                 .build();
     }
 
-    public static Response createForbiddenResponseWithHeader(String redirectUrl) {
-        return Response.status(Response.Status.FORBIDDEN)
-                .header("Access-Control-Allow-Origin", redirectUrl)
-                .header("Access-Control-Allow-Credentials", true)
-                .header("Access-Control-Allow-Headers", "*")
-                .build();
-    }
 }
