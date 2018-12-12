@@ -3,14 +3,21 @@ package net.whydah.demoservice.testsupport;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.client.WireMock;
+import net.whydah.service.Main;
+import net.whydah.sso.application.mappers.ApplicationMapper;
+import net.whydah.sso.application.types.Application;
+import net.whydah.sso.user.mappers.UserTokenMapper;
+import net.whydah.sso.user.types.UserToken;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.AfterSuite;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeSuite;
 
 import java.time.Instant;
+import java.util.Collections;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 
 /**
@@ -22,11 +29,15 @@ public abstract class AbstractEndpointTest {
     private static int serverPort;
     private static WireMockServer wireMockServer;
 
+    private static String testServerBaseUrl;
+
     @BeforeSuite(alwaysRun = true, timeOut = 30000L)
     public void startTestServer() throws Exception {
         serverPort = DynamicPortUtil.findAvailableTcpPort();
         setupWiremock();
         testServer = new TestServer(serverPort);
+        testServerBaseUrl = "http://localhost:" + serverPort + Main.CONTEXT_PATH;
+        System.setProperty("myuri", testServerBaseUrl);
         testServer.start();
     }
 
@@ -64,6 +75,7 @@ public abstract class AbstractEndpointTest {
     private void setupExternalServicesMocks() {
         // Initial logon - STS
         addStub(WireMock.post(urlEqualTo("/tokenservice/logon"))
+                .withRequestBody(WireMock.matching(".*402222.*"))
                 .willReturn(WireMock.aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "text/xml")
@@ -72,6 +84,23 @@ public abstract class AbstractEndpointTest {
                                 "         <applicationtokenID>86560f039fcfbb083bed8c12da58bdee</applicationtokenID>\n" +
                                 "         <applicationid>402222</applicationid>\n" +
                                 "         <applicationname>Whydah-SPAProxyService</applicationname>\n" +
+                                "         <expires>" + (Instant.now().toEpochMilli() / 1000) + "</expires>\n" +
+                                "     </params> \n" +
+                                "     <Url type=\"application/xml\" method=\"POST\"                 template=\"http://localhost:" + wireMockServer.port() + "/tokenservice/user/86560f039fcfbb083bed8c12da58bdee/get_usertoken_by_usertokenid\"/> \n" +
+                                " </applicationtoken>\n"))
+        );
+
+        // testApp logon
+        addStub(WireMock.post(urlEqualTo("/tokenservice/logon"))
+                .withRequestBody(WireMock.matching(".*inMemoryTestAppId.*"))
+                .willReturn(WireMock.aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "text/xml")
+                        .withBody(" <applicationtoken>\n" +
+                                "     <params>\n" +
+                                "         <applicationtokenID>12340f039fcfbb083bed8c12da581234</applicationtokenID>\n" +
+                                "         <applicationid>inMemoryTestAppId</applicationid>\n" +
+                                "         <applicationname>testApp</applicationname>\n" +
                                 "         <expires>" + (Instant.now().toEpochMilli() / 1000) + "</expires>\n" +
                                 "     </params> \n" +
                                 "     <Url type=\"application/xml\" method=\"POST\"                 template=\"http://localhost:" + wireMockServer.port() + "/tokenservice/user/86560f039fcfbb083bed8c12da58bdee/get_usertoken_by_usertokenid\"/> \n" +
@@ -87,12 +116,22 @@ public abstract class AbstractEndpointTest {
                 )
         );
 
-        // get applications from UAS. Return empty list
+        // get applications from UAS. Return single testApp
+        Application application = new Application("inMemoryTestAppId", "testApp");
+        application.setApplicationUrl("http://dummy.url.does.not.exist.com");
         addStub(WireMock.get(urlEqualTo("/useradminservice/86560f039fcfbb083bed8c12da58bdee/applications"))
                 .willReturn(WireMock.aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "text/xml")
-                        .withBody("[]"))
+                        .withBody(ApplicationMapper.toJson(Collections.singletonList(application))))
+        );
+
+        // Get specific application from UAS: testApp
+        addStub(WireMock.get(urlMatching("/useradminservice/86560f039fcfbb083bed8c12da58bdee/.*/application/inMemoryTestAppId"))
+                .willReturn(WireMock.aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "text/xml")
+                        .withBody(ApplicationMapper.toJson(application)))
         );
 
         // get application key - STS
@@ -102,6 +141,19 @@ public abstract class AbstractEndpointTest {
                         .withHeader("Content-Type", "text/xml")
                         .withBody("{\"encryptionKey\":\"hHwfdaOnBfROLhmQUUPTZLwBNm5PWtxx4P9ny3A34jU=\",\n" +
                                 "\"iv\":\"MDEyMzQ1Njc4OTBBQkNERQ==\"}"))
+        );
+
+        // get SPAProxyService usertoken
+        UserToken userToken = new UserToken();
+        userToken.setUserName("Whydah");
+        userToken.setLastName("SPAProxy");
+        userToken.setUid("12345678901234567890");
+        addStub(WireMock.post(urlMatching("/tokenservice/user/86560f039fcfbb083bed8c12da58bdee/.*/usertoken"))
+                .willReturn(WireMock.aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "text/xml")
+                        .withBody(UserTokenMapper.toXML(userToken))
+                )
         );
     }
 
@@ -118,10 +170,21 @@ public abstract class AbstractEndpointTest {
         addStub(stub);
     }
 
+    public static int getWireMockPort() {
+        return wireMockServer.port();
+    }
+
     /**
      * @return The dynamic port the test server is running on
      */
-    public static int getServerPort() {
+    protected static int getServerPort() {
         return serverPort;
+    }
+
+    /**
+     * @return The base url of the test server, including dynamic port and context path
+     */
+    protected static String getBaseUrl() {
+        return testServerBaseUrl;
     }
 }

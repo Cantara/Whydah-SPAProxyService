@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.net.URI;
 import java.util.Collection;
 import java.util.Date;
@@ -38,6 +39,7 @@ public class SPAApplicationRepository {
         log.info("Loading hazelcast configuration from :" + xmlFileName);
         Config hazelcastConfig = new Config();
 
+
         if (xmlFileName != null && xmlFileName.length() > 10) {
             try {
                 hazelcastConfig = new XmlConfigBuilder(xmlFileName).build();
@@ -45,6 +47,10 @@ public class SPAApplicationRepository {
             } catch (FileNotFoundException notFound) {
                 log.error("Error - not able to load hazelcast.xml configuration.  Using embedded configuration as fallback");
             }
+        } else {
+            log.warn("Unable to load external hazelcast.xml configuration.  Using configuration from classpath as fallback");
+            InputStream configFromClassPath = SPAApplicationRepository.class.getClassLoader().getResourceAsStream("hazelcast.xml");
+            hazelcastConfig = new XmlConfigBuilder(configFromClassPath).build();
         }
 
         hazelcastConfig.setProperty("hazelcast.logging.type", "slf4j");

@@ -3,6 +3,7 @@ package net.whydah.service.auth;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -41,7 +42,11 @@ public class SPAKeyStoreRepository {
             } catch (FileNotFoundException notFound) {
                 logger.error("Error - not able to load hazelcast.xml configuration.  Using embedded configuration as fallback");
             }
-        }
+        } else {
+			logger.warn("Unable to load external hazelcast.xml configuration.  Using configuration from classpath as fallback");
+			InputStream configFromClassPath = SPAKeyStoreRepository.class.getClassLoader().getResourceAsStream("hazelcast.xml");
+			hazelcastConfig = new XmlConfigBuilder(configFromClassPath).build();
+		}
 
         hazelcastConfig.setProperty("hazelcast.logging.type", "slf4j");
         //hazelcastConfig.getGroupConfig().setName("OID_HAZELCAST");
