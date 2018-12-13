@@ -38,7 +38,7 @@ public class SSOLoginResource {
     private static final String WITH_SESSION_PATH = "/application/session/{spaSessionSecret}/user/auth/ssologin";
     private static final String WITHOUT_SESSION_PATH = "/application/{appName}/user/auth/ssologin";
     private static final Logger log = LoggerFactory.getLogger(UserAuthenticationResource.class);
-    private static final String INITILIZED_VALUE = "INITIALIZED_VALUE";
+    static final String INITILIZED_VALUE = "INITIALIZED_VALUE";
 
     private Map<UUID, SSOLoginSession> ssoLoginSessionMap;
 
@@ -84,7 +84,7 @@ public class SSOLoginResource {
         URI ssoLoginUrl = buildPopupEntryPointURIWithApplicationSession(spaProxyBaseUri, spaSessionSecret, ssoLoginUUID);
         initializeSSOLogin(application, ssoLoginUUID);
 
-        return initializeSSOLoginResponse(ssoLoginUrl, ssoLoginUUID, application.getApplicationUrl());
+        return SSOLoginUtil.initializeSSOLoginResponse(ssoLoginUrl, ssoLoginUUID, application.getApplicationUrl());
     }
 
     /**
@@ -109,7 +109,7 @@ public class SSOLoginResource {
         URI ssoLoginUrl = buildPopupEntryPointURIWithoutApplicationSession(spaProxyBaseUri, appName, ssoLoginUUID);
         initializeSSOLogin(application, ssoLoginUUID);
 
-        return initializeSSOLoginResponse(ssoLoginUrl, ssoLoginUUID, application.getApplicationUrl());
+        return SSOLoginUtil.initializeSSOLoginResponse(ssoLoginUrl, ssoLoginUUID, application.getApplicationUrl());
     }
 
     private static URI buildPopupEntryPointURIWithApplicationSession(String spaProxyBaseURI, String sessionSecret, UUID ssoLoginUUID) {
@@ -133,14 +133,7 @@ public class SSOLoginResource {
         ssoLoginSessionMap.put(ssoLoginUUID, ssoLoginSession);
     }
 
-    private static Response initializeSSOLoginResponse(URI ssoLoginUrl, UUID ssoLoginUUID, String applicationUrl) {
-        String body = "{ \"ssoLoginUrl\" : \"" + ssoLoginUrl + "\", \"ssoLoginUUID\": \"" + ssoLoginUUID + "\"}";
-        return Response.ok(body)
-                .header("Access-Control-Allow-Origin", applicationUrl)
-                .header("Access-Control-Allow-Credentials", true)
-                .header("Access-Control-Allow-Headers", "*")
-                .build();
-    }
+
 
     /**
      * Generates a Login url for the login session
@@ -166,12 +159,12 @@ public class SSOLoginResource {
 
         UUID uuid = UUID.fromString(ssoLoginUUID);
         SSOLoginSession ssoLoginSession = ssoLoginSessionMap.get(uuid);
-        Optional<Response> optionalResponse = verifySSOLoginSession(ssoLoginSession, application, uuid);
+        Optional<Response> optionalResponse = SSOLoginUtil.verifySSOLoginSession(ssoLoginSession, application, uuid);
         if (optionalResponse.isPresent()) {
             return optionalResponse.get();
         }
 
-        Map<String, String[]> forwardedParameterMap = buildQueryParamsForRedirectUrl(ssoLoginUUID, application, httpServletRequest.getParameterMap());
+        Map<String, String[]> forwardedParameterMap = SSOLoginUtil.buildQueryParamsForRedirectUrl(ssoLoginSession.getSsoLoginUUID(), application, httpServletRequest.getParameterMap());
 
         return ResponseUtil.ssoLoginRedirectUrl(ssoLoginBaseUri, spaProxyBaseUri, application, forwardedParameterMap);
     }
@@ -195,49 +188,18 @@ public class SSOLoginResource {
 
         UUID uuid = UUID.fromString(ssoLoginUUID);
         SSOLoginSession ssoLoginSession = ssoLoginSessionMap.get(uuid);
-        Optional<Response> optionalResponse = verifySSOLoginSession(ssoLoginSession, application, uuid);
+        Optional<Response> optionalResponse = SSOLoginUtil.verifySSOLoginSession(ssoLoginSession, application, uuid);
         if (optionalResponse.isPresent()) {
             return optionalResponse.get();
         }
 
-        Map<String, String[]> forwardedParameterMap = buildQueryParamsForRedirectUrl(ssoLoginUUID, application, httpServletRequest.getParameterMap());
+        Map<String, String[]> forwardedParameterMap = SSOLoginUtil.buildQueryParamsForRedirectUrl(ssoLoginSession.getSsoLoginUUID(), application, httpServletRequest.getParameterMap());
 
 
         return ResponseUtil.ssoLoginRedirectUrl(ssoLoginBaseUri, spaProxyBaseUri, application, forwardedParameterMap);
     }
 
-    private Map<String, String[]> buildQueryParamsForRedirectUrl(final @PathParam("ssoLoginUUID") String ssoLoginUUID, final Application application, final Map<String, String[]> originalParameterMap) {
-        Map<String, String[]> forwardedParameterMap = new HashMap<>();
-        for (Map.Entry<String, String[]> entry : originalParameterMap.entrySet()) {
-            forwardedParameterMap.put(entry.getKey(), entry.getValue());
-        }
-        // Pass through query parameters
-        // Overwrite the appName and ssoLoginSession parameter explicitly
-        forwardedParameterMap.put("appName", new String[]{application.getName()});
-        forwardedParameterMap.put("ssoLoginUUID", new String[]{ssoLoginUUID});
-        return forwardedParameterMap;
-    }
 
-    private static Optional<Response> verifySSOLoginSession(SSOLoginSession ssoLoginSession, Application application, UUID ssoLoginUUID) {
-        if (ssoLoginSession == null) {
-            log.info("redirectInitializedUserLoginWithApplicationSession called with unknown ssoLoginUUID. ssoLoginUUID: {}", ssoLoginUUID);
-            return Optional.of(Response.status(Response.Status.NOT_FOUND).build());
-        }
-
-        if (!application.getName().equals(ssoLoginSession.getApplicationName())) {
-            log.info("redirectInitializedUserLoginWithApplicationSession called with application that does not match ssoLoginSession. " +
-                    "Returning forbidden. ssoLoginUUID: {}, appName: {}", ssoLoginUUID, application.getName());
-            return Optional.of(Response.status(Response.Status.FORBIDDEN).build());
-        }
-
-        if (!INITILIZED_VALUE.equals(ssoLoginSession.getStatus())) {
-            log.info("redirectInitializedUserLogin called with ssoLoginSession with incorrect status. " +
-                    "Returning forbidden. ssoLoginUUID: {}, ssoLoginSession.status: {}", ssoLoginUUID, ssoLoginSession.getStatus());
-            return Optional.of(Response.status(Response.Status.FORBIDDEN).build());
-        }
-
-        return Optional.empty();
-    }
 
 
     /**
