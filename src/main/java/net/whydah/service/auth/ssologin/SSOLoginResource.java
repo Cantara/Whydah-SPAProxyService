@@ -25,6 +25,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -81,10 +82,9 @@ public class SSOLoginResource {
 
         UUID ssoLoginUUID = UUID.randomUUID();
         URI ssoLoginUrl = buildPopupEntryPointURIWithApplicationSession(spaProxyBaseUri, spaSessionSecret, ssoLoginUUID);
-        SSOLoginSession ssoLoginSession = new SSOLoginSession(ssoLoginUUID, INITILIZED_VALUE, application.getName());
-        ssoLoginSessionMap.put(ssoLoginUUID, ssoLoginSession);
+        initializeSSOLogin(application, ssoLoginUUID);
 
-        return initializeSSOLogin(ssoLoginUrl, ssoLoginUUID, application.getApplicationUrl());
+        return initializeSSOLoginResponse(ssoLoginUrl, ssoLoginUUID, application.getApplicationUrl());
     }
 
     /**
@@ -107,10 +107,9 @@ public class SSOLoginResource {
 
         UUID ssoLoginUUID = UUID.randomUUID();
         URI ssoLoginUrl = buildPopupEntryPointURIWithoutApplicationSession(spaProxyBaseUri, appName, ssoLoginUUID);
-        SSOLoginSession ssoLoginSession = new SSOLoginSession(ssoLoginUUID, INITILIZED_VALUE, application.getName());
-        ssoLoginSessionMap.put(ssoLoginUUID, ssoLoginSession);
+        initializeSSOLogin(application, ssoLoginUUID);
 
-        return initializeSSOLogin(ssoLoginUrl, ssoLoginUUID, application.getApplicationUrl());
+        return initializeSSOLoginResponse(ssoLoginUrl, ssoLoginUUID, application.getApplicationUrl());
     }
 
     private static URI buildPopupEntryPointURIWithApplicationSession(String spaProxyBaseURI, String sessionSecret, UUID ssoLoginUUID) {
@@ -129,7 +128,12 @@ public class SSOLoginResource {
                 .build();
     }
 
-    private static Response initializeSSOLogin(URI ssoLoginUrl, UUID ssoLoginUUID, String applicationUrl) {
+    private void initializeSSOLogin(final Application application, final UUID ssoLoginUUID) {
+        SSOLoginSession ssoLoginSession = new SSOLoginSession(ssoLoginUUID, INITILIZED_VALUE, application.getName());
+        ssoLoginSessionMap.put(ssoLoginUUID, ssoLoginSession);
+    }
+
+    private static Response initializeSSOLoginResponse(URI ssoLoginUrl, UUID ssoLoginUUID, String applicationUrl) {
         String body = "{ \"ssoLoginUrl\" : \"" + ssoLoginUrl + "\", \"ssoLoginUUID\": \"" + ssoLoginUUID + "\"}";
         return Response.ok(body)
                 .header("Access-Control-Allow-Origin", applicationUrl)
@@ -160,34 +164,14 @@ public class SSOLoginResource {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
-        SSOLoginSession ssoLoginSession = ssoLoginSessionMap.get(UUID.fromString(ssoLoginUUID));
-        if (ssoLoginSession == null) {
-            log.info("redirectInitializedUserLoginWithApplicationSession called with unknown ssoLoginUUID. ssoLoginUUID: {}", ssoLoginUUID);
-            return Response.status(Response.Status.NOT_FOUND).build();
+        UUID uuid = UUID.fromString(ssoLoginUUID);
+        SSOLoginSession ssoLoginSession = ssoLoginSessionMap.get(uuid);
+        Optional<Response> optionalResponse = verifySSOLoginSession(ssoLoginSession, application, uuid);
+        if (optionalResponse.isPresent()) {
+            return optionalResponse.get();
         }
 
-        if (!application.getName().equals(ssoLoginSession.getApplicationName())) {
-            log.info("redirectInitializedUserLoginWithApplicationSession called with application that does not match ssoLoginSession. " +
-                    "Returning forbidden. ssoLoginUUID: {}, appName: {}", ssoLoginUUID, application.getName());
-            return Response.status(Response.Status.FORBIDDEN).build();
-        }
-
-        if (!INITILIZED_VALUE.equals(ssoLoginSession.getStatus())) {
-            log.info("redirectInitializedUserLogin called with ssoLoginSession with incorrect status. " +
-                    "Returning forbidden. ssoLoginUUID: {}, ssoLoginSession.status: {}", ssoLoginUUID, ssoLoginSession.getStatus());
-            return Response.status(Response.Status.FORBIDDEN).build();
-        }
-
-        Map<String, String[]> originalParameterMap = httpServletRequest.getParameterMap();
-
-        Map<String, String[]> forwardedParameterMap = new HashMap<>();
-        for (Map.Entry<String, String[]> entry : originalParameterMap.entrySet()) {
-            forwardedParameterMap.put(entry.getKey(), entry.getValue());
-        }
-        // Pass through query parameters
-        // Overwrite the appName parameter explicitly
-        forwardedParameterMap.put("appName", new String[]{application.getName()});
-
+        Map<String, String[]> forwardedParameterMap = buildQueryParamsForRedirectUrl(ssoLoginUUID, application, httpServletRequest.getParameterMap());
 
         return ResponseUtil.ssoLoginRedirectUrl(ssoLoginBaseUri, spaProxyBaseUri, application, forwardedParameterMap);
     }
@@ -209,39 +193,51 @@ public class SSOLoginResource {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
-        SSOLoginSession ssoLoginSession = ssoLoginSessionMap.get(UUID.fromString(ssoLoginUUID));
-        if (ssoLoginSession == null) {
-            log.info("redirectInitializedUserLogin called with unknown ssoLoginUUID. ssoLoginUUID: {}", ssoLoginUUID);
-            return Response.status(Response.Status.NOT_FOUND).build();
+        UUID uuid = UUID.fromString(ssoLoginUUID);
+        SSOLoginSession ssoLoginSession = ssoLoginSessionMap.get(uuid);
+        Optional<Response> optionalResponse = verifySSOLoginSession(ssoLoginSession, application, uuid);
+        if (optionalResponse.isPresent()) {
+            return optionalResponse.get();
         }
 
-        if (!application.getName().equals(ssoLoginSession.getApplicationName())) {
-            log.info("redirectInitializedUserLogin called with application that does not match ssoLoginSession. " +
-                    "Returning forbidden. ssoLoginUUID: {}, appName: {}, expected appName",
-                    ssoLoginUUID, application.getName(), ssoLoginSession.getApplicationName());
-            return Response.status(Response.Status.FORBIDDEN).build();
-        }
-
-        if (!INITILIZED_VALUE.equals(ssoLoginSession.getStatus())) {
-            log.info("redirectInitializedUserLogin called with ssoLoginSession with incorrect status. " +
-                    "Returning forbidden. ssoLoginUUID: {}, ssoLoginSession.status: {}", ssoLoginUUID, ssoLoginSession.getStatus());
-            return Response.status(Response.Status.FORBIDDEN).build();
-        }
-
-        Map<String, String[]> originalParameterMap = httpServletRequest.getParameterMap();
-
-        Map<String, String[]> forwardedParameterMap = new HashMap<>();
-        for (Map.Entry<String, String[]> entry : originalParameterMap.entrySet()) {
-            forwardedParameterMap.put(entry.getKey(), entry.getValue());
-        }
-        // Pass through query parameters
-        // Overwrite the appName parameter explicitly
-        forwardedParameterMap.put("appName", new String[]{application.getName()});
+        Map<String, String[]> forwardedParameterMap = buildQueryParamsForRedirectUrl(ssoLoginUUID, application, httpServletRequest.getParameterMap());
 
 
         return ResponseUtil.ssoLoginRedirectUrl(ssoLoginBaseUri, spaProxyBaseUri, application, forwardedParameterMap);
     }
 
+    private Map<String, String[]> buildQueryParamsForRedirectUrl(final @PathParam("ssoLoginUUID") String ssoLoginUUID, final Application application, final Map<String, String[]> originalParameterMap) {
+        Map<String, String[]> forwardedParameterMap = new HashMap<>();
+        for (Map.Entry<String, String[]> entry : originalParameterMap.entrySet()) {
+            forwardedParameterMap.put(entry.getKey(), entry.getValue());
+        }
+        // Pass through query parameters
+        // Overwrite the appName and ssoLoginSession parameter explicitly
+        forwardedParameterMap.put("appName", new String[]{application.getName()});
+        forwardedParameterMap.put("ssoLoginUUID", new String[]{ssoLoginUUID});
+        return forwardedParameterMap;
+    }
+
+    private static Optional<Response> verifySSOLoginSession(SSOLoginSession ssoLoginSession, Application application, UUID ssoLoginUUID) {
+        if (ssoLoginSession == null) {
+            log.info("redirectInitializedUserLoginWithApplicationSession called with unknown ssoLoginUUID. ssoLoginUUID: {}", ssoLoginUUID);
+            return Optional.of(Response.status(Response.Status.NOT_FOUND).build());
+        }
+
+        if (!application.getName().equals(ssoLoginSession.getApplicationName())) {
+            log.info("redirectInitializedUserLoginWithApplicationSession called with application that does not match ssoLoginSession. " +
+                    "Returning forbidden. ssoLoginUUID: {}, appName: {}", ssoLoginUUID, application.getName());
+            return Optional.of(Response.status(Response.Status.FORBIDDEN).build());
+        }
+
+        if (!INITILIZED_VALUE.equals(ssoLoginSession.getStatus())) {
+            log.info("redirectInitializedUserLogin called with ssoLoginSession with incorrect status. " +
+                    "Returning forbidden. ssoLoginUUID: {}, ssoLoginSession.status: {}", ssoLoginUUID, ssoLoginSession.getStatus());
+            return Optional.of(Response.status(Response.Status.FORBIDDEN).build());
+        }
+
+        return Optional.empty();
+    }
 
 
     /**

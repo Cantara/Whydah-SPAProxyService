@@ -140,6 +140,7 @@ public class SSOLoginResourceTest extends AbstractEndpointTest {
                 .then().log().ifValidationFails()
                 .statusCode(Response.Status.OK.getStatusCode());
         String ssoLoginUrl = initResponse.extract().path("ssoLoginUrl");
+        String ssoLoginUUID = initResponse.extract().path("ssoLoginUUID");
 
         ValidatableResponse redirectResponse = given()
                 .when()
@@ -159,6 +160,7 @@ public class SSOLoginResourceTest extends AbstractEndpointTest {
                 .path("login")
                 .queryParam("redirectURI", expectedRedirectURI)
                 .queryParam("appName", "testApp")
+                .queryParam("ssoLoginUUID", ssoLoginUUID)
                 .build()
                 .toString();
 
@@ -175,6 +177,7 @@ public class SSOLoginResourceTest extends AbstractEndpointTest {
                 .then().log().ifValidationFails()
                 .statusCode(Response.Status.OK.getStatusCode());
         String ssoLoginUrl = initResponse.extract().path("ssoLoginUrl");
+        String ssoLoginUUID = initResponse.extract().path("ssoLoginUUID");
 
         ValidatableResponse redirectResponse = given()
                 .when()
@@ -195,6 +198,7 @@ public class SSOLoginResourceTest extends AbstractEndpointTest {
                 .queryParam("redirectURI", expectedRedirectURI)
                 .queryParam("UserCheckout", "true")
                 .queryParam("appName", "testApp")
+                .queryParam("ssoLoginUUID", ssoLoginUUID)
                 .build()
                 .toString();
 
@@ -230,6 +234,7 @@ public class SSOLoginResourceTest extends AbstractEndpointTest {
                 .then().log().ifValidationFails()
                 .statusCode(Response.Status.OK.getStatusCode());
         String ssoLoginUrl = initResponse.extract().path("ssoLoginUrl");
+        String ssoLoginUUID = initResponse.extract().path("ssoLoginUUID");
 
         ValidatableResponse redirectResponse = given()
                 .when()
@@ -249,6 +254,7 @@ public class SSOLoginResourceTest extends AbstractEndpointTest {
                 .path("login")
                 .queryParam("redirectURI", expectedRedirectURI)
                 .queryParam("appName", testAppName)
+                .queryParam("ssoLoginUUID", ssoLoginUUID)
                 .build()
                 .toString();
 
