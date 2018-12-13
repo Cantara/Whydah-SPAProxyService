@@ -1,4 +1,4 @@
-package net.whydah.service.auth;
+package net.whydah.service.auth.ssologin;
 
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;

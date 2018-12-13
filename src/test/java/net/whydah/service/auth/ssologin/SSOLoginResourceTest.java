@@ -1,4 +1,4 @@
-package net.whydah.service.auth;
+package net.whydah.service.auth.ssologin;
 
 import com.jayway.restassured.response.ValidatableResponse;
 import net.whydah.demoservice.testsupport.AbstractEndpointTest;
@@ -21,8 +21,8 @@ import static org.testng.Assert.*;
 public class SSOLoginResourceTest extends AbstractEndpointTest {
 
     @Test
-    public void whenInitializeUserLogin_appNameOrSecret_isNotFound_404Returned() {
-        String apiPath = "/appThatDoesNotExist/user/auth/ssologin/";
+    public void whenInitializeUserLogin_appName_isNotFound_404Returned() {
+        String apiPath = "/application/appThatDoesNotExist/user/auth/ssologin/";
         given()
                 .when()
                 .port(getServerPort())
@@ -32,8 +32,19 @@ public class SSOLoginResourceTest extends AbstractEndpointTest {
     }
 
     @Test
+    public void whenInitializeUserLogin_sessionSecret_isNotFound_401Returned() {
+        String apiPath = "/application/session/sessionSecretDoesNotExist/user/auth/ssologin/";
+        given()
+                .when()
+                .port(getServerPort())
+                .post(apiPath)
+                .then().log().ifValidationFails()
+                .statusCode(Response.Status.UNAUTHORIZED.getStatusCode());
+    }
+
+    @Test
     public void verifyInitializeUserLoginWithAppName() {
-        String apiPath = "/testApp/user/auth/ssologin/";
+        String apiPath = "/application/testApp/user/auth/ssologin/";
         ValidatableResponse response = given()
                 .when()
                 .port(getServerPort())
@@ -52,7 +63,7 @@ public class SSOLoginResourceTest extends AbstractEndpointTest {
 
     @Test
     public void verifyInitializeUserLoginWithSecret() {
-        // Extract secret from a load for the application
+        // Extract sessionSecret from a load for the application
         ValidatableResponse validatableResponse = given()
                 .when()
                 .port(getServerPort())
@@ -63,13 +74,13 @@ public class SSOLoginResourceTest extends AbstractEndpointTest {
 
         String locationHeader = validatableResponse.extract().header("Location");
         MultiValueMap<String, String> queryParams = UriComponentsBuilder.fromUriString(locationHeader).build().getQueryParams();
-        String secret = queryParams.get("code").get(0);
-        assertNotNull(secret);
-        assertFalse(secret.isEmpty());
+        String sessionSecret = queryParams.get("code").get(0);
+        assertNotNull(sessionSecret);
+        assertFalse(sessionSecret.isEmpty());
 
 
         // Initialize the user login
-        String apiPath = "/" + secret + "/user/auth/ssologin/";
+        String apiPath = "/application/session/" + sessionSecret + "/user/auth/ssologin/";
         ValidatableResponse response = given()
                 .when()
                 .port(getServerPort())
@@ -87,8 +98,8 @@ public class SSOLoginResourceTest extends AbstractEndpointTest {
 
 
     @Test
-    public void whenRedirectUserLogin_appNameOrSecret_isNotFound_404Returned() {
-        String apiPath = "/appThatDoesNotExist/user/auth/ssologin/" + UUID.randomUUID().toString();
+    public void whenRedirectUserLogin_appName_isNotFound_404Returned() {
+        String apiPath = "/application/appThatDoesNotExist/user/auth/ssologin/" + UUID.randomUUID().toString();
         given()
                 .when()
                 .port(getServerPort())
@@ -98,8 +109,19 @@ public class SSOLoginResourceTest extends AbstractEndpointTest {
     }
 
     @Test
+    public void whenRedirectUserLogin_sessionSecret_isNotFound_401Returned() {
+        String apiPath = "/application/session/sessionSecretDoesNotExist/user/auth/ssologin/" + UUID.randomUUID().toString();
+        given()
+                .when()
+                .port(getServerPort())
+                .get(apiPath)
+                .then().log().ifValidationFails()
+                .statusCode(Response.Status.UNAUTHORIZED.getStatusCode());
+    }
+
+    @Test
     public void whenRedirectUserLogin_ssoLoginUUID_isNotFound_404Returned() {
-        String apiPath = "/appThatDoesNotExist/user/auth/ssologin/" + UUID.randomUUID().toString();
+        String apiPath = "/application/appName/user/auth/ssologin/" + UUID.randomUUID().toString();
         given()
                 .when()
                 .port(getServerPort())
@@ -110,7 +132,7 @@ public class SSOLoginResourceTest extends AbstractEndpointTest {
 
     @Test
     public void verifyRedirectInitializedUserLoginWithAppName() {
-        String apiPath = "/testApp/user/auth/ssologin/";
+        String apiPath = "/application/testApp/user/auth/ssologin/";
         ValidatableResponse initResponse = given()
                 .when()
                 .port(getServerPort())
@@ -145,7 +167,7 @@ public class SSOLoginResourceTest extends AbstractEndpointTest {
 
     @Test
     public void whenRedirectUserLogin_UserCheckoutIsForwarded_inLocation() {
-        String apiPath = "/testApp/user/auth/ssologin/";
+        String apiPath = "/application/testApp/user/auth/ssologin/";
         ValidatableResponse initResponse = given()
                 .when()
                 .port(getServerPort())
@@ -200,7 +222,7 @@ public class SSOLoginResourceTest extends AbstractEndpointTest {
 
 
         // Initialize the user login
-        String apiPath = "/" + secret + "/user/auth/ssologin/";
+        String apiPath = "/application/session/" + secret + "/user/auth/ssologin/";
         ValidatableResponse initResponse = given()
                 .when()
                 .port(getServerPort())

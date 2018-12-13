@@ -82,7 +82,7 @@ public final class ResponseUtil {
         }
 
         log.error("ssoLoginRedirectUrl called with null values. ssoLoginUrl:{}, spaProxyUrl:{}, application:{} ",
-                ssoLoginUrl, spaProxyUrl, application);
+                ssoLoginUrl, spaProxyUrl, application.getName());
         return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
 
     }
