@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
@@ -59,5 +60,21 @@ class SSOLoginUtil {
         forwardedParameterMap.put("appName", new String[]{application.getName()});
         forwardedParameterMap.put("ssoLoginUUID", new String[]{ssoLoginUUID.toString()});
         return forwardedParameterMap;
+    }
+
+    static URI buildPopupEntryPointURIWithApplicationSession(String spaProxyBaseURI, String sessionSecret, UUID ssoLoginUUID) {
+        String path = SSOLoginResource.WITH_SESSION_PATH.replace("{spaSessionSecret}", sessionSecret);
+        return UriBuilder.fromUri(spaProxyBaseURI)
+                .path(path)
+                .path(ssoLoginUUID.toString())
+                .build();
+    }
+
+    static URI buildPopupEntryPointURIWithoutApplicationSession(String spaProxyBaseURI, String appName, UUID ssoLoginUUID) {
+        String path = SSOLoginResource.WITHOUT_SESSION_PATH.replace("{appName}", appName);
+        return UriBuilder.fromUri(spaProxyBaseURI)
+                .path(path)
+                .path(ssoLoginUUID.toString())
+                .build();
     }
 }

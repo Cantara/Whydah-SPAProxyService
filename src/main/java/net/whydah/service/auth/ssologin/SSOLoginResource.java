@@ -23,7 +23,6 @@ import javax.ws.rs.core.*;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.net.URI;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -35,10 +34,12 @@ import java.util.UUID;
 @Path("/")
 @Produces(MediaType.APPLICATION_JSON)
 public class SSOLoginResource {
-    private static final String WITH_SESSION_PATH = "/application/session/{spaSessionSecret}/user/auth/ssologin";
-    private static final String WITHOUT_SESSION_PATH = "/application/{appName}/user/auth/ssologin";
-    private static final Logger log = LoggerFactory.getLogger(UserAuthenticationResource.class);
+    static final String WITH_SESSION_PATH = "/application/session/{spaSessionSecret}/user/auth/ssologin";
+    static final String WITHOUT_SESSION_PATH = "/application/{appName}/user/auth/ssologin";
+
     static final String INITILIZED_VALUE = "INITIALIZED_VALUE";
+
+    private static final Logger log = LoggerFactory.getLogger(UserAuthenticationResource.class);
 
     private Map<UUID, SSOLoginSession> ssoLoginSessionMap;
 
@@ -81,7 +82,7 @@ public class SSOLoginResource {
 
 
         UUID ssoLoginUUID = UUID.randomUUID();
-        URI ssoLoginUrl = buildPopupEntryPointURIWithApplicationSession(spaProxyBaseUri, spaSessionSecret, ssoLoginUUID);
+        URI ssoLoginUrl = SSOLoginUtil.buildPopupEntryPointURIWithApplicationSession(spaProxyBaseUri, spaSessionSecret, ssoLoginUUID);
         initializeSSOLogin(application, ssoLoginUUID);
 
         return SSOLoginUtil.initializeSSOLoginResponse(ssoLoginUrl, ssoLoginUUID, application.getApplicationUrl());
@@ -106,26 +107,10 @@ public class SSOLoginResource {
         }
 
         UUID ssoLoginUUID = UUID.randomUUID();
-        URI ssoLoginUrl = buildPopupEntryPointURIWithoutApplicationSession(spaProxyBaseUri, appName, ssoLoginUUID);
+        URI ssoLoginUrl = SSOLoginUtil.buildPopupEntryPointURIWithoutApplicationSession(spaProxyBaseUri, appName, ssoLoginUUID);
         initializeSSOLogin(application, ssoLoginUUID);
 
         return SSOLoginUtil.initializeSSOLoginResponse(ssoLoginUrl, ssoLoginUUID, application.getApplicationUrl());
-    }
-
-    private static URI buildPopupEntryPointURIWithApplicationSession(String spaProxyBaseURI, String sessionSecret, UUID ssoLoginUUID) {
-        String path = WITH_SESSION_PATH.replace("{spaSessionSecret}", sessionSecret);
-        return UriBuilder.fromUri(spaProxyBaseURI)
-                .path(path)
-                .path(ssoLoginUUID.toString())
-                .build();
-    }
-
-    private static URI buildPopupEntryPointURIWithoutApplicationSession(String spaProxyBaseURI, String appName, UUID ssoLoginUUID) {
-        String path = WITHOUT_SESSION_PATH.replace("{appName}", appName);
-        return UriBuilder.fromUri(spaProxyBaseURI)
-                .path(path)
-                .path(ssoLoginUUID.toString())
-                .build();
     }
 
     private void initializeSSOLogin(final Application application, final UUID ssoLoginUUID) {

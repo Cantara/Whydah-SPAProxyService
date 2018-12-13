@@ -100,4 +100,28 @@ public class SSOLoginUtilTest {
         assertEquals(newQueryParams.get("appName"), new String[]{application.getName()});
         assertEquals(newQueryParams.get("ssoLoginUUID"), new String[]{uuid.toString()});
     }
+
+    @Test
+    public void test_buildPopupEntryPointURIWithApplicationSession() {
+        String spaProxyBaseURI = "https://localhost/spaproxy";
+        String sessionSecret = "sessionSecretValue";
+        UUID ssoLoginUUID = UUID.randomUUID();
+
+        URI uri = SSOLoginUtil.buildPopupEntryPointURIWithApplicationSession(spaProxyBaseURI, sessionSecret, ssoLoginUUID);
+
+        assertEquals(uri, URI.create("https://localhost/spaproxy/application/session/sessionSecretValue/user/auth/ssologin/" + ssoLoginUUID.toString()));
+
+    }
+
+    @Test
+    public void test_buildPopupEntryPointURIWithoutApplicationSession() {
+        String spaProxyBaseURI = "https://localhost/spaproxy";
+        String applicationName = "appName";
+        UUID ssoLoginUUID = UUID.randomUUID();
+
+        URI uri = SSOLoginUtil.buildPopupEntryPointURIWithoutApplicationSession(spaProxyBaseURI, applicationName, ssoLoginUUID);
+
+        assertEquals(uri, URI.create("https://localhost/spaproxy/application/appName/user/auth/ssologin/" + ssoLoginUUID.toString()));
+
+    }
 }
