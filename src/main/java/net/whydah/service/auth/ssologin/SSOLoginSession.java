@@ -11,23 +11,17 @@ class SSOLoginSession implements DataSerializable {
     private UUID ssoLoginUUID;
     private SessionStatus status;
     private String applicationName;
-    private String spaSessionSecret;
+    private boolean hasSpaSessionSecret;
     private String userTicket;
 
     private SSOLoginSession() {
     }
 
-    SSOLoginSession(UUID ssoLoginUUID, SessionStatus status, String applicationName) {
+    SSOLoginSession(UUID ssoLoginUUID, SessionStatus status, String applicationName, Boolean hasSpaSessionSecret) {
         this.ssoLoginUUID = ssoLoginUUID;
         this.status = status;
         this.applicationName = applicationName;
-    }
-
-    SSOLoginSession(UUID ssoLoginUUID, SessionStatus status, String applicationName, String spaSessionSecret) {
-        this.ssoLoginUUID = ssoLoginUUID;
-        this.status = status;
-        this.applicationName = applicationName;
-        this.spaSessionSecret = spaSessionSecret;
+        this.hasSpaSessionSecret = hasSpaSessionSecret;
     }
 
     UUID getSsoLoginUUID() {
@@ -51,17 +45,8 @@ class SSOLoginSession implements DataSerializable {
         return applicationName;
     }
 
-    String getSpaSessionSecret() {
-        return spaSessionSecret;
-    }
-
-    void setSpaSessionSecret(final String spaSessionSecret) {
-        this.spaSessionSecret = spaSessionSecret;
-    }
-
-    SSOLoginSession withSpaSessionSecret(final String spaSessionSecret) {
-        this.spaSessionSecret = spaSessionSecret;
-        return this;
+    boolean hasSpaSessionSecret() {
+        return hasSpaSessionSecret;
     }
 
     String getUserTicket() {
@@ -82,7 +67,7 @@ class SSOLoginSession implements DataSerializable {
         out.writeUTF(ssoLoginUUID.toString());
         out.writeUTF(status.name());
         out.writeUTF(applicationName);
-        out.writeUTF(spaSessionSecret);
+        out.writeUTF(String.valueOf(hasSpaSessionSecret));
     }
 
     @Override
@@ -90,6 +75,6 @@ class SSOLoginSession implements DataSerializable {
         ssoLoginUUID = UUID.fromString(in.readUTF());
         status = SessionStatus.valueOf(in.readUTF());
         applicationName = in.readUTF();
-        spaSessionSecret = in.readUTF();
+        hasSpaSessionSecret = Boolean.parseBoolean(in.readUTF());
     }
 }

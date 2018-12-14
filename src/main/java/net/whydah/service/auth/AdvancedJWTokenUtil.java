@@ -41,13 +41,13 @@ import static java.util.Optional.ofNullable;
 //
 // The library supports the JWS/JWE compact serializations with the complete suite of JOSE algorithms.
 // A more detailed breakdown is available below in the Algorithm Support section.
-final class AdvancedJWTokenUtil {
+public final class AdvancedJWTokenUtil {
     private static final Logger log = LoggerFactory.getLogger(AdvancedJWTokenUtil.class);
 
     private AdvancedJWTokenUtil() {
     }
 
-    static String buildJWT(RsaJsonWebKey rsaJsonWebKey, UserToken usertoken, String userTicket, String applicationId) {
+    public static String buildJWT(RsaJsonWebKey rsaJsonWebKey, UserToken usertoken, String userTicket, String applicationId) {
         log.debug("RSA hash code... " + rsaJsonWebKey.hashCode());
         JwtClaims claims = new JwtClaims();
         claims.setSubject(usertoken.getUserName()); // the subject/principal is whom the token is about

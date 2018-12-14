@@ -87,7 +87,7 @@ public final class ResponseUtil {
 
     }
 
-    private static URI addQueryParameters(URI uri, Map<String, String[]> parameters) {
+    public static URI addQueryParameters(URI uri, Map<String, String[]> parameters) {
         UriBuilder uriBuilder = UriBuilder.fromUri(uri);
 
         for (Map.Entry<String, String[]> entry : parameters.entrySet()) {

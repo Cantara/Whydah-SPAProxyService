@@ -1,6 +1,13 @@
 package net.whydah.service.auth.ssologin;
 
+import net.whydah.service.CredentialStore;
+import net.whydah.service.spasession.ResponseUtil;
+import net.whydah.sso.application.mappers.ApplicationTokenMapper;
 import net.whydah.sso.application.types.Application;
+import net.whydah.sso.application.types.ApplicationToken;
+import net.whydah.sso.commands.userauth.CommandGetUsertokenByUserticket;
+import net.whydah.sso.user.mappers.UserTokenMapper;
+import net.whydah.sso.user.types.UserToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,6 +33,40 @@ class SSOLoginUtil {
                 .header("Access-Control-Allow-Credentials", true)
                 .header("Access-Control-Allow-Headers", "*")
                 .build();
+    }
+
+    static UserToken getUserToken(final CredentialStore credentialStore, final ApplicationToken applicationToken, final String userTicket) {
+        CommandGetUsertokenByUserticket commandGetUsertokenByUserticket = new CommandGetUsertokenByUserticket(
+                URI.create(credentialStore.getWas().getSTS()), applicationToken.getApplicationTokenId(),
+                ApplicationTokenMapper.toXML(applicationToken), userTicket);
+        return UserTokenMapper.fromUserTokenXml(commandGetUsertokenByUserticket.execute());
+    }
+
+    static Response ssoLoginRedirectUrl(String ssoLoginUrl, String spaProxyUrl,
+                                        Application application, Map<String, String[]> queryParameters,
+                                        UUID ssoLoginUUID) {
+        if (ssoLoginUrl != null && spaProxyUrl != null && application != null) {
+            URI redirectURI = UriBuilder.fromUri(URI.create(spaProxyUrl))
+                    .path(SSOLoginResource.WITHOUT_SESSION_PATH.replace("{appName}", application.getName()))
+                    .path(ssoLoginUUID.toString())
+                    .path("finalize")
+                    .build();
+            URI location = UriBuilder.fromUri(URI.create(ssoLoginUrl))
+                    .path("login")
+                    .queryParam("redirectURI", redirectURI)
+                    .build();
+
+            URI locationWithOriginalQueryParams = ResponseUtil.addQueryParameters(location, queryParameters);
+            log.debug("Redirecting user to: {}", location);
+            return Response.status(Response.Status.FOUND)
+                    .header("Location", locationWithOriginalQueryParams.toString())
+                    .build();
+        }
+
+        log.error("ssoLoginRedirectUrl called with null values. ssoLoginUrl:{}, spaProxyUrl:{}, application:{} ",
+                ssoLoginUrl, spaProxyUrl, application.getName());
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+
     }
 
     static Optional<Response> verifySSOLoginSession(SSOLoginSession ssoLoginSession, Application application,

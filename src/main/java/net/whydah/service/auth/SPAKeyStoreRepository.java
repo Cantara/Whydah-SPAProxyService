@@ -100,7 +100,7 @@ public class SPAKeyStoreRepository {
 		RsaJwkHelper.saveKeystoretoFile(keystoreSource, keySet);
 	}
 	
-	RsaJsonWebKey getARandomKey() throws Exception {
+	public RsaJsonWebKey getARandomKey() throws Exception {
 		syncMap();
 		return (RsaJsonWebKey) RsaJwkHelper.getKeyFromKeyStore(keySet, -1);
 	}

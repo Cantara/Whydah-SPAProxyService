@@ -38,7 +38,7 @@ public class SSOLoginUtilTest {
         Application application = new Application("unitTestId", "unitTest");
 
         SessionStatus expectedStatus = SessionStatus.INITIALIZED;
-        SSOLoginSession ssoLoginSession = new SSOLoginSession(ssoLoginUUID, expectedStatus, application.getName());
+        SSOLoginSession ssoLoginSession = new SSOLoginSession(ssoLoginUUID, expectedStatus, application.getName(), false);
 
         Optional<Response> response = SSOLoginUtil.verifySSOLoginSession(ssoLoginSession, application, ssoLoginUUID, expectedStatus);
 
@@ -67,7 +67,7 @@ public class SSOLoginUtilTest {
         Application misMatch = new Application("error", "error");
         SessionStatus expectedStatus = SessionStatus.INITIALIZED;
 
-        SSOLoginSession ssoLoginSession = new SSOLoginSession(ssoLoginUUID, expectedStatus, application.getName());
+        SSOLoginSession ssoLoginSession = new SSOLoginSession(ssoLoginUUID, expectedStatus, application.getName(), false);
 
         Optional<Response> optionalResponse = SSOLoginUtil.verifySSOLoginSession(ssoLoginSession, misMatch, ssoLoginUUID, expectedStatus);
 
@@ -82,7 +82,7 @@ public class SSOLoginUtilTest {
         UUID ssoLoginUUID = UUID.randomUUID();
         Application application = new Application("unitTestId", "unitTest");
         SessionStatus expectedStatus = SessionStatus.INITIALIZED;
-        SSOLoginSession ssoLoginSession = new SSOLoginSession(ssoLoginUUID, expectedStatus, application.getName());
+        SSOLoginSession ssoLoginSession = new SSOLoginSession(ssoLoginUUID, expectedStatus, application.getName(), false);
 
         SessionStatus actualStatus = SessionStatus.REDIRECTED;
 

@@ -6,11 +6,14 @@ import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import net.whydah.service.CredentialStore;
 import net.whydah.service.SPAApplicationRepository;
+import net.whydah.service.auth.AdvancedJWTokenUtil;
+import net.whydah.service.auth.SPAKeyStoreRepository;
 import net.whydah.service.auth.UserAuthenticationResource;
-import net.whydah.service.spasession.ResponseUtil;
+import net.whydah.service.auth.UserResponseUtil;
 import net.whydah.service.spasession.SPASessionResource;
 import net.whydah.sso.application.types.Application;
 import net.whydah.sso.application.types.ApplicationToken;
+import net.whydah.sso.user.types.UserToken;
 import net.whydah.util.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,11 +53,14 @@ public class SSOLoginResource {
 
     private final CredentialStore credentialStore;
     private final SPAApplicationRepository spaApplicationRepository;
+    private final SPAKeyStoreRepository spaKeyStoreRepository;
 
     @Autowired
-    public SSOLoginResource(CredentialStore credentialStore, SPAApplicationRepository spaApplicationRepository) {
+    public SSOLoginResource(CredentialStore credentialStore, SPAApplicationRepository spaApplicationRepository,
+                            SPAKeyStoreRepository spaKeyStoreRepository) {
         this.credentialStore = credentialStore;
         this.spaApplicationRepository = spaApplicationRepository;
+        this.spaKeyStoreRepository = spaKeyStoreRepository;
         initializeHazelcast();
     }
 
@@ -85,7 +91,7 @@ public class SSOLoginResource {
 
         UUID ssoLoginUUID = UUID.randomUUID();
         URI ssoLoginUrl = SSOLoginUtil.buildPopupEntryPointURIWithApplicationSession(spaProxyBaseUri, spaSessionSecret, ssoLoginUUID);
-        initializeSSOLogin(application, ssoLoginUUID);
+        initializeSSOLogin(application, ssoLoginUUID, true);
 
         return SSOLoginUtil.initializeSSOLoginResponse(ssoLoginUrl, ssoLoginUUID, application.getApplicationUrl());
     }
@@ -110,15 +116,16 @@ public class SSOLoginResource {
 
         UUID ssoLoginUUID = UUID.randomUUID();
         URI ssoLoginUrl = SSOLoginUtil.buildPopupEntryPointURIWithoutApplicationSession(spaProxyBaseUri, appName, ssoLoginUUID);
-        initializeSSOLogin(application, ssoLoginUUID);
+        initializeSSOLogin(application, ssoLoginUUID, false);
 
         return SSOLoginUtil.initializeSSOLoginResponse(ssoLoginUrl, ssoLoginUUID, application.getApplicationUrl());
     }
 
-    private void initializeSSOLogin(final Application application, final UUID ssoLoginUUID) {
-        SSOLoginSession ssoLoginSession = new SSOLoginSession(ssoLoginUUID, SessionStatus.INITIALIZED, application.getName());
+    private void initializeSSOLogin(final Application application, final UUID ssoLoginUUID, final boolean hasSpaSessionSecret) {
+        SSOLoginSession ssoLoginSession = new SSOLoginSession(ssoLoginUUID, SessionStatus.INITIALIZED, application.getName(), hasSpaSessionSecret);
         ssoLoginSessionMap.put(ssoLoginUUID, ssoLoginSession);
     }
+
 
 
     /**
@@ -154,7 +161,7 @@ public class SSOLoginResource {
 
         Map<String, String[]> forwardedParameterMap = buildQueryParamsForRedirectUrl(ssoLoginSession.getSsoLoginUUID(), application, httpServletRequest.getParameterMap());
 
-        return ResponseUtil.ssoLoginRedirectUrl(ssoLoginBaseUri, spaProxyBaseUri, application, forwardedParameterMap);
+        return SSOLoginUtil.ssoLoginRedirectUrl(ssoLoginBaseUri, spaProxyBaseUri, application, forwardedParameterMap, uuid);
     }
 
     /**
@@ -186,7 +193,7 @@ public class SSOLoginResource {
         Map<String, String[]> forwardedParameterMap = buildQueryParamsForRedirectUrl(ssoLoginSession.getSsoLoginUUID(), application, httpServletRequest.getParameterMap());
 
 
-        return ResponseUtil.ssoLoginRedirectUrl(ssoLoginBaseUri, spaProxyBaseUri, application, forwardedParameterMap);
+        return SSOLoginUtil.ssoLoginRedirectUrl(ssoLoginBaseUri, spaProxyBaseUri, application, forwardedParameterMap, uuid);
     }
 
 
@@ -195,7 +202,7 @@ public class SSOLoginResource {
      * Redirects the user to the matching application location stored in whydah.
      */
     @GET
-    @Path(WITHOUT_SESSION_PATH + "/{ssoLoginUUID}")
+    @Path(WITHOUT_SESSION_PATH + "/{ssoLoginUUID}/finalize")
     public Response finalizeSSOUserLogin(@Context HttpServletRequest httpServletRequest,
                                          @Context HttpServletResponse httpServletResponse,
                                          @Context HttpHeaders headers,
@@ -218,9 +225,8 @@ public class SSOLoginResource {
         ssoLoginSession.withUserTicket(userticket);
         ssoLoginSessionMap.put(uuid, ssoLoginSession);
 
-        if(ssoLoginSession.getSpaSessionSecret() != null) {
+        if (ssoLoginSession.hasSpaSessionSecret()) {
             String location = UriBuilder.fromUri(credentialStore.findRedirectUrl(application))
-                    .queryParam("code", ssoLoginSession.getSpaSessionSecret())
                     .build().toString();
             return Response.status(Response.Status.FOUND)
                     .header("Location", location)
@@ -235,6 +241,47 @@ public class SSOLoginResource {
                     .build();
         }
     }
+
+    @DELETE
+    @Path(WITH_SESSION_PATH + "/{ssoLoginUUID}")
+    public Response getJWTFromSSOLoginSession(@Context HttpServletRequest httpServletRequest,
+                                              @Context HttpServletResponse httpServletResponse,
+                                              @Context HttpHeaders headers,
+                                              @PathParam("spaSessionSecret") String spaSessionSecret,
+                                              @PathParam("ssoLoginUUID") String ssoLoginUUID) throws Exception {
+        ApplicationToken applicationToken = spaApplicationRepository.getApplicationTokenBySecret(spaSessionSecret);
+
+        if (applicationToken == null || applicationToken.getApplicationName() == null) {
+            log.debug("redirectInitializedUserLoginWithApplicationSession called with unknown secret. spaSessionSecret: {}", spaSessionSecret);
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+        }
+        Application application = credentialStore.findApplication(applicationToken.getApplicationName());
+        if (application == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+
+        UUID uuid = UUID.fromString(ssoLoginUUID);
+        SSOLoginSession ssoLoginSession = ssoLoginSessionMap.get(uuid);
+        Optional<Response> optionalResponse = verifySSOLoginSession(ssoLoginSession, application, uuid, SessionStatus.COMPLETE);
+        if (optionalResponse.isPresent()) {
+            return optionalResponse.get();
+        }
+        String userTicket = ssoLoginSession.getUserTicket();
+
+        UserToken userToken = SSOLoginUtil.getUserToken(credentialStore, applicationToken, userTicket);
+
+        if (userToken == null || !userToken.isValid()) {
+            log.warn("Unable to resolve valid UserToken from ticket, returning 403");
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
+
+        String jwt = AdvancedJWTokenUtil.buildJWT(spaKeyStoreRepository.getARandomKey(), userToken, userTicket, applicationToken.getApplicationID());
+        ssoLoginSessionMap.remove(uuid);
+
+        return UserResponseUtil.createResponseWithHeader(jwt, credentialStore.findRedirectUrl(applicationToken.getApplicationName()));
+
+    }
+
 
 
     /**
