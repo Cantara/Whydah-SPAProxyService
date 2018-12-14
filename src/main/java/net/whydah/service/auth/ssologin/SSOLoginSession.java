@@ -67,6 +67,7 @@ class SSOLoginSession implements DataSerializable {
         out.writeUTF(ssoLoginUUID.toString());
         out.writeUTF(status.name());
         out.writeUTF(applicationName);
+        out.writeUTF(userTicket);
         out.writeUTF(String.valueOf(hasSpaSessionSecret));
     }
 
@@ -75,6 +76,7 @@ class SSOLoginSession implements DataSerializable {
         ssoLoginUUID = UUID.fromString(in.readUTF());
         status = SessionStatus.valueOf(in.readUTF());
         applicationName = in.readUTF();
+        userTicket = in.readUTF();
         hasSpaSessionSecret = Boolean.parseBoolean(in.readUTF());
     }
 }
