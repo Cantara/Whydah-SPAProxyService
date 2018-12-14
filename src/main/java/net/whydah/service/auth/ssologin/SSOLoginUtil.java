@@ -28,7 +28,8 @@ class SSOLoginUtil {
                 .build();
     }
 
-    static Optional<Response> verifySSOLoginSession(SSOLoginSession ssoLoginSession, Application application, UUID ssoLoginUUID) {
+    static Optional<Response> verifySSOLoginSession(SSOLoginSession ssoLoginSession, Application application,
+                                                    UUID ssoLoginUUID, SessionStatus expectedStatus) {
         if (ssoLoginSession == null) {
             log.info("redirectInitializedUserLoginWithApplicationSession called with unknown ssoLoginUUID. ssoLoginUUID: {}", ssoLoginUUID);
             return Optional.of(Response.status(Response.Status.NOT_FOUND).build());
@@ -40,9 +41,10 @@ class SSOLoginUtil {
             return Optional.of(Response.status(Response.Status.FORBIDDEN).build());
         }
 
-        if (!SSOLoginResource.INITILIZED_VALUE.equals(ssoLoginSession.getStatus())) {
+        if (!expectedStatus.equals(ssoLoginSession.getStatus())) {
             log.info("redirectInitializedUserLogin called with ssoLoginSession with incorrect status. " +
-                    "Returning forbidden. ssoLoginUUID: {}, ssoLoginSession.status: {}", ssoLoginUUID, ssoLoginSession.getStatus());
+                            "Returning forbidden. ssoLoginUUID: {}, expectedStatus: {}, ssoLoginSession.status: {}",
+                    ssoLoginUUID, expectedStatus, ssoLoginSession.getStatus());
             return Optional.of(Response.status(Response.Status.FORBIDDEN).build());
         }
 
@@ -50,7 +52,9 @@ class SSOLoginUtil {
     }
 
 
-    static Map<String, String[]> buildQueryParamsForRedirectUrl(UUID ssoLoginUUID, final Application application, final Map<String, String[]> originalParameterMap) {
+    static Map<String, String[]> buildQueryParamsForRedirectUrl(
+            UUID ssoLoginUUID, final Application application, final Map<String, String[]> originalParameterMap) {
+
         Map<String, String[]> forwardedParameterMap = new HashMap<>();
         for (Map.Entry<String, String[]> entry : originalParameterMap.entrySet()) {
             forwardedParameterMap.put(entry.getKey(), entry.getValue());

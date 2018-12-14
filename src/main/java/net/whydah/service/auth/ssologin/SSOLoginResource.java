@@ -8,6 +8,7 @@ import net.whydah.service.CredentialStore;
 import net.whydah.service.SPAApplicationRepository;
 import net.whydah.service.auth.UserAuthenticationResource;
 import net.whydah.service.spasession.ResponseUtil;
+import net.whydah.service.spasession.SPASessionResource;
 import net.whydah.sso.application.types.Application;
 import net.whydah.sso.application.types.ApplicationToken;
 import net.whydah.util.Configuration;
@@ -27,6 +28,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+import static net.whydah.service.auth.ssologin.SSOLoginUtil.buildQueryParamsForRedirectUrl;
+import static net.whydah.service.auth.ssologin.SSOLoginUtil.verifySSOLoginSession;
+
 /**
  *
  */
@@ -36,8 +40,6 @@ import java.util.UUID;
 public class SSOLoginResource {
     static final String WITH_SESSION_PATH = "/application/session/{spaSessionSecret}/user/auth/ssologin";
     static final String WITHOUT_SESSION_PATH = "/application/{appName}/user/auth/ssologin";
-
-    static final String INITILIZED_VALUE = "INITIALIZED_VALUE";
 
     private static final Logger log = LoggerFactory.getLogger(UserAuthenticationResource.class);
 
@@ -114,10 +116,9 @@ public class SSOLoginResource {
     }
 
     private void initializeSSOLogin(final Application application, final UUID ssoLoginUUID) {
-        SSOLoginSession ssoLoginSession = new SSOLoginSession(ssoLoginUUID, INITILIZED_VALUE, application.getName());
+        SSOLoginSession ssoLoginSession = new SSOLoginSession(ssoLoginUUID, SessionStatus.INITIALIZED, application.getName());
         ssoLoginSessionMap.put(ssoLoginUUID, ssoLoginSession);
     }
-
 
 
     /**
@@ -127,10 +128,10 @@ public class SSOLoginResource {
     @GET
     @Path(WITH_SESSION_PATH + "/{ssoLoginUUID}")
     public Response redirectInitializedUserLoginWithApplicationSession(@Context HttpServletRequest httpServletRequest,
-                                                 @Context HttpServletResponse httpServletResponse,
-                                                 @Context HttpHeaders headers,
-                                                 @PathParam("spaSessionSecret") String spaSessionSecret,
-                                                 @PathParam("ssoLoginUUID") String ssoLoginUUID) {
+                                                                       @Context HttpServletResponse httpServletResponse,
+                                                                       @Context HttpHeaders headers,
+                                                                       @PathParam("spaSessionSecret") String spaSessionSecret,
+                                                                       @PathParam("ssoLoginUUID") String ssoLoginUUID) {
         ApplicationToken applicationToken = spaApplicationRepository.getApplicationTokenBySecret(spaSessionSecret);
 
         if (applicationToken == null || applicationToken.getApplicationName() == null) {
@@ -144,12 +145,14 @@ public class SSOLoginResource {
 
         UUID uuid = UUID.fromString(ssoLoginUUID);
         SSOLoginSession ssoLoginSession = ssoLoginSessionMap.get(uuid);
-        Optional<Response> optionalResponse = SSOLoginUtil.verifySSOLoginSession(ssoLoginSession, application, uuid);
+        Optional<Response> optionalResponse = verifySSOLoginSession(ssoLoginSession, application, uuid, SessionStatus.INITIALIZED);
         if (optionalResponse.isPresent()) {
             return optionalResponse.get();
         }
+        ssoLoginSession.withStatus(SessionStatus.REDIRECTED);
+        ssoLoginSessionMap.put(uuid, ssoLoginSession);
 
-        Map<String, String[]> forwardedParameterMap = SSOLoginUtil.buildQueryParamsForRedirectUrl(ssoLoginSession.getSsoLoginUUID(), application, httpServletRequest.getParameterMap());
+        Map<String, String[]> forwardedParameterMap = buildQueryParamsForRedirectUrl(ssoLoginSession.getSsoLoginUUID(), application, httpServletRequest.getParameterMap());
 
         return ResponseUtil.ssoLoginRedirectUrl(ssoLoginBaseUri, spaProxyBaseUri, application, forwardedParameterMap);
     }
@@ -161,10 +164,10 @@ public class SSOLoginResource {
     @GET
     @Path(WITHOUT_SESSION_PATH + "/{ssoLoginUUID}")
     public Response redirectInitializedUserLoginWithoutApplicationSession(@Context HttpServletRequest httpServletRequest,
-                                                 @Context HttpServletResponse httpServletResponse,
-                                                 @Context HttpHeaders headers,
-                                                 @PathParam("appName") String appName,
-                                                 @PathParam("ssoLoginUUID") String ssoLoginUUID) {
+                                                                          @Context HttpServletResponse httpServletResponse,
+                                                                          @Context HttpHeaders headers,
+                                                                          @PathParam("appName") String appName,
+                                                                          @PathParam("ssoLoginUUID") String ssoLoginUUID) {
         Application application = credentialStore.findApplication(appName);
         if (application == null) {
             log.info("redirectInitializedUserLogin called with unknown application name. appName: {}", appName);
@@ -173,18 +176,65 @@ public class SSOLoginResource {
 
         UUID uuid = UUID.fromString(ssoLoginUUID);
         SSOLoginSession ssoLoginSession = ssoLoginSessionMap.get(uuid);
-        Optional<Response> optionalResponse = SSOLoginUtil.verifySSOLoginSession(ssoLoginSession, application, uuid);
+        Optional<Response> optionalResponse = verifySSOLoginSession(ssoLoginSession, application, uuid, SessionStatus.INITIALIZED);
         if (optionalResponse.isPresent()) {
             return optionalResponse.get();
         }
+        ssoLoginSession.withStatus(SessionStatus.REDIRECTED);
+        ssoLoginSessionMap.put(uuid, ssoLoginSession);
 
-        Map<String, String[]> forwardedParameterMap = SSOLoginUtil.buildQueryParamsForRedirectUrl(ssoLoginSession.getSsoLoginUUID(), application, httpServletRequest.getParameterMap());
+        Map<String, String[]> forwardedParameterMap = buildQueryParamsForRedirectUrl(ssoLoginSession.getSsoLoginUUID(), application, httpServletRequest.getParameterMap());
 
 
         return ResponseUtil.ssoLoginRedirectUrl(ssoLoginBaseUri, spaProxyBaseUri, application, forwardedParameterMap);
     }
 
 
+    /**
+     * Stores the userTicket in the ssoLoginSessionMap.
+     * Redirects the user to the matching application location stored in whydah.
+     */
+    @GET
+    @Path(WITHOUT_SESSION_PATH + "/{ssoLoginUUID}")
+    public Response finalizeSSOUserLogin(@Context HttpServletRequest httpServletRequest,
+                                         @Context HttpServletResponse httpServletResponse,
+                                         @Context HttpHeaders headers,
+                                         @PathParam("appName") String appName,
+                                         @PathParam("ssoLoginUUID") String ssoLoginUUID,
+                                         @QueryParam("userticket") String userticket) {
+        Application application = credentialStore.findApplication(appName);
+        if (application == null) {
+            log.info("finalizeSSOUserLogin called with unknown application name. appName: {}", appName);
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+
+        UUID uuid = UUID.fromString(ssoLoginUUID);
+        SSOLoginSession ssoLoginSession = ssoLoginSessionMap.get(uuid);
+        Optional<Response> optionalResponse = verifySSOLoginSession(ssoLoginSession, application, uuid, SessionStatus.REDIRECTED);
+        if (optionalResponse.isPresent()) {
+            return optionalResponse.get();
+        }
+        ssoLoginSession.withStatus(SessionStatus.COMPLETE);
+        ssoLoginSession.withUserTicket(userticket);
+        ssoLoginSessionMap.put(uuid, ssoLoginSession);
+
+        if(ssoLoginSession.getSpaSessionSecret() != null) {
+            String location = UriBuilder.fromUri(credentialStore.findRedirectUrl(application))
+                    .queryParam("code", ssoLoginSession.getSpaSessionSecret())
+                    .build().toString();
+            return Response.status(Response.Status.FOUND)
+                    .header("Location", location)
+                    .build();
+        } else {
+            String location = UriBuilder.fromUri(Configuration.getString("myuri"))
+                    .path(SPASessionResource.PROXY_PATH)
+                    .path(application.getName())
+                    .build().toString();
+            return Response.status(Response.Status.FOUND)
+                    .header("Location", location)
+                    .build();
+        }
+    }
 
 
     /**

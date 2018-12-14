@@ -9,31 +9,40 @@ import java.util.UUID;
 
 class SSOLoginSession implements DataSerializable {
     private UUID ssoLoginUUID;
-    private String status;
+    private SessionStatus status;
     private String applicationName;
+    private String spaSessionSecret;
+    private String userTicket;
 
     private SSOLoginSession() {
     }
 
-    SSOLoginSession(UUID ssoLoginUUID, String status, String applicationName) {
+    SSOLoginSession(UUID ssoLoginUUID, SessionStatus status, String applicationName) {
         this.ssoLoginUUID = ssoLoginUUID;
         this.status = status;
         this.applicationName = applicationName;
+    }
+
+    SSOLoginSession(UUID ssoLoginUUID, SessionStatus status, String applicationName, String spaSessionSecret) {
+        this.ssoLoginUUID = ssoLoginUUID;
+        this.status = status;
+        this.applicationName = applicationName;
+        this.spaSessionSecret = spaSessionSecret;
     }
 
     UUID getSsoLoginUUID() {
         return ssoLoginUUID;
     }
 
-    String getStatus() {
+    SessionStatus getStatus() {
         return status;
     }
 
-    void setStatus(final String status) {
+    void setStatus(final SessionStatus status) {
         this.status = status;
     }
 
-    SSOLoginSession withStatus(final String status) {
+    SSOLoginSession withStatus(final SessionStatus status) {
         this.status = status;
         return this;
     }
@@ -42,17 +51,45 @@ class SSOLoginSession implements DataSerializable {
         return applicationName;
     }
 
+    String getSpaSessionSecret() {
+        return spaSessionSecret;
+    }
+
+    void setSpaSessionSecret(final String spaSessionSecret) {
+        this.spaSessionSecret = spaSessionSecret;
+    }
+
+    SSOLoginSession withSpaSessionSecret(final String spaSessionSecret) {
+        this.spaSessionSecret = spaSessionSecret;
+        return this;
+    }
+
+    String getUserTicket() {
+        return userTicket;
+    }
+
+    void setUserTicket(final String userTicket) {
+        this.userTicket = userTicket;
+    }
+
+    SSOLoginSession withUserTicket(final String userTicket) {
+        this.userTicket = userTicket;
+        return this;
+    }
+
     @Override
     public void writeData(final ObjectDataOutput out) throws IOException {
         out.writeUTF(ssoLoginUUID.toString());
-        out.writeUTF(status);
+        out.writeUTF(status.name());
         out.writeUTF(applicationName);
+        out.writeUTF(spaSessionSecret);
     }
 
     @Override
     public void readData(final ObjectDataInput in) throws IOException {
         ssoLoginUUID = UUID.fromString(in.readUTF());
-        status = in.readUTF();
+        status = SessionStatus.valueOf(in.readUTF());
         applicationName = in.readUTF();
+        spaSessionSecret = in.readUTF();
     }
 }

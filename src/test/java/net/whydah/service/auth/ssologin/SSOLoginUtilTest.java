@@ -36,9 +36,11 @@ public class SSOLoginUtilTest {
     public void testVerifySSOLoginSession() {
         UUID ssoLoginUUID = UUID.randomUUID();
         Application application = new Application("unitTestId", "unitTest");
-        SSOLoginSession ssoLoginSession = new SSOLoginSession(ssoLoginUUID, SSOLoginResource.INITILIZED_VALUE, application.getName());
 
-        Optional<Response> response = SSOLoginUtil.verifySSOLoginSession(ssoLoginSession, application, ssoLoginUUID);
+        SessionStatus expectedStatus = SessionStatus.INITIALIZED;
+        SSOLoginSession ssoLoginSession = new SSOLoginSession(ssoLoginUUID, expectedStatus, application.getName());
+
+        Optional<Response> response = SSOLoginUtil.verifySSOLoginSession(ssoLoginSession, application, ssoLoginUUID, expectedStatus);
 
         assertFalse(response.isPresent());
 
@@ -49,7 +51,8 @@ public class SSOLoginUtilTest {
         UUID ssoLoginUUID = UUID.randomUUID();
         Application application = new Application("unitTestId", "unitTest");
 
-        Optional<Response> optionalResponse = SSOLoginUtil.verifySSOLoginSession(null, application, ssoLoginUUID);
+        Optional<Response> optionalResponse = SSOLoginUtil.verifySSOLoginSession
+                (null, application, ssoLoginUUID, SessionStatus.INITIALIZED);
 
         assertTrue(optionalResponse.isPresent());
         Response response = optionalResponse.get();
@@ -62,9 +65,11 @@ public class SSOLoginUtilTest {
         UUID ssoLoginUUID = UUID.randomUUID();
         Application application = new Application("unitTestId", "unitTest");
         Application misMatch = new Application("error", "error");
-        SSOLoginSession ssoLoginSession = new SSOLoginSession(ssoLoginUUID, SSOLoginResource.INITILIZED_VALUE, application.getName());
+        SessionStatus expectedStatus = SessionStatus.INITIALIZED;
 
-        Optional<Response> optionalResponse = SSOLoginUtil.verifySSOLoginSession(ssoLoginSession, misMatch, ssoLoginUUID);
+        SSOLoginSession ssoLoginSession = new SSOLoginSession(ssoLoginUUID, expectedStatus, application.getName());
+
+        Optional<Response> optionalResponse = SSOLoginUtil.verifySSOLoginSession(ssoLoginSession, misMatch, ssoLoginUUID, expectedStatus);
 
         assertTrue(optionalResponse.isPresent());
         Response response = optionalResponse.get();
@@ -76,9 +81,12 @@ public class SSOLoginUtilTest {
     public void verifySSOLoginSession_SessionStatusMismatch_403_Response() {
         UUID ssoLoginUUID = UUID.randomUUID();
         Application application = new Application("unitTestId", "unitTest");
-        SSOLoginSession ssoLoginSession = new SSOLoginSession(ssoLoginUUID, "incorrect", application.getName());
+        SessionStatus expectedStatus = SessionStatus.INITIALIZED;
+        SSOLoginSession ssoLoginSession = new SSOLoginSession(ssoLoginUUID, expectedStatus, application.getName());
 
-        Optional<Response> optionalResponse = SSOLoginUtil.verifySSOLoginSession(ssoLoginSession, application, ssoLoginUUID);
+        SessionStatus actualStatus = SessionStatus.REDIRECTED;
+
+        Optional<Response> optionalResponse = SSOLoginUtil.verifySSOLoginSession(ssoLoginSession, application, ssoLoginUUID, actualStatus);
 
         assertTrue(optionalResponse.isPresent());
         Response response = optionalResponse.get();
@@ -91,11 +99,11 @@ public class SSOLoginUtilTest {
         UUID uuid = UUID.randomUUID();
         Application application = new Application("unitTestId", "unitTest");
 
-        Map<String, String[]> originalQueryParams = Collections.singletonMap("testQuery", new String[] {"true"});
+        Map<String, String[]> originalQueryParams = Collections.singletonMap("testQuery", new String[]{"true"});
 
         Map<String, String[]> newQueryParams = SSOLoginUtil.buildQueryParamsForRedirectUrl(uuid, application, originalQueryParams);
 
-        assertEquals( newQueryParams.size(), 3);
+        assertEquals(newQueryParams.size(), 3);
         assertEquals(newQueryParams.get("testQuery"), new String[]{"true"});
         assertEquals(newQueryParams.get("appName"), new String[]{application.getName()});
         assertEquals(newQueryParams.get("ssoLoginUUID"), new String[]{uuid.toString()});
