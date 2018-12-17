@@ -1,5 +1,6 @@
 package net.whydah.service.auth.ssologin;
 
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.time.ZonedDateTime;
@@ -12,11 +13,16 @@ import static org.testng.Assert.*;
  * Used to verify serialisation of objects to the hazecast map
  */
 public class SSOLoginRepositoryTest {
+    private SSOLoginRepository ssoLoginRepository;
+
+    @BeforeClass
+    public void setupRepository() {
+        ssoLoginRepository = new SSOLoginRepository(2, 1, 1);
+
+    }
 
     @Test
     public void verifySerialization() {
-        SSOLoginRepository ssoLoginRepository = new SSOLoginRepository(60, 60, 60);
-
         UUID uuid = UUID.randomUUID();
         SSOLoginSession testApp = new SSOLoginSession(uuid, SessionStatus.INITIALIZED,
                 "testApp", true);
@@ -58,8 +64,6 @@ public class SSOLoginRepositoryTest {
 
     @Test
     public void verifyAutomatedDeletion() throws InterruptedException {
-        SSOLoginRepository ssoLoginRepository = new SSOLoginRepository(2, 1, 1);
-
         UUID uuid = UUID.randomUUID();
         SSOLoginSession testApp = new SSOLoginSession(uuid, SessionStatus.INITIALIZED,
                 "testApp", true);
@@ -77,7 +81,7 @@ public class SSOLoginRepositoryTest {
 
         //Thread should have automaticall deleted the old session after maxAgeSeconds
 
-        TimeUnit.SECONDS.sleep(2);
+        TimeUnit.SECONDS.sleep(3);
         SSOLoginSession afterCleanUp = ssoLoginRepository.get(uuid);
         assertNull(afterCleanUp);
     }

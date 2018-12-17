@@ -51,21 +51,17 @@ public abstract class AbstractEndpointTest {
         setupExternalServicesMocks();
     }
 
-    @AfterMethod(alwaysRun = true)
-    public void cleanupStubs() {
-        wireMockServer.resetAll();
-    }
 
     private void setupWiremock() {
         wireMockServer = new WireMockServer(options().dynamicPort());
         wireMockServer.start();
+        setupExternalServicesMocks();
         int wiremockPort = wireMockServer.port();
 
         System.setProperty("securitytokenservice", "http://localhost:" + wiremockPort + "/tokenservice/");
         System.setProperty("useradminservice", "http://localhost:" + wiremockPort + "/useradminservice/");
         System.setProperty("jetty.request.log.enabled", "false");
 
-        setupExternalServicesMocks();
     }
 
     /**
