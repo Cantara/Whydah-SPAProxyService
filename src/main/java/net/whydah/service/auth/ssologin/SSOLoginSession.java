@@ -5,6 +5,7 @@ import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.DataSerializable;
 
 import java.io.IOException;
+import java.time.ZonedDateTime;
 import java.util.UUID;
 
 class SSOLoginSession implements DataSerializable {
@@ -13,6 +14,7 @@ class SSOLoginSession implements DataSerializable {
     private String applicationName;
     private boolean hasSpaSessionSecret;
     private String userTicket;
+    private ZonedDateTime initializedTimestamp;
 
     private SSOLoginSession() {
     }
@@ -22,6 +24,7 @@ class SSOLoginSession implements DataSerializable {
         this.status = status;
         this.applicationName = applicationName;
         this.hasSpaSessionSecret = hasSpaSessionSecret;
+        this.initializedTimestamp = ZonedDateTime.now();
     }
 
     UUID getSsoLoginUUID() {
@@ -62,6 +65,10 @@ class SSOLoginSession implements DataSerializable {
         return this;
     }
 
+    ZonedDateTime getInitializedTimestamp() {
+        return initializedTimestamp;
+    }
+
     @Override
     public void writeData(final ObjectDataOutput out) throws IOException {
         out.writeUTF(ssoLoginUUID.toString());
@@ -69,6 +76,7 @@ class SSOLoginSession implements DataSerializable {
         out.writeUTF(applicationName);
         out.writeUTF(userTicket);
         out.writeUTF(String.valueOf(hasSpaSessionSecret));
+        out.writeUTF(initializedTimestamp.toString());
     }
 
     @Override
@@ -78,5 +86,6 @@ class SSOLoginSession implements DataSerializable {
         applicationName = in.readUTF();
         userTicket = in.readUTF();
         hasSpaSessionSecret = Boolean.parseBoolean(in.readUTF());
+        initializedTimestamp = ZonedDateTime.parse(in.readUTF());
     }
 }

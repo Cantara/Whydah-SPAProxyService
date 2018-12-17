@@ -1,14 +1,9 @@
 package net.whydah.service.auth.ssologin;
 
-import com.hazelcast.config.Config;
-import com.hazelcast.config.XmlConfigBuilder;
-import com.hazelcast.core.Hazelcast;
-import com.hazelcast.core.HazelcastInstance;
 import net.whydah.service.CredentialStore;
 import net.whydah.service.SPAApplicationRepository;
 import net.whydah.service.auth.AdvancedJWTokenUtil;
 import net.whydah.service.auth.SPAKeyStoreRepository;
-import net.whydah.service.auth.UserAuthenticationResource;
 import net.whydah.service.auth.UserResponseUtil;
 import net.whydah.service.spasession.SPASessionResource;
 import net.whydah.sso.application.types.Application;
@@ -24,8 +19,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
 import java.net.URI;
 import java.util.Map;
 import java.util.Optional;
@@ -44,9 +37,9 @@ public class SSOLoginResource {
     static final String WITH_SESSION_PATH = "/application/session/{spaSessionSecret}/user/auth/ssologin";
     static final String WITHOUT_SESSION_PATH = "/application/{appName}/user/auth/ssologin";
 
-    private static final Logger log = LoggerFactory.getLogger(UserAuthenticationResource.class);
+    private static final Logger log = LoggerFactory.getLogger(SSOLoginResource.class);
 
-    private Map<UUID, SSOLoginSession> ssoLoginSessionMap;
+    private SSOLoginRepository ssoLoginRepository;
 
     private String spaProxyBaseUri = Configuration.getString("myuri");
     private String ssoLoginBaseUri = Configuration.getString("logonservice");
@@ -57,11 +50,11 @@ public class SSOLoginResource {
 
     @Autowired
     public SSOLoginResource(CredentialStore credentialStore, SPAApplicationRepository spaApplicationRepository,
-                            SPAKeyStoreRepository spaKeyStoreRepository) {
+                            SPAKeyStoreRepository spaKeyStoreRepository, SSOLoginRepository ssoLoginRepository) {
         this.credentialStore = credentialStore;
         this.spaApplicationRepository = spaApplicationRepository;
         this.spaKeyStoreRepository = spaKeyStoreRepository;
-        initializeHazelcast();
+        this.ssoLoginRepository = ssoLoginRepository;
     }
 
     /**
@@ -123,7 +116,7 @@ public class SSOLoginResource {
 
     private void initializeSSOLogin(final Application application, final UUID ssoLoginUUID, final boolean hasSpaSessionSecret) {
         SSOLoginSession ssoLoginSession = new SSOLoginSession(ssoLoginUUID, SessionStatus.INITIALIZED, application.getName(), hasSpaSessionSecret);
-        ssoLoginSessionMap.put(ssoLoginUUID, ssoLoginSession);
+        ssoLoginRepository.put(ssoLoginUUID, ssoLoginSession);
     }
 
 
@@ -151,13 +144,13 @@ public class SSOLoginResource {
         }
 
         UUID uuid = UUID.fromString(ssoLoginUUID);
-        SSOLoginSession ssoLoginSession = ssoLoginSessionMap.get(uuid);
+        SSOLoginSession ssoLoginSession = ssoLoginRepository.get(uuid);
         Optional<Response> optionalResponse = verifySSOLoginSession(ssoLoginSession, application, uuid, SessionStatus.INITIALIZED);
         if (optionalResponse.isPresent()) {
             return optionalResponse.get();
         }
         ssoLoginSession.withStatus(SessionStatus.REDIRECTED);
-        ssoLoginSessionMap.put(uuid, ssoLoginSession);
+        ssoLoginRepository.put(uuid, ssoLoginSession);
 
         Map<String, String[]> forwardedParameterMap = buildQueryParamsForRedirectUrl(ssoLoginSession.getSsoLoginUUID(), application, httpServletRequest.getParameterMap());
 
@@ -182,13 +175,13 @@ public class SSOLoginResource {
         }
 
         UUID uuid = UUID.fromString(ssoLoginUUID);
-        SSOLoginSession ssoLoginSession = ssoLoginSessionMap.get(uuid);
+        SSOLoginSession ssoLoginSession = ssoLoginRepository.get(uuid);
         Optional<Response> optionalResponse = verifySSOLoginSession(ssoLoginSession, application, uuid, SessionStatus.INITIALIZED);
         if (optionalResponse.isPresent()) {
             return optionalResponse.get();
         }
         ssoLoginSession.withStatus(SessionStatus.REDIRECTED);
-        ssoLoginSessionMap.put(uuid, ssoLoginSession);
+        ssoLoginRepository.put(uuid, ssoLoginSession);
 
         Map<String, String[]> forwardedParameterMap = buildQueryParamsForRedirectUrl(ssoLoginSession.getSsoLoginUUID(), application, httpServletRequest.getParameterMap());
 
@@ -216,14 +209,14 @@ public class SSOLoginResource {
         }
 
         UUID uuid = UUID.fromString(ssoLoginUUID);
-        SSOLoginSession ssoLoginSession = ssoLoginSessionMap.get(uuid);
+        SSOLoginSession ssoLoginSession = ssoLoginRepository.get(uuid);
         Optional<Response> optionalResponse = verifySSOLoginSession(ssoLoginSession, application, uuid, SessionStatus.REDIRECTED);
         if (optionalResponse.isPresent()) {
             return optionalResponse.get();
         }
         ssoLoginSession.withStatus(SessionStatus.COMPLETE);
         ssoLoginSession.withUserTicket(userticket);
-        ssoLoginSessionMap.put(uuid, ssoLoginSession);
+        ssoLoginRepository.put(uuid, ssoLoginSession);
 
         if (ssoLoginSession.hasSpaSessionSecret()) {
             String location = UriBuilder.fromUri(credentialStore.findRedirectUrl(application))
@@ -261,7 +254,7 @@ public class SSOLoginResource {
         }
 
         UUID uuid = UUID.fromString(ssoLoginUUID);
-        SSOLoginSession ssoLoginSession = ssoLoginSessionMap.get(uuid);
+        SSOLoginSession ssoLoginSession = ssoLoginRepository.get(uuid);
         Optional<Response> optionalResponse = verifySSOLoginSession(ssoLoginSession, application, uuid, SessionStatus.COMPLETE);
         if (optionalResponse.isPresent()) {
             return optionalResponse.get();
@@ -276,44 +269,10 @@ public class SSOLoginResource {
         }
 
         String jwt = AdvancedJWTokenUtil.buildJWT(spaKeyStoreRepository.getARandomKey(), userToken, userTicket, applicationToken.getApplicationID());
-        ssoLoginSessionMap.remove(uuid);
+        ssoLoginRepository.remove(uuid);
 
         return UserResponseUtil.createResponseWithHeader(jwt, credentialStore.findRedirectUrl(applicationToken.getApplicationName()));
 
-    }
-
-
-
-    /**
-     * Initializes a hazelcast ssoLoginSessionMap.
-     * Uses the hazelcast xml file provided through -Dhazelcast.config.
-     * If the property is not provided the hazelcast.xml from classpath is selected.
-     */
-    private void initializeHazelcast() {
-        String xmlFileName = System.getProperty("hazelcast.config");
-        log.info("Loading hazelcast configuration from :" + xmlFileName);
-        Config hazelcastConfig = new Config();
-
-
-        if (xmlFileName != null && xmlFileName.length() > 10) {
-            try {
-                hazelcastConfig = new XmlConfigBuilder(xmlFileName).build();
-                log.info("Loading hazelcast configuration from :" + xmlFileName);
-            } catch (FileNotFoundException notFound) {
-                log.error("Error - not able to load hazelcast.xml configuration.  Using embedded configuration as fallback");
-            }
-        } else {
-            log.warn("Unable to load external hazelcast.xml configuration.  Using configuration from classpath as fallback");
-            InputStream configFromClassPath = SPAApplicationRepository.class.getClassLoader().getResourceAsStream("hazelcast.xml");
-            hazelcastConfig = new XmlConfigBuilder(configFromClassPath).build();
-        }
-
-        hazelcastConfig.setProperty("hazelcast.logging.type", "slf4j");
-        //hazelcastConfig.getGroupConfig().setName("OID_HAZELCAST");
-        HazelcastInstance hazelcastInstance = Hazelcast.newHazelcastInstance(hazelcastConfig);
-        String gridPrefix = "SPAPROXY";
-        ssoLoginSessionMap = hazelcastInstance.getMap(gridPrefix + "_userloginSessions");
-        log.info("Connecting to ssoLoginSessionMap {}", gridPrefix + "_userloginSessions");
     }
 
 }
