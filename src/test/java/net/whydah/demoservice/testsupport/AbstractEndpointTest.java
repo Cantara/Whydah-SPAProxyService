@@ -151,6 +151,19 @@ public abstract class AbstractEndpointTest {
                         .withBody(UserTokenMapper.toXML(userToken))
                 )
         );
+
+        // get a stub-usertoken by userticket
+        UserToken testAppClientUserToken = new UserToken();
+        testAppClientUserToken.setUserName("testAppUser");
+        testAppClientUserToken.setLastName("AbstractEndpointTest");
+        testAppClientUserToken.setUid("09876543210987654321");
+        addStub(WireMock.post(urlMatching("/tokenservice/user/12340f039fcfbb083bed8c12da581234/get_usertoken_by_userticket"))
+                .willReturn(WireMock.aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "text/xml")
+                        .withBody(UserTokenMapper.toXML(testAppClientUserToken))
+                )
+        );
     }
 
     private static void addStub(MappingBuilder stub) {

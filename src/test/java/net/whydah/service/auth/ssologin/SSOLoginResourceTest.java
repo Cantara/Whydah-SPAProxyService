@@ -155,7 +155,7 @@ public class SSOLoginResourceTest extends AbstractEndpointTest {
 
 
         String expectedRedirectURI = Configuration.getString("myuri") +
-                "/application/testApp/user/auth/ssologin/" + ssoLoginUUID + "/finalize";
+                "/application/testApp/user/auth/ssologin/" + ssoLoginUUID + "/complete";
 
         String expectedLocation = UriBuilder.fromUri(Configuration.getString("logonservice"))
                 .path("login")
@@ -193,7 +193,7 @@ public class SSOLoginResourceTest extends AbstractEndpointTest {
         assertFalse(location.isEmpty());
 
         String expectedRedirectURI = Configuration.getString("myuri") +
-                "/application/testApp/user/auth/ssologin/" + ssoLoginUUID + "/finalize";
+                "/application/testApp/user/auth/ssologin/" + ssoLoginUUID + "/complete";
 
         String expectedLocation = UriBuilder.fromUri(Configuration.getString("logonservice"))
                 .path("login")
@@ -251,7 +251,7 @@ public class SSOLoginResourceTest extends AbstractEndpointTest {
         assertFalse(location.isEmpty());
 
         String expectedRedirectURI = Configuration.getString("myuri") +
-                "/application/testApp/user/auth/ssologin/" + ssoLoginUUID + "/finalize";
+                "/application/testApp/user/auth/ssologin/" + ssoLoginUUID + "/complete";
 
         String expectedLocation = UriBuilder.fromUri(Configuration.getString("logonservice"))
                 .path("login")
@@ -266,7 +266,7 @@ public class SSOLoginResourceTest extends AbstractEndpointTest {
 
 
     @Test
-    public void verifyFinalizeInitializedUserLoginWithSecret() {
+    public void verifyCompleteInitializedUserLoginWithSecret() {
         final String testAppName = "testApp";
 
         // Extract secret from a load for the application
@@ -309,7 +309,7 @@ public class SSOLoginResourceTest extends AbstractEndpointTest {
         assertFalse(location.isEmpty());
 
         String expectedRedirectURI = Configuration.getString("myuri") +
-                "/application/testApp/user/auth/ssologin/" + ssoLoginUUID + "/finalize";
+                "/application/testApp/user/auth/ssologin/" + ssoLoginUUID + "/complete";
 
         String expectedLocation = UriBuilder.fromUri(Configuration.getString("logonservice"))
                 .path("login")
@@ -321,7 +321,7 @@ public class SSOLoginResourceTest extends AbstractEndpointTest {
 
         assertEquals(location, expectedLocation);
 
-        ValidatableResponse finalizeResponse = given()
+        ValidatableResponse completeResponse = given()
                 .when()
                 .redirects().follow(false)
                 .queryParam("userticket", "testUserTicket")
@@ -329,15 +329,22 @@ public class SSOLoginResourceTest extends AbstractEndpointTest {
                 .then().log().ifValidationFails()
                 .statusCode(Response.Status.FOUND.getStatusCode());
 
-        String expectedFinalizeLocation = "http://dummy.url.does.not.exist.com";
-        String actualFinalizeLocation = finalizeResponse.extract().header("Location");
+        String expectedCompleteLocation = "http://dummy.url.does.not.exist.com";
+        String actualCompleteLocation = completeResponse.extract().header("Location");
 
-        assertEquals(actualFinalizeLocation, expectedFinalizeLocation);
+        assertEquals(actualCompleteLocation, expectedCompleteLocation);
+
+        ValidatableResponse jwtResponse = given()
+                .when()
+                .redirects().follow(false)
+                .post("/application/session/" + secret + "/user/auth/ssologin/" + ssoLoginUUID + "/exchange-for-token")
+                .then().log().ifValidationFails()
+                .statusCode(Response.Status.OK.getStatusCode());
     }
 
 
     @Test
-    public void verifyFinalizeInitializedUserLoginWithoutSecret() {
+    public void verifyCompleteInitializedUserLoginWithoutSecret() {
         final String testAppName = "testApp";
 
         // Initialize the user login
@@ -364,7 +371,7 @@ public class SSOLoginResourceTest extends AbstractEndpointTest {
         assertFalse(location.isEmpty());
 
         String expectedRedirectURI = Configuration.getString("myuri") +
-                "/application/" +testAppName + "/user/auth/ssologin/" + ssoLoginUUID + "/finalize";
+                "/application/" +testAppName + "/user/auth/ssologin/" + ssoLoginUUID + "/complete";
 
         String expectedLocation = UriBuilder.fromUri(Configuration.getString("logonservice"))
                 .path("login")
@@ -376,7 +383,7 @@ public class SSOLoginResourceTest extends AbstractEndpointTest {
 
         assertEquals(location, expectedLocation);
 
-        ValidatableResponse finalizeResponse = given()
+        ValidatableResponse completeResponse = given()
                 .when()
                 .redirects().follow(false)
                 .queryParam("userticket", "testUserTicket")
@@ -384,10 +391,10 @@ public class SSOLoginResourceTest extends AbstractEndpointTest {
                 .then().log().ifValidationFails()
                 .statusCode(Response.Status.FOUND.getStatusCode());
 
-        String expectedFinalizeLocation = Configuration.getString("myuri") + "/load/" + testAppName;
-        String actualFinalizeLocation = finalizeResponse.extract().header("Location");
+        String expectedCompleteLocation = Configuration.getString("myuri") + "/load/" + testAppName;
+        String actualCompleteLocation = completeResponse.extract().header("Location");
 
-        assertEquals(actualFinalizeLocation, expectedFinalizeLocation);
+        assertEquals(actualCompleteLocation, expectedCompleteLocation);
     }
 
 

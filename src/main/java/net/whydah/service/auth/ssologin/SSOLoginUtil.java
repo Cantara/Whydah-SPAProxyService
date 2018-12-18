@@ -49,7 +49,7 @@ class SSOLoginUtil {
             URI redirectURI = UriBuilder.fromUri(URI.create(spaProxyUrl))
                     .path(SSOLoginResource.WITHOUT_SESSION_PATH.replace("{appName}", application.getName()))
                     .path(ssoLoginUUID.toString())
-                    .path("finalize")
+                    .path("complete")
                     .build();
             URI location = UriBuilder.fromUri(URI.create(ssoLoginUrl))
                     .path("login")

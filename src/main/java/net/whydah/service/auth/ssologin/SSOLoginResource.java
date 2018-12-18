@@ -195,8 +195,8 @@ public class SSOLoginResource {
      * Redirects the user to the matching application location stored in whydah.
      */
     @GET
-    @Path(WITHOUT_SESSION_PATH + "/{ssoLoginUUID}/finalize")
-    public Response finalizeSSOUserLogin(@Context HttpServletRequest httpServletRequest,
+    @Path(WITHOUT_SESSION_PATH + "/{ssoLoginUUID}/complete")
+    public Response completeSSOUserLogin(@Context HttpServletRequest httpServletRequest,
                                          @Context HttpServletResponse httpServletResponse,
                                          @Context HttpHeaders headers,
                                          @PathParam("appName") String appName,
@@ -204,7 +204,7 @@ public class SSOLoginResource {
                                          @QueryParam("userticket") String userticket) {
         Application application = credentialStore.findApplication(appName);
         if (application == null) {
-            log.info("finalizeSSOUserLogin called with unknown application name. appName: {}", appName);
+            log.info("completeSSOUserLogin called with unknown application name. appName: {}", appName);
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
@@ -235,8 +235,8 @@ public class SSOLoginResource {
         }
     }
 
-    @DELETE
-    @Path(WITH_SESSION_PATH + "/{ssoLoginUUID}")
+    @POST
+    @Path(WITH_SESSION_PATH + "/{ssoLoginUUID}/exchange-for-token")
     public Response getJWTFromSSOLoginSession(@Context HttpServletRequest httpServletRequest,
                                               @Context HttpServletResponse httpServletResponse,
                                               @Context HttpHeaders headers,
