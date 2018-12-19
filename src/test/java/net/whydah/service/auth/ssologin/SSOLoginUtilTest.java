@@ -105,7 +105,7 @@ public class SSOLoginUtilTest {
 
         assertEquals(newQueryParams.size(), 3);
         assertEquals(newQueryParams.get("testQuery"), new String[]{"true"});
-        assertEquals(newQueryParams.get("appName"), new String[]{application.getName()});
+        assertEquals(newQueryParams.get("targetApplicationId"), new String[]{application.getId()});
         assertEquals(newQueryParams.get("ssoLoginUUID"), new String[]{uuid.toString()});
     }
 
