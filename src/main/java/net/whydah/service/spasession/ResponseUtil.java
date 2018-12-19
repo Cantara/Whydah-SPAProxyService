@@ -104,7 +104,7 @@ public final class ResponseUtil {
                                    SPASessionSecret spaSessionSecret, String newTicket) {
         String spaRedirectUrl = credentialStore.findRedirectUrl(application);
         String origin = Configuration.getBoolean("allow.origin") ? "*" : spaRedirectUrl;
-        String location = spaRedirectUrl + "?code=" + spaSessionSecret.getSecret() + "&ticket=" + newTicket;
+        String location = spaRedirectUrl + "?code=" + spaSessionSecret.getSecret() + (newTicket!=null?("&ticket=" + newTicket) : "");
         /*
         String setCookie =
                 "code=" + spaSessionSecret.getSecretPart2() +

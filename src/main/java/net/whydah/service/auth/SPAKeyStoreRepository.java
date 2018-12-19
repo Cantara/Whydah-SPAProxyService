@@ -11,6 +11,7 @@ import org.apache.commons.lang.StringUtils;
 import org.jose4j.jwk.JsonWebKey;
 import org.jose4j.jwk.JsonWebKeySet;
 import org.jose4j.jwk.RsaJsonWebKey;
+import org.jose4j.jwt.JwtClaims;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -108,5 +109,25 @@ public class SPAKeyStoreRepository {
 	JsonWebKeySet getKeystore() throws Exception {
 		syncMap();
 		return keySet;
+	}
+
+	public String getUserTokenIdFromJWT(String jwt) {
+		try {
+			JwtClaims claims = null; 
+			for(JsonWebKey jwk : getKeystore().getJsonWebKeys()) {
+				claims = AdvancedJWTokenUtil.parseJWT(jwt, jwk.getKey());
+				if(claims!=null) {
+					break;
+				}
+			}
+
+			//get usertokenid from the claims
+			return claims.getJwtId();
+		} catch(Exception ex) {
+			//should not happen
+			ex.printStackTrace();
+			logger.error("Failed to retrieve the keystore before parsing JWT. Exception message = " + ex.getMessage());
+		}
+		return null;
 	}
 }
