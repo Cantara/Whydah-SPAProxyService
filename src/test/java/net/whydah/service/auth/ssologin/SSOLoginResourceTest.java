@@ -160,8 +160,8 @@ public class SSOLoginResourceTest extends AbstractEndpointTest {
         String expectedLocation = UriBuilder.fromUri(Configuration.getString("logonservice"))
                 .path("login")
                 .queryParam("redirectURI", expectedRedirectURI)
-                .queryParam("appName", "testApp")
                 .queryParam("ssoLoginUUID", ssoLoginUUID)
+                .queryParam("targetApplicationId", "inMemoryTestAppId")
                 .build()
                 .toString();
 
@@ -199,8 +199,8 @@ public class SSOLoginResourceTest extends AbstractEndpointTest {
                 .path("login")
                 .queryParam("redirectURI", expectedRedirectURI)
                 .queryParam("UserCheckout", "true")
-                .queryParam("appName", "testApp")
                 .queryParam("ssoLoginUUID", ssoLoginUUID)
+                .queryParam("targetApplicationId", "inMemoryTestAppId")
                 .build()
                 .toString();
 
@@ -256,8 +256,8 @@ public class SSOLoginResourceTest extends AbstractEndpointTest {
         String expectedLocation = UriBuilder.fromUri(Configuration.getString("logonservice"))
                 .path("login")
                 .queryParam("redirectURI", expectedRedirectURI)
-                .queryParam("appName", testAppName)
                 .queryParam("ssoLoginUUID", ssoLoginUUID)
+                .queryParam("targetApplicationId", "inMemoryTestAppId")
                 .build()
                 .toString();
 
@@ -314,8 +314,8 @@ public class SSOLoginResourceTest extends AbstractEndpointTest {
         String expectedLocation = UriBuilder.fromUri(Configuration.getString("logonservice"))
                 .path("login")
                 .queryParam("redirectURI", expectedRedirectURI)
-                .queryParam("appName", testAppName)
                 .queryParam("ssoLoginUUID", ssoLoginUUID)
+                .queryParam("targetApplicationId", "inMemoryTestAppId")
                 .build()
                 .toString();
 
@@ -376,8 +376,8 @@ public class SSOLoginResourceTest extends AbstractEndpointTest {
         String expectedLocation = UriBuilder.fromUri(Configuration.getString("logonservice"))
                 .path("login")
                 .queryParam("redirectURI", expectedRedirectURI)
-                .queryParam("appName", testAppName)
                 .queryParam("ssoLoginUUID", ssoLoginUUID)
+                .queryParam("targetApplicationId", "inMemoryTestAppId")
                 .build()
                 .toString();
 

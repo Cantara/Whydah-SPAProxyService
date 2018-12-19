@@ -102,7 +102,7 @@ class SSOLoginUtil {
         }
         // Pass through query parameters
         // Overwrite the appName and ssoLoginSession parameter explicitly
-        forwardedParameterMap.put("appName", new String[]{application.getName()});
+        forwardedParameterMap.put("targetApplicationId", new String[]{application.getId()});
         forwardedParameterMap.put("ssoLoginUUID", new String[]{ssoLoginUUID.toString()});
         return forwardedParameterMap;
     }
