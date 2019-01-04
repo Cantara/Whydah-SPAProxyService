@@ -23,13 +23,13 @@ import java.util.UUID;
  * @author Totto
  * @author <a href="mailto:erik-dev@fjas.no">Erik Drolshammer</a>
  */
-class SPASessionHelper {
+public class SPASessionHelper {
     private static final Logger log = LoggerFactory.getLogger(SPASessionHelper.class);
 
     private final CredentialStore credentialStore;
     private final SPAApplicationRepository spaApplicationRepository;
 
-    SPASessionHelper(CredentialStore credentialStore, SPAApplicationRepository spaApplicationRepository) {
+    public SPASessionHelper(CredentialStore credentialStore, SPAApplicationRepository spaApplicationRepository) {
         this.credentialStore = credentialStore;
         this.spaApplicationRepository = spaApplicationRepository;
     }
@@ -93,7 +93,7 @@ class SPASessionHelper {
 
 
 
-    SPASessionSecret addReferenceToApplicationSession(Application application) {
+    public SPASessionSecret addReferenceToApplicationSession(Application application) {
         SPASessionSecret spaSessionSecret = new SPASessionSecret();
         log.debug("establish new SPA secret and store it in secret-applicationsession map." + spaSessionSecret);
         spaApplicationRepository.add(spaSessionSecret.getSecret(), getOrCreateSessionForApplication(application));

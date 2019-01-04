@@ -5,6 +5,7 @@ import org.testng.annotations.Test;
 
 import javax.ws.rs.core.Response;
 import java.net.URI;
+import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
@@ -33,25 +34,39 @@ public class SSOLoginUtilTest {
     }
 
     @Test
-    public void testVerifySSOLoginSession() {
+    public void test_verifySSOLoginSessionWithoutSessionSecret() {
         UUID ssoLoginUUID = UUID.randomUUID();
         Application application = new Application("unitTestId", "unitTest");
 
         SessionStatus expectedStatus = SessionStatus.INITIALIZED;
-        SSOLoginSession ssoLoginSession = new SSOLoginSession(ssoLoginUUID, expectedStatus, application.getName(), false);
+        SSOLoginSession ssoLoginSession = new SSOLoginSession(ssoLoginUUID, expectedStatus, application.getName());
 
-        Optional<Response> response = SSOLoginUtil.verifySSOLoginSession(ssoLoginSession, application, ssoLoginUUID, expectedStatus);
+        Optional<Response> response = SSOLoginUtil.verifySSOLoginSessionWithoutSessionSecret(
+                ssoLoginSession, application, ssoLoginUUID, expectedStatus);
 
         assertFalse(response.isPresent());
-
     }
 
     @Test
-    public void verifySSOLoginSession_SessionIsNull_404_Response() {
+    public void test_verifySSOLoginSessionWithSessionSecret_MatchingSessionHash() {
         UUID ssoLoginUUID = UUID.randomUUID();
         Application application = new Application("unitTestId", "unitTest");
 
-        Optional<Response> optionalResponse = SSOLoginUtil.verifySSOLoginSession
+        SessionStatus expectedStatus = SessionStatus.INITIALIZED;
+        SSOLoginSession ssoLoginSession = new SSOLoginSession(ssoLoginUUID, expectedStatus, application.getName(), "hashHere");
+
+        Optional<Response> response = SSOLoginUtil.verifySSOLoginSessionWithSessionSecret(
+                ssoLoginSession, application, ssoLoginUUID, expectedStatus, "hashHere");
+
+        assertFalse(response.isPresent());
+    }
+
+    @Test
+    public void test_verifySSOLoginSessionWithoutSessionSecret_SessionIsNull_404_Response() {
+        UUID ssoLoginUUID = UUID.randomUUID();
+        Application application = new Application("unitTestId", "unitTest");
+
+        Optional<Response> optionalResponse = SSOLoginUtil.verifySSOLoginSessionWithoutSessionSecret
                 (null, application, ssoLoginUUID, SessionStatus.INITIALIZED);
 
         assertTrue(optionalResponse.isPresent());
@@ -61,15 +76,30 @@ public class SSOLoginUtilTest {
     }
 
     @Test
-    public void verifySSOLoginSession_applicationMismatch_403_Response() {
+    public void verifySSOLoginSessionWithSessionSecret_SessionIsNull_404_Response() {
+        UUID ssoLoginUUID = UUID.randomUUID();
+        Application application = new Application("unitTestId", "unitTest");
+
+        Optional<Response> optionalResponse = SSOLoginUtil.verifySSOLoginSessionWithSessionSecret
+                (null, application, ssoLoginUUID, SessionStatus.INITIALIZED, "irrelevant");
+
+        assertTrue(optionalResponse.isPresent());
+        Response response = optionalResponse.get();
+
+        assertEquals(response.getStatus(), 404);
+    }
+
+    @Test
+    public void verifySSOLoginSessionWithoutSessionSecret_applicationMismatch_403_Response() {
         UUID ssoLoginUUID = UUID.randomUUID();
         Application application = new Application("unitTestId", "unitTest");
         Application misMatch = new Application("error", "error");
         SessionStatus expectedStatus = SessionStatus.INITIALIZED;
 
-        SSOLoginSession ssoLoginSession = new SSOLoginSession(ssoLoginUUID, expectedStatus, application.getName(), false);
+        SSOLoginSession ssoLoginSession = new SSOLoginSession(ssoLoginUUID, expectedStatus, application.getName());
 
-        Optional<Response> optionalResponse = SSOLoginUtil.verifySSOLoginSession(ssoLoginSession, misMatch, ssoLoginUUID, expectedStatus);
+        Optional<Response> optionalResponse = SSOLoginUtil.verifySSOLoginSessionWithoutSessionSecret(
+                ssoLoginSession, misMatch, ssoLoginUUID, expectedStatus);
 
         assertTrue(optionalResponse.isPresent());
         Response response = optionalResponse.get();
@@ -78,15 +108,34 @@ public class SSOLoginUtilTest {
     }
 
     @Test
-    public void verifySSOLoginSession_SessionStatusMismatch_403_Response() {
+    public void verifySSOLoginSessionWithoutSessionSecret_SessionStatusMismatch_403_Response() {
         UUID ssoLoginUUID = UUID.randomUUID();
         Application application = new Application("unitTestId", "unitTest");
         SessionStatus expectedStatus = SessionStatus.INITIALIZED;
-        SSOLoginSession ssoLoginSession = new SSOLoginSession(ssoLoginUUID, expectedStatus, application.getName(), false);
+        SSOLoginSession ssoLoginSession = new SSOLoginSession(ssoLoginUUID, expectedStatus, application.getName());
 
         SessionStatus actualStatus = SessionStatus.REDIRECTED;
 
-        Optional<Response> optionalResponse = SSOLoginUtil.verifySSOLoginSession(ssoLoginSession, application, ssoLoginUUID, actualStatus);
+        Optional<Response> optionalResponse = SSOLoginUtil.verifySSOLoginSessionWithoutSessionSecret(
+                ssoLoginSession, application, ssoLoginUUID, actualStatus);
+
+        assertTrue(optionalResponse.isPresent());
+        Response response = optionalResponse.get();
+
+        assertEquals(response.getStatus(), 403);
+    }
+
+    @Test
+    public void verifySSOLoginSessionWithSessionSecret_SessionSecretMismatch_403_Response() {
+        UUID ssoLoginUUID = UUID.randomUUID();
+        Application application = new Application("unitTestId", "unitTest");
+        SessionStatus expectedStatus = SessionStatus.INITIALIZED;
+        SSOLoginSession ssoLoginSession = new SSOLoginSession(ssoLoginUUID, expectedStatus, application.getName(), "expectedSessionHash");
+
+        SessionStatus actualStatus = SessionStatus.REDIRECTED;
+
+        Optional<Response> optionalResponse = SSOLoginUtil.verifySSOLoginSessionWithSessionSecret(
+                ssoLoginSession, application, ssoLoginUUID, actualStatus, "actualSessionHash");
 
         assertTrue(optionalResponse.isPresent());
         Response response = optionalResponse.get();
@@ -131,5 +180,15 @@ public class SSOLoginUtilTest {
 
         assertEquals(uri, URI.create("https://localhost/spaproxy/application/appName/user/auth/ssologin/" + ssoLoginUUID.toString()));
 
+    }
+
+    @Test
+    public void test_sha256Hash_isIdempotent() throws NoSuchAlgorithmException {
+        String hash1 = SSOLoginUtil.sha256Hash("ThisSecret");
+        String hash2 = SSOLoginUtil.sha256Hash("ThisSecret");
+
+        assertNotNull(hash1);
+        assertFalse(hash1.isEmpty());
+        assertEquals(hash1, hash2);
     }
 }

@@ -10,6 +10,7 @@ import java.util.concurrent.TimeUnit;
 import static org.testng.Assert.*;
 
 /**
+ * Verifies serialisation of objects to the hazelcast map and automated deletion from the map
  * Used to verify serialisation of objects to the hazecast map
  */
 public class SSOLoginRepositoryTest {
@@ -25,7 +26,7 @@ public class SSOLoginRepositoryTest {
     public void verifySerialization() {
         UUID uuid = UUID.randomUUID();
         SSOLoginSession testApp = new SSOLoginSession(uuid, SessionStatus.INITIALIZED,
-                "testApp", true);
+                "testApp", "secretHash");
 
 
         ssoLoginRepository.put(uuid, testApp);
@@ -66,7 +67,7 @@ public class SSOLoginRepositoryTest {
     public void verifyAutomatedDeletion() throws InterruptedException {
         UUID uuid = UUID.randomUUID();
         SSOLoginSession testApp = new SSOLoginSession(uuid, SessionStatus.INITIALIZED,
-                "testApp", true);
+                "testApp", "secretHash");
         ssoLoginRepository.put(uuid, testApp);
 
 

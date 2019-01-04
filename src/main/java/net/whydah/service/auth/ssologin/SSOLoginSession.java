@@ -12,18 +12,31 @@ class SSOLoginSession implements DataSerializable {
     private UUID ssoLoginUUID;
     private SessionStatus status;
     private String applicationName;
-    private boolean hasSpaSessionSecret;
+    private String spaSessionSecretHash;
     private String userTicket;
     private ZonedDateTime initializedTimestamp;
 
     private SSOLoginSession() {
     }
 
-    SSOLoginSession(UUID ssoLoginUUID, SessionStatus status, String applicationName, Boolean hasSpaSessionSecret) {
+    /**
+     * Use this constructor when creating new SSOLoginSessions initiated without a SPA Session
+     */
+    SSOLoginSession(UUID ssoLoginUUID, SessionStatus status, String applicationName) {
+        this(ssoLoginUUID, status, applicationName, null);
+    }
+
+    /**
+     * Use this constructor when creating new SSOLoginSessions initiated with a SPA Session.
+     * The SSOLoginSession uses a hashed version of the spaSessionSecret for comparison purposes.
+     * This avoids storing the sessionSecret multiple times.
+     * See {@link net.whydah.service.auth.ssologin.SSOLoginUtil#sha256Hash(String)}
+     */
+    SSOLoginSession(UUID ssoLoginUUID, SessionStatus status, String applicationName, String spaSessionSecretHash) {
         this.ssoLoginUUID = ssoLoginUUID;
         this.status = status;
         this.applicationName = applicationName;
-        this.hasSpaSessionSecret = hasSpaSessionSecret;
+        this.spaSessionSecretHash = spaSessionSecretHash;
         this.initializedTimestamp = ZonedDateTime.now();
     }
 
@@ -48,8 +61,17 @@ class SSOLoginSession implements DataSerializable {
         return applicationName;
     }
 
-    boolean hasSpaSessionSecret() {
-        return hasSpaSessionSecret;
+    String getSpaSessionSecretHash() {
+        return spaSessionSecretHash;
+    }
+
+    SSOLoginSession withSpaSessionSecretHash(String spaSessionSecretHash) {
+        this.spaSessionSecretHash = spaSessionSecretHash;
+        return this;
+    }
+
+    boolean hasSpaSessionSecretHash() {
+        return spaSessionSecretHash != null && !spaSessionSecretHash.isEmpty();
     }
 
     String getUserTicket() {
@@ -75,7 +97,7 @@ class SSOLoginSession implements DataSerializable {
         out.writeUTF(status.name());
         out.writeUTF(applicationName);
         out.writeUTF(userTicket);
-        out.writeUTF(String.valueOf(hasSpaSessionSecret));
+        out.writeUTF(spaSessionSecretHash);
         out.writeUTF(initializedTimestamp.toString());
     }
 
@@ -85,7 +107,7 @@ class SSOLoginSession implements DataSerializable {
         status = SessionStatus.valueOf(in.readUTF());
         applicationName = in.readUTF();
         userTicket = in.readUTF();
-        hasSpaSessionSecret = Boolean.parseBoolean(in.readUTF());
+        spaSessionSecretHash = in.readUTF();
         initializedTimestamp = ZonedDateTime.parse(in.readUTF());
     }
 }

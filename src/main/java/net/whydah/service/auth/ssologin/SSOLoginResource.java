@@ -5,7 +5,8 @@ import net.whydah.service.SPAApplicationRepository;
 import net.whydah.service.auth.AdvancedJWTokenUtil;
 import net.whydah.service.auth.SPAKeyStoreRepository;
 import net.whydah.service.auth.UserResponseUtil;
-import net.whydah.service.spasession.SPASessionResource;
+import net.whydah.service.spasession.SPASessionHelper;
+import net.whydah.service.spasession.SPASessionSecret;
 import net.whydah.sso.application.types.Application;
 import net.whydah.sso.application.types.ApplicationToken;
 import net.whydah.sso.user.types.UserToken;
@@ -20,12 +21,12 @@ import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import java.net.URI;
+import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-import static net.whydah.service.auth.ssologin.SSOLoginUtil.buildQueryParamsForRedirectUrl;
-import static net.whydah.service.auth.ssologin.SSOLoginUtil.verifySSOLoginSession;
+import static net.whydah.service.auth.ssologin.SSOLoginUtil.*;
 
 /**
  *
@@ -39,14 +40,15 @@ public class SSOLoginResource {
 
     private static final Logger log = LoggerFactory.getLogger(SSOLoginResource.class);
 
-    private SSOLoginRepository ssoLoginRepository;
+    private final SSOLoginRepository ssoLoginRepository;
 
-    private String spaProxyBaseUri = Configuration.getString("myuri");
-    private String ssoLoginBaseUri = Configuration.getString("logonservice");
+    private final String spaProxyBaseUri = Configuration.getString("myuri");
+    private final String ssoLoginBaseUri = Configuration.getString("logonservice");
 
     private final CredentialStore credentialStore;
     private final SPAApplicationRepository spaApplicationRepository;
     private final SPAKeyStoreRepository spaKeyStoreRepository;
+    private final SPASessionHelper spaSessionHelper;
 
     @Autowired
     public SSOLoginResource(CredentialStore credentialStore, SPAApplicationRepository spaApplicationRepository,
@@ -55,6 +57,7 @@ public class SSOLoginResource {
         this.spaApplicationRepository = spaApplicationRepository;
         this.spaKeyStoreRepository = spaKeyStoreRepository;
         this.ssoLoginRepository = ssoLoginRepository;
+        this.spaSessionHelper = new SPASessionHelper(credentialStore, spaApplicationRepository);
     }
 
     /**
@@ -68,7 +71,7 @@ public class SSOLoginResource {
     public Response initializeSSOLoginWithApplicationSession(@Context HttpServletRequest httpServletRequest,
                                                              @Context HttpServletResponse httpServletResponse,
                                                              @Context HttpHeaders headers,
-                                                             @PathParam("spaSessionSecret") String spaSessionSecret) {
+                                                             @PathParam("spaSessionSecret") String spaSessionSecret) throws NoSuchAlgorithmException {
         ApplicationToken applicationToken = spaApplicationRepository.getApplicationTokenBySecret(spaSessionSecret);
 
         if (applicationToken == null || applicationToken.getApplicationName() == null) {
@@ -84,7 +87,8 @@ public class SSOLoginResource {
 
         UUID ssoLoginUUID = UUID.randomUUID();
         URI ssoLoginUrl = SSOLoginUtil.buildPopupEntryPointURIWithApplicationSession(spaProxyBaseUri, spaSessionSecret, ssoLoginUUID);
-        initializeSSOLogin(application, ssoLoginUUID, true);
+        String spaSessionSecretHash = SSOLoginUtil.sha256Hash(spaSessionSecret);
+        initializeSSOLoginWithSecret(application, ssoLoginUUID, spaSessionSecretHash);
 
         return SSOLoginUtil.initializeSSOLoginResponse(ssoLoginUrl, ssoLoginUUID, application.getApplicationUrl());
     }
@@ -109,16 +113,20 @@ public class SSOLoginResource {
 
         UUID ssoLoginUUID = UUID.randomUUID();
         URI ssoLoginUrl = SSOLoginUtil.buildPopupEntryPointURIWithoutApplicationSession(spaProxyBaseUri, appName, ssoLoginUUID);
-        initializeSSOLogin(application, ssoLoginUUID, false);
+        initializeSSOLogin(application, ssoLoginUUID);
 
         return SSOLoginUtil.initializeSSOLoginResponse(ssoLoginUrl, ssoLoginUUID, application.getApplicationUrl());
     }
 
-    private void initializeSSOLogin(final Application application, final UUID ssoLoginUUID, final boolean hasSpaSessionSecret) {
-        SSOLoginSession ssoLoginSession = new SSOLoginSession(ssoLoginUUID, SessionStatus.INITIALIZED, application.getName(), hasSpaSessionSecret);
+    private void initializeSSOLoginWithSecret(final Application application, final UUID ssoLoginUUID, final String spaSessionSecretHash) {
+        SSOLoginSession ssoLoginSession = new SSOLoginSession(ssoLoginUUID, SessionStatus.INITIALIZED, application.getName(), spaSessionSecretHash);
         ssoLoginRepository.put(ssoLoginUUID, ssoLoginSession);
     }
 
+    private void initializeSSOLogin(final Application application, final UUID ssoLoginUUID) {
+        SSOLoginSession ssoLoginSession = new SSOLoginSession(ssoLoginUUID, SessionStatus.INITIALIZED, application.getName());
+        ssoLoginRepository.put(ssoLoginUUID, ssoLoginSession);
+    }
 
 
     /**
@@ -131,7 +139,7 @@ public class SSOLoginResource {
                                                                        @Context HttpServletResponse httpServletResponse,
                                                                        @Context HttpHeaders headers,
                                                                        @PathParam("spaSessionSecret") String spaSessionSecret,
-                                                                       @PathParam("ssoLoginUUID") String ssoLoginUUID) {
+                                                                       @PathParam("ssoLoginUUID") String ssoLoginUUID) throws NoSuchAlgorithmException {
         ApplicationToken applicationToken = spaApplicationRepository.getApplicationTokenBySecret(spaSessionSecret);
 
         if (applicationToken == null || applicationToken.getApplicationName() == null) {
@@ -145,10 +153,13 @@ public class SSOLoginResource {
 
         UUID uuid = UUID.fromString(ssoLoginUUID);
         SSOLoginSession ssoLoginSession = ssoLoginRepository.get(uuid);
-        Optional<Response> optionalResponse = verifySSOLoginSession(ssoLoginSession, application, uuid, SessionStatus.INITIALIZED);
+        String expectedSessionSecretHash = SSOLoginUtil.sha256Hash(spaSessionSecret);
+
+        Optional<Response> optionalResponse = verifySSOLoginSessionWithSessionSecret(ssoLoginSession, application, uuid, SessionStatus.INITIALIZED, expectedSessionSecretHash);
         if (optionalResponse.isPresent()) {
             return optionalResponse.get();
         }
+
         ssoLoginSession.withStatus(SessionStatus.REDIRECTED);
         ssoLoginRepository.put(uuid, ssoLoginSession);
 
@@ -176,7 +187,7 @@ public class SSOLoginResource {
 
         UUID uuid = UUID.fromString(ssoLoginUUID);
         SSOLoginSession ssoLoginSession = ssoLoginRepository.get(uuid);
-        Optional<Response> optionalResponse = verifySSOLoginSession(ssoLoginSession, application, uuid, SessionStatus.INITIALIZED);
+        Optional<Response> optionalResponse = verifySSOLoginSessionWithoutSessionSecret(ssoLoginSession, application, uuid, SessionStatus.INITIALIZED);
         if (optionalResponse.isPresent()) {
             return optionalResponse.get();
         }
@@ -201,7 +212,7 @@ public class SSOLoginResource {
                                          @Context HttpHeaders headers,
                                          @PathParam("appName") String appName,
                                          @PathParam("ssoLoginUUID") String ssoLoginUUID,
-                                         @QueryParam("userticket") String userticket) {
+                                         @QueryParam("userticket") String userticket) throws NoSuchAlgorithmException {
         Application application = credentialStore.findApplication(appName);
         if (application == null) {
             log.info("completeSSOUserLogin called with unknown application name. appName: {}", appName);
@@ -210,24 +221,26 @@ public class SSOLoginResource {
 
         UUID uuid = UUID.fromString(ssoLoginUUID);
         SSOLoginSession ssoLoginSession = ssoLoginRepository.get(uuid);
-        Optional<Response> optionalResponse = verifySSOLoginSession(ssoLoginSession, application, uuid, SessionStatus.REDIRECTED);
+        Optional<Response> optionalResponse = verifySSOLoginSessionIgnoreSessionSecret(ssoLoginSession, application, uuid, SessionStatus.REDIRECTED);
         if (optionalResponse.isPresent()) {
             return optionalResponse.get();
         }
         ssoLoginSession.withStatus(SessionStatus.COMPLETE);
         ssoLoginSession.withUserTicket(userticket);
-        ssoLoginRepository.put(uuid, ssoLoginSession);
 
-        if (ssoLoginSession.hasSpaSessionSecret()) {
+        if (ssoLoginSession.hasSpaSessionSecretHash()) {
             String location = UriBuilder.fromUri(credentialStore.findRedirectUrl(application))
                     .build().toString();
+            ssoLoginRepository.put(uuid, ssoLoginSession);
             return Response.status(Response.Status.FOUND)
                     .header("Location", location)
                     .build();
         } else {
-            String location = UriBuilder.fromUri(Configuration.getString("myuri"))
-                    .path(SPASessionResource.PROXY_PATH)
-                    .path(application.getName())
+            SPASessionSecret spaSessionSecret = spaSessionHelper.addReferenceToApplicationSession(application);
+            ssoLoginSession.withSpaSessionSecretHash(SSOLoginUtil.sha256Hash(spaSessionSecret.getSecret()));
+            ssoLoginRepository.put(uuid, ssoLoginSession);
+            String location = UriBuilder.fromUri(credentialStore.findRedirectUrl(application))
+                    .queryParam("code", spaSessionSecret.getSecret())
                     .build().toString();
             return Response.status(Response.Status.FOUND)
                     .header("Location", location)
@@ -235,6 +248,9 @@ public class SSOLoginResource {
         }
     }
 
+    /**
+     * Uses the application session and ssoLoginUUID to exchange the stored userTicket for a JWT.
+     */
     @POST
     @Path(WITH_SESSION_PATH + "/{ssoLoginUUID}/exchange-for-token")
     public Response getJWTFromSSOLoginSession(@Context HttpServletRequest httpServletRequest,
@@ -255,7 +271,8 @@ public class SSOLoginResource {
 
         UUID uuid = UUID.fromString(ssoLoginUUID);
         SSOLoginSession ssoLoginSession = ssoLoginRepository.get(uuid);
-        Optional<Response> optionalResponse = verifySSOLoginSession(ssoLoginSession, application, uuid, SessionStatus.COMPLETE);
+        String expectedSessionSecretHash = SSOLoginUtil.sha256Hash(spaSessionSecret);
+        Optional<Response> optionalResponse = verifySSOLoginSessionWithSessionSecret(ssoLoginSession, application, uuid, SessionStatus.COMPLETE, expectedSessionSecretHash);
         if (optionalResponse.isPresent()) {
             return optionalResponse.get();
         }

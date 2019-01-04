@@ -22,7 +22,7 @@ public class SPASessionSecret {
     String getSecretPart2() {
         return secretPart2;
     }
-    String getSecret() {
+    public String getSecret() {
         return secret;
     }
 

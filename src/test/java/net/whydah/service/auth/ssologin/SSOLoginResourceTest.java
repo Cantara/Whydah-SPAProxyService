@@ -9,6 +9,7 @@ import org.testng.annotations.Test;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
+import java.net.URI;
 import java.util.UUID;
 
 import static com.jayway.restassured.RestAssured.given;
@@ -39,6 +40,68 @@ public class SSOLoginResourceTest extends AbstractEndpointTest {
                 .post(apiPath)
                 .then().log().ifValidationFails()
                 .statusCode(Response.Status.UNAUTHORIZED.getStatusCode());
+    }
+
+    @Test
+    public void whenInitializeUserLogin_sessionSecret_isMisMatch_401Returned() {
+        // Extract sessionSecret1 from a load for the application
+        ValidatableResponse validatableResponse = given()
+                .when()
+                .port(getServerPort())
+                .redirects().follow(false) //Do not follow the redirect
+                .get("/load/testApp")
+                .then().log().ifError()
+                .statusCode(Response.Status.FOUND.getStatusCode());
+
+        String locationHeader = validatableResponse.extract().header("Location");
+        MultiValueMap<String, String> queryParams = UriComponentsBuilder.fromUriString(locationHeader).build().getQueryParams();
+        String sessionSecret1 = queryParams.get("code").get(0);
+        assertNotNull(sessionSecret1);
+        assertFalse(sessionSecret1.isEmpty());
+
+
+        String apiPath = "/application/session/" + sessionSecret1 + "/user/auth/ssologin/";
+        ValidatableResponse response = given()
+                .when()
+                .port(getServerPort())
+                .post(apiPath)
+                .then().log().ifValidationFails()
+                .statusCode(Response.Status.OK.getStatusCode());
+
+
+        String ssoLoginUrl = response.extract().path("ssoLoginUrl");
+        String ssoLoginUUID = response.extract().path("ssoLoginUUID");
+        assertEquals(ssoLoginUrl, getBaseUrl() + apiPath + ssoLoginUUID);
+
+        // Throws exception if it does not conform with UUID format
+        UUID uuid = UUID.fromString(ssoLoginUUID);
+        assertNotNull(uuid);
+
+
+        // Continue with the same ssoLoginUUID, but another (valid) sessionSecret
+        // Extract sessionSecret1 from a load for the application
+        ValidatableResponse validatableResponse2 = given()
+                .when()
+                .port(getServerPort())
+                .redirects().follow(false) //Do not follow the redirect
+                .get("/load/testApp")
+                .then().log().ifError()
+                .statusCode(Response.Status.FOUND.getStatusCode());
+
+        String locationHeader2 = validatableResponse2.extract().header("Location");
+        String sessionSecret2 = UriComponentsBuilder.fromUriString(locationHeader2).build().getQueryParams().getFirst("code");
+        assertNotNull(sessionSecret2);
+        assertFalse(sessionSecret2.isEmpty());
+
+
+        String incorrectLoginUrl = ssoLoginUrl.replace(sessionSecret1, sessionSecret2);
+
+        given()
+                .when()
+                .get(incorrectLoginUrl)
+                .then().log().ifValidationFails()
+                .statusCode(Response.Status.FORBIDDEN.getStatusCode());
+
     }
 
     @Test
@@ -348,7 +411,7 @@ public class SSOLoginResourceTest extends AbstractEndpointTest {
         final String testAppName = "testApp";
 
         // Initialize the user login
-        String apiPath = "/application/" + testAppName +  "/user/auth/ssologin/";
+        String apiPath = "/application/" + testAppName + "/user/auth/ssologin/";
         ValidatableResponse initResponse = given()
                 .when()
                 .port(getServerPort())
@@ -371,7 +434,7 @@ public class SSOLoginResourceTest extends AbstractEndpointTest {
         assertFalse(location.isEmpty());
 
         String expectedRedirectURI = Configuration.getString("myuri") +
-                "/application/" +testAppName + "/user/auth/ssologin/" + ssoLoginUUID + "/complete";
+                "/application/" + testAppName + "/user/auth/ssologin/" + ssoLoginUUID + "/complete";
 
         String expectedLocation = UriBuilder.fromUri(Configuration.getString("logonservice"))
                 .path("login")
@@ -391,12 +454,21 @@ public class SSOLoginResourceTest extends AbstractEndpointTest {
                 .then().log().ifValidationFails()
                 .statusCode(Response.Status.FOUND.getStatusCode());
 
-        String expectedCompleteLocation = Configuration.getString("myuri") + "/load/" + testAppName;
+        String expectedCompleteLocation = "http://dummy.url.does.not.exist.com";
         String actualCompleteLocation = completeResponse.extract().header("Location");
 
-        assertEquals(actualCompleteLocation, expectedCompleteLocation);
-    }
+        assertTrue(actualCompleteLocation.startsWith(expectedCompleteLocation));
 
+        MultiValueMap<String, String> queryParams = UriComponentsBuilder.fromUriString(actualCompleteLocation).build().getQueryParams();
+        String secret = queryParams.getFirst("code");
+
+        ValidatableResponse jwtResponse = given()
+                .when()
+                .redirects().follow(false)
+                .post("/application/session/" + secret + "/user/auth/ssologin/" + ssoLoginUUID + "/exchange-for-token")
+                .then().log().ifValidationFails()
+                .statusCode(Response.Status.OK.getStatusCode());
+    }
 
 
 }
