@@ -2,6 +2,7 @@ package net.whydah.service.auth;
 
 import net.whydah.service.CredentialStore;
 import net.whydah.service.SPAApplicationRepository;
+import net.whydah.service.spasession.ResponseUtil;
 import net.whydah.sso.application.mappers.ApplicationTokenMapper;
 import net.whydah.sso.application.types.Application;
 import net.whydah.sso.application.types.ApplicationCredential;
@@ -13,6 +14,7 @@ import net.whydah.sso.commands.userauth.CommandLogonUserByUserCredential;
 import net.whydah.sso.user.mappers.UserTokenMapper;
 import net.whydah.sso.user.types.UserCredential;
 import net.whydah.sso.user.types.UserToken;
+import net.whydah.util.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,8 +28,10 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.net.URI;
+import java.util.Map;
 import java.util.UUID;
 
+import static net.whydah.service.CredentialStore.FALLBACK_URL;
 import static net.whydah.service.auth.UserAuthenticationResource.API_PATH;
 
 @RestController
@@ -132,6 +136,36 @@ public class UserAuthenticationResource {
         return UserResponseUtil.createResponseWithHeader(jwt, credentialStore.findRedirectUrl(applicationToken.getApplicationName()));
     }
 
+    /**
+     * Redirects the client to SSOLoginWebApp and back to SPA.
+     * Use this endpoint when the SPA has already been provisioned with a secret.
+     * Flow:
+     * 1. In SPA, with secret provisioned, open pop-up window with this URL.
+     * 2. Redirect to SSOLoginWebapp to login the user
+     * 3. Redirect to spa redirect url store in application
+     */
+    @GET
+    @Deprecated
+    @Path("/{secret}/ssologin/{appName}")
+    public Response redirectToSSOLoginWebWhenSecret(@Context HttpServletRequest httpServletRequest,
+                                                    @Context HttpHeaders headers,
+                                                    @PathParam("secret") String secret,
+                                                    @PathParam("appName") String appName) {
+        log.info("Invoked redirectToSSOLoginWebapp with appname: {} and headers: {}", appName, headers.getRequestHeaders());
+
+        Application application = credentialStore.findApplication(appName);
+        String ssoLoginUrl = Configuration.getString("logonservice");
+        String spaProxyUrl = Configuration.getString("myuri");
+        Map<String, String[]> parameterMap = httpServletRequest.getParameterMap();
+        if (application == null || ssoLoginUrl == null || spaProxyUrl == null) {
+            log.warn("Redirecting to fallback URL for request with appName: {} due to null values", appName);
+            return redirectToFallbackUrl();
+        }
+        //redirect to ssoLoginWebapp to login in the user
+        return ResponseUtil.ssoLoginBackToSpaRedirectUrl(ssoLoginUrl, application, parameterMap);
+
+    }
+
     private ApplicationToken createApplicationToken(String applicationName, String secret) {
         Application application = credentialStore.findApplication(applicationName);
 
@@ -165,6 +199,15 @@ public class UserAuthenticationResource {
                 URI.create(credentialStore.getWas().getSTS()), applicationToken.getApplicationTokenId(),
                 ApplicationTokenMapper.toXML(applicationToken), ticketId, userTokenId);
         return cmd.execute();
+    }
+
+    private static Response redirectToFallbackUrl() {
+        return Response.status(Response.Status.FOUND)
+                .header("Location", FALLBACK_URL)
+                .header("Access-Control-Allow-Origin", "*")
+                .header("Access-Control-Allow-Credentials", true)
+                .header("Access-Control-Allow-Headers", "*")
+                .build();
     }
 
 }
