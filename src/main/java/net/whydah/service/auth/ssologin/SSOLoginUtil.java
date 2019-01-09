@@ -70,7 +70,7 @@ class SSOLoginUtil {
                     .build();
 
             URI locationWithOriginalQueryParams = ResponseUtil.addQueryParameters(location, queryParameters);
-            log.debug("Redirecting user to: {}", location);
+            log.debug("Redirecting user to: {}", locationWithOriginalQueryParams);
             return Response.status(Response.Status.FOUND)
                     .header("Location", locationWithOriginalQueryParams.toString())
                     .build();

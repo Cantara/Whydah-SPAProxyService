@@ -41,34 +41,7 @@ public class SPASessionResource {
     }
 
     /**
-     * 1. In SPA open pop-up window with this url.
-     * 2. Redirect to SSOLoginWebapp to login the user
-     * 3. Redirect back to /load/{appName}
-     * 4. Redirect to spa redirect url store in application
-     * @deprecated Deprecated in favor of UserAuthenticationResource.redirectToSSOLoginWeb()
-     */
-    @Deprecated
-    @GET
-    @Path("/ssologin/{appName}")
-    public Response redirectToSSOLoginWebapp(@Context HttpServletRequest httpServletRequest,
-                                             @Context HttpHeaders headers,
-                                             @PathParam("appName") String appName) {
-        log.info("Invoked redirectToSSOLoginWebapp with appname: {} and headers: {}", appName, headers.getRequestHeaders());
-
-        Application application = credentialStore.findApplication(appName);
-        String ssoLoginUrl = Configuration.getString("logonservice");
-        String spaProxyUrl = Configuration.getString("myuri");
-        Map<String, String[]> parameterMap = httpServletRequest.getParameterMap();
-        if (application == null || ssoLoginUrl == null || spaProxyUrl == null) {
-            log.warn("Redirecting to fallback URL for request with appName: {} due to null values", appName);
-            return redirectToFallbackUrl();
-        }
-        //redirect to ssoLoginWebapp to login in the user
-        return ResponseUtil.ssoLoginRedirectUrl(ssoLoginUrl, spaProxyUrl, application, parameterMap);
-    }
-
-    /**
-     * This endpoint will provision the SPA with two secrets using a redirect to the registered spaRedirectUrl.
+     * This endpoint will provision the SPA with a spaSessionSecret using a redirect to the registered spaRedirectUrl.
      * This is more secure than the /api/{appName} endpoint, so this endpoint should be preferred.
      */
     @GET

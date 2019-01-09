@@ -91,7 +91,7 @@ public final class ResponseUtil {
         UriBuilder uriBuilder = UriBuilder.fromUri(uri);
 
         for (Map.Entry<String, String[]> entry : parameters.entrySet()) {
-            // Remove responseURI if client sends it in. Use redirectURI from application store instead
+            // Remove redirectURI if client sends it in. Use redirectURI from application store instead
             if (entry.getValue() != null && entry.getValue().length > 0 && !"redirectURI".equals(entry.getKey())) {
                 uriBuilder.queryParam(entry.getKey(), entry.getValue()[0]);
             }
