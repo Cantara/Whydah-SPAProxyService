@@ -1,6 +1,6 @@
 package net.whydah.service.httpproxy.inn;
 
-import static com.jayway.restassured.RestAssured.given;
+import static io.restassured.RestAssured.given;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
@@ -13,11 +13,9 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.testng.annotations.Test;
 
-import com.jayway.restassured.response.ValidatableResponse;
+import io.restassured.response.ValidatableResponse;
 
 import net.whydah.demoservice.testsupport.AbstractEndpointTest;
-import net.whydah.service.auth.AdvancedJWTUtilTest;
-import net.whydah.sso.user.helpers.UserHelper;
 
 public class UserDeliveryAddressResourceTest extends AbstractEndpointTest {
 
@@ -33,9 +31,8 @@ public class UserDeliveryAddressResourceTest extends AbstractEndpointTest {
               .get(apiPath)
               .then().log().ifValidationFails()
               .statusCode(Response.Status.OK.getStatusCode())
-              .body(containsString("delivery_address"));
-        
-        
+                // The wiremock returns the invoked path for verification
+              .body(containsString("shared-delivery-address"));
     }
     
     private String authenticateAndgetUserToken(String secret) {

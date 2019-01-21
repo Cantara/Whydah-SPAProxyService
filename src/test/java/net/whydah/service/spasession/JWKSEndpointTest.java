@@ -1,6 +1,6 @@
 package net.whydah.service.spasession;
 
-import static com.jayway.restassured.RestAssured.given;
+import static io.restassured.RestAssured.given;
 
 import java.net.HttpURLConnection;
 

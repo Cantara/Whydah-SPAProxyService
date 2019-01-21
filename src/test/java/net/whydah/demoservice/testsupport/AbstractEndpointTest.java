@@ -3,14 +3,12 @@ package net.whydah.demoservice.testsupport;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.extension.responsetemplating.ResponseTemplateTransformer;
 import net.whydah.service.Main;
 import net.whydah.sso.application.mappers.ApplicationMapper;
 import net.whydah.sso.application.types.Application;
-import net.whydah.sso.user.helpers.UserHelper;
 import net.whydah.sso.user.mappers.UserTokenMapper;
-import net.whydah.sso.user.types.UserApplicationRoleEntry;
 import net.whydah.sso.user.types.UserToken;
-import org.testng.annotations.AfterMethod;
 import org.testng.annotations.AfterSuite;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeSuite;
@@ -55,7 +53,10 @@ public abstract class AbstractEndpointTest {
 
 
     private void setupWiremock() {
-        wireMockServer = new WireMockServer(options().dynamicPort());
+        wireMockServer = new WireMockServer(options()
+                .dynamicPort()
+                .extensions(new ResponseTemplateTransformer(false))
+        );
         wireMockServer.start();
         setupExternalServicesMocks();
         int wiremockPort = wireMockServer.port();
@@ -63,7 +64,7 @@ public abstract class AbstractEndpointTest {
         System.setProperty("securitytokenservice", "http://localhost:" + wiremockPort + "/tokenservice/");
         System.setProperty("useradminservice", "http://localhost:" + wiremockPort + "/useradminservice/");
         System.setProperty("logonservice", "http://localhost:" + wiremockPort + "/oidsso/");
-        
+
         System.setProperty("jetty.request.log.enabled", "false");
 
     }
@@ -143,8 +144,7 @@ public abstract class AbstractEndpointTest {
                                 "\"iv\":\"MDEyMzQ1Njc4OTBBQkNERQ==\"}"))
         );
 
-    
-        
+
 //        addStub(WireMock.post(urlMatching("/tokenservice/user/.*/.*/usertoken"))
 //                .willReturn(WireMock.aResponse()
 //                        .withStatus(200)
@@ -152,12 +152,14 @@ public abstract class AbstractEndpointTest {
 //                        .withBody(UserTokenMapper.toXML(userToken))
 //                )
 //        );
-        
+
         addStub(WireMock.get(urlMatching("/oidsso/.*/api/.*/shared-delivery-address"))
                 .willReturn(WireMock.aResponse()
                         .withStatus(200)
-                        .withHeader("Content-Type", "text/xml")
-                        .withBody("delivery_address")));
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("{{request.requestLine.path}}")
+                        .withTransformers("response-template")
+                ));
 
         // get a stub-usertoken by userticket
         UserToken testAppClientUserToken = new UserToken();
@@ -171,7 +173,7 @@ public abstract class AbstractEndpointTest {
                         .withBody(UserTokenMapper.toXML(testAppClientUserToken))
                 )
         );
-        
+
         addStub(WireMock.post(urlMatching("/tokenservice/user/12340f039fcfbb083bed8c12da581234/create_userticket_by_usertokenid"))
                 .willReturn(WireMock.aResponse()
                         .withStatus(200)
@@ -179,6 +181,16 @@ public abstract class AbstractEndpointTest {
                         .withBody(UserTokenMapper.toXML(testAppClientUserToken))
                 )
         );
+
+        addStub(WireMock.get(urlMatching("/oidsso/health"))
+                .willReturn(WireMock.aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("{\"reason\":  \"ok\"}")
+                )
+        );
+
+        //
     }
 
     private static void addStub(MappingBuilder stub) {

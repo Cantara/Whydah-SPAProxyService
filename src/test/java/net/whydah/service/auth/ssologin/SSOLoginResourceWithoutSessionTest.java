@@ -1,7 +1,7 @@
 package net.whydah.service.auth.ssologin;
 
-import com.jayway.restassured.response.ExtractableResponse;
-import com.jayway.restassured.response.ValidatableResponse;
+import io.restassured.response.ExtractableResponse;
+import io.restassured.response.ValidatableResponse;
 import net.whydah.demoservice.testsupport.AbstractEndpointTest;
 import net.whydah.util.Configuration;
 import org.springframework.util.MultiValueMap;
@@ -10,10 +10,9 @@ import org.testng.annotations.Test;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
-import java.net.URI;
 import java.util.UUID;
 
-import static com.jayway.restassured.RestAssured.given;
+import static io.restassured.RestAssured.given;
 import static org.testng.Assert.*;
 
 /**
@@ -212,7 +211,7 @@ public class SSOLoginResourceWithoutSessionTest extends AbstractEndpointTest {
         MultiValueMap<String, String> queryParams = UriComponentsBuilder.fromUriString(actualCompleteLocation).build().getQueryParams();
         String secret = queryParams.getFirst("code");
 
-        ExtractableResponse<com.jayway.restassured.response.Response> jwtResponse = given()
+        ExtractableResponse<io.restassured.response.Response> jwtResponse = given()
                 .when()
                 .redirects().follow(false)
                 .post("/application/session/" + secret + "/user/auth/ssologin/" + ssoLoginUUID + "/exchange-for-token")

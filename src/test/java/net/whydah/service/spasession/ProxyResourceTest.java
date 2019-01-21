@@ -7,7 +7,7 @@ import org.testng.annotations.Test;
 
 import java.net.HttpURLConnection;
 
-import static com.jayway.restassured.RestAssured.given;
+import static io.restassured.RestAssured.given;
 
 public class ProxyResourceTest {
     private TestServer testServer;
