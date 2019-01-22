@@ -113,7 +113,7 @@ public class GenericProxyResource {
             log.info("ProxySpecification not found for targetName: {}, proxySpecificationName{}");
             return Response.status(Status.NOT_FOUND).build();
         }
-        ProxySpecification specification = getCloneWithReplacements(
+        ProxySpecification specification = TemplateUtil.getCloneWithReplacements(
                 optionalSpecification.get(), applicationToken.getApplicationTokenId(),
                 userTokenId, logonServiceBaseUrl, securitytokenservice
         );
@@ -130,21 +130,4 @@ public class GenericProxyResource {
                 .build();
     }
 
-    /**
-     * @param specification        The {@link ProxySpecification} that will be cloned
-     * @param applicationTokenId   will be added to the replacement map for the key #applicationTokenId
-     * @param userTokenId          will be added to the replacement map for the key #userTokenId
-     * @param logonurl             will be added to the replacement map for the key #logonservice
-     * @param securitytokenservice will be added to the replacement map for the key #securitytokenservice
-     * @return a clone of specification with the two replacement entries added
-     */
-    private ProxySpecification getCloneWithReplacements(ProxySpecification specification, String applicationTokenId,
-                                                        String userTokenId, String logonurl, String securitytokenservice) throws CloneNotSupportedException {
-        ProxySpecification clone = specification.clone();
-        clone.addEntryToCommand_replacement_map("#applicationTokenId", applicationTokenId);
-        clone.addEntryToCommand_replacement_map("#userTokenId", userTokenId);
-        clone.addEntryToCommand_replacement_map("#logonservice", logonurl);
-        clone.addEntryToCommand_replacement_map("#securitytokenservice", securitytokenservice);
-        return clone;
-    }
 }

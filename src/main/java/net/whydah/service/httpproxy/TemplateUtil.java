@@ -168,4 +168,22 @@ public class TemplateUtil {
             throw new RuntimeException(e);
         }
     }
+
+    /**
+     * @param specification        The {@link ProxySpecification} that will be cloned
+     * @param applicationTokenId   will be added to the replacement map for the key #applicationTokenId
+     * @param userTokenId          will be added to the replacement map for the key #userTokenId
+     * @param logonurl             will be added to the replacement map for the key #logonservice
+     * @param securitytokenservice will be added to the replacement map for the key #securitytokenservice
+     * @return a clone of specification with the two replacement entries added
+     */
+    static ProxySpecification getCloneWithReplacements(ProxySpecification specification, String applicationTokenId,
+                                                       String userTokenId, String logonurl, String securitytokenservice) throws CloneNotSupportedException {
+        ProxySpecification clone = specification.clone();
+        clone.addEntryToCommand_replacement_map("#applicationTokenId", applicationTokenId);
+        clone.addEntryToCommand_replacement_map("#userTokenId", userTokenId);
+        clone.addEntryToCommand_replacement_map("#logonservice", logonurl);
+        clone.addEntryToCommand_replacement_map("#securitytokenservice", securitytokenservice);
+        return clone;
+    }
 }
