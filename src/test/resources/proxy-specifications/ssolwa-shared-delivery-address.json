@@ -1,0 +1,12 @@
+{
+  "command_url": "#logonservice#applicationTokenId/api/#userTokenId/shared-delivery-address",
+  "command_contenttype": "application/json",
+  "command_http_authstring": "",
+  "command_http_post": false,
+  "command_timeout_milliseconds": 2000,
+  "command_template": "",
+  "command_replacement_map": {
+  },
+  "command_response_map": {
+  }
+}

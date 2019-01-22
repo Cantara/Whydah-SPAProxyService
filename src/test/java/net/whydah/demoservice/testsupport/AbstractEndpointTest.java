@@ -38,6 +38,8 @@ public abstract class AbstractEndpointTest {
         testServer = new TestServer(serverPort);
         testServerBaseUrl = "http://localhost:" + serverPort + Main.CONTEXT_PATH;
         System.setProperty("myuri", testServerBaseUrl);
+        System.setProperty("proxy.specification.load.from.classpath", "true");
+        System.setProperty("proxy.specification.directory", "proxy-specifications");
         testServer.start();
     }
 
@@ -110,6 +112,15 @@ public abstract class AbstractEndpointTest {
 
         // validate logon - STS
         addStub(WireMock.get(urlEqualTo("/tokenservice/86560f039fcfbb083bed8c12da58bdee/validate"))
+                .willReturn(WireMock.aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "text/xml")
+                        .withBody("{\"result\": \"true\"}")
+                )
+        );
+
+        // validate logon - STS - inMemoryTestAppId
+        addStub(WireMock.get(urlEqualTo("/tokenservice/12340f039fcfbb083bed8c12da581234/validate"))
                 .willReturn(WireMock.aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "text/xml")

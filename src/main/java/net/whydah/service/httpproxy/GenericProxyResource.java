@@ -4,7 +4,8 @@ import net.whydah.service.CredentialStore;
 import net.whydah.service.SPAApplicationRepository;
 import net.whydah.service.auth.SPAKeyStoreRepository;
 import net.whydah.sso.application.types.ApplicationToken;
-import net.whydah.util.Configuration;
+import org.constretto.annotation.Configuration;
+import org.constretto.annotation.Configure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,13 +33,21 @@ public class GenericProxyResource {
     private final SPAKeyStoreRepository spaKeyStoreRepository;
     private final ProxySpecificationRepository proxySpecifications;
 
+    private final String logonServiceBaseUrl;
+    private final String securitytokenservice;
+
     @Autowired
+    @Configure
     public GenericProxyResource(CredentialStore credentialStore, SPAApplicationRepository spaApplicationRepository,
-                                SPAKeyStoreRepository spaKeyStoreRepository, ProxySpecificationRepository proxySpecifications) {
+                                SPAKeyStoreRepository spaKeyStoreRepository, ProxySpecificationRepository proxySpecifications,
+                                @Configuration("logonservice") String logonServiceBaseUrl,
+                                @Configuration("securitytokenservice") String securitytokenservice) {
         this.credentialStore = credentialStore;
         this.spaApplicationRepository = spaApplicationRepository;
         this.spaKeyStoreRepository = spaKeyStoreRepository;
         this.proxySpecifications = proxySpecifications;
+        this.logonServiceBaseUrl = logonServiceBaseUrl;
+        this.securitytokenservice = securitytokenservice;
     }
 
     /**
@@ -104,7 +113,10 @@ public class GenericProxyResource {
             log.info("ProxySpecification not found for targetName: {}, proxySpecificationName{}");
             return Response.status(Status.NOT_FOUND).build();
         }
-        ProxySpecification specification = getCloneWithTokensSet(optionalSpecification.get(), applicationToken.getApplicationTokenId(), userTokenId);
+        ProxySpecification specification = getCloneWithReplacements(
+                optionalSpecification.get(), applicationToken.getApplicationTokenId(),
+                userTokenId, logonServiceBaseUrl, securitytokenservice
+        );
 
         Response response = new CommandGenericGetProxy(
                 specification,
@@ -119,15 +131,20 @@ public class GenericProxyResource {
     }
 
     /**
-     * @param specification The {@link ProxySpecification} that will be cloned
-     * @param applicationTokenId will be added to the replacement map for the key #applicationTokenId
-     * @param userTokenId will be added to the replacement map for the key #userTokenId
+     * @param specification        The {@link ProxySpecification} that will be cloned
+     * @param applicationTokenId   will be added to the replacement map for the key #applicationTokenId
+     * @param userTokenId          will be added to the replacement map for the key #userTokenId
+     * @param logonurl             will be added to the replacement map for the key #logonservice
+     * @param securitytokenservice will be added to the replacement map for the key #securitytokenservice
      * @return a clone of specification with the two replacement entries added
      */
-    private ProxySpecification getCloneWithTokensSet(ProxySpecification specification, String applicationTokenId, String userTokenId) throws CloneNotSupportedException {
+    private ProxySpecification getCloneWithReplacements(ProxySpecification specification, String applicationTokenId,
+                                                        String userTokenId, String logonurl, String securitytokenservice) throws CloneNotSupportedException {
         ProxySpecification clone = specification.clone();
         clone.addEntryToCommand_replacement_map("#applicationTokenId", applicationTokenId);
         clone.addEntryToCommand_replacement_map("#userTokenId", userTokenId);
+        clone.addEntryToCommand_replacement_map("#logonservice", logonurl);
+        clone.addEntryToCommand_replacement_map("#securitytokenservice", securitytokenservice);
         return clone;
     }
 }
