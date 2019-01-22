@@ -24,3 +24,4 @@ dependency-reduced-pom.xml
 logback-override.xml
 
 spa-keystore.jwks
+proxy-specifications/
