@@ -25,7 +25,6 @@ public class ProxySpecificationRepository {
 
     @Autowired
     @Configure
-    // public ProxySpecificationRepository(@Configuration("proxy.specification.directory") String directory) throws IOException {
     public ProxySpecificationRepository(@Configuration("proxy.specification.directory") String path,
                                         @Configuration("proxy.specification.load.from.classpath") boolean loadFromClasspath) throws IOException {
         this.proxySpecifications = new HashMap<>();
