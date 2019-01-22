@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 import javax.inject.Singleton;
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -25,56 +26,54 @@ public class ProxySpecificationRepository {
     @Autowired
     @Configure
     // public ProxySpecificationRepository(@Configuration("proxy.specification.directory") String directory) throws IOException {
-    public ProxySpecificationRepository(@Configuration("logonservice") String logonServiceBaseUrl) throws IOException {
+    public ProxySpecificationRepository(@Configuration("proxy.specification.directory") String path,
+                                        @Configuration("proxy.specification.load.from.classpath") boolean loadFromClasspath) throws IOException {
         this.proxySpecifications = new HashMap<>();
-        addGetAddressSpecification(logonServiceBaseUrl);
-        // getSpecificationsFromPath(directory);
 
-    }
+        proxySpecifications.putAll(getSpecificationsFromDisk(path));
 
-    // TODO: temporary
-    private void addGetAddressSpecification(String logonServiceBaseUrl) throws IOException {
-
-        String sharedDeliveryAddress = "{\n" +
-                "  \"command_url\" : \""+logonServiceBaseUrl+"#applicationTokenId/api/#userTokenId/shared-delivery-address\",\n" +
-                "  \"command_contenttype\" : \"application/json\",\n" +
-                "  \"command_http_post\" : false,\n" +
-                "  \"command_timeout_milliseconds\" : 5000,\n" +
-                "  \"command_template\" : \"\",\n" +
-                "  \"command_replacement_map\" : {},\n" +
-                "  \"command_response_map\" : {}\n" +
-                "}";
-
-        ProxySpecification proxySpecification = mapper.readValue(sharedDeliveryAddress, ProxySpecification.class);
-
-        // String commandUrl = logonServiceBaseUrl + "#applicationTokenId/api/#userTokenId/shared-delivery-address";
-        // ProxySpecification sharedDeliveryAddress = new ProxySpecification(commandUrl,
-        //         "",
-        //         "",
-        //         "false",
-        //         "true",
-        //         "5000",
-        //         "",
-        //         new HashMap<>(),
-        //         new HashMap<>()
-        // );
-        proxySpecifications.put("ssolwa-shared-delivery-address", proxySpecification);
-    }
-
-    //TODO: verify before taking into use
-    private void getSpecificationsFromPath(String directory) throws IOException {
-        File folder = new File(directory);
-        File[] directories = folder.listFiles();
-        if (directories == null) {
-            log.warn("Found no files in {}. ProxySpecificationRepository is empty", directory);
-            return;
+        if (loadFromClasspath) {
+            proxySpecifications.putAll(getSpecificationsFromClasspath(path));
         }
-        for (File file : directories) {
+
+    }
+
+    private Map<String, ProxySpecification> getSpecificationsFromDisk(String path) throws IOException {
+        File folder = new File(path);
+        File[] files = folder.listFiles();
+        Map<String, ProxySpecification> specifications = new HashMap<>();
+        if (files == null) {
+            log.warn("Found no files on disk in {}", path);
+            return specifications;
+        }
+        getProxySpecifications(specifications, files);
+        return specifications;
+    }
+
+    private static Map<String, ProxySpecification> getSpecificationsFromClasspath(String folder) throws IOException {
+        ClassLoader loader = Thread.currentThread().getContextClassLoader();
+        Map<String, ProxySpecification> specifications = new HashMap<>();
+        URL url = loader.getResource(folder);
+        if (url == null) {
+            log.warn("Failed to find ProxySpecifications from classpath");
+            return specifications;
+        }
+        String path = url.getPath();
+        File[] files = new File(path).listFiles();
+        if (files == null) {
+            log.warn("Found no files on classpath in {}", path);
+            return specifications;
+        }
+        getProxySpecifications(specifications, files);
+        return specifications;
+    }
+
+    private static void getProxySpecifications(final Map<String, ProxySpecification> specifications, final File[] files) throws IOException {
+        for (File file : files) {
             if (file != null && file.isFile()) {
                 ProxySpecification proxySpecification = mapper.readValue(file, ProxySpecification.class);
-                proxySpecifications.put(file.getName(), proxySpecification);
+                specifications.put(file.getName().replace(".json", ""), proxySpecification);
             }
-
         }
     }
 

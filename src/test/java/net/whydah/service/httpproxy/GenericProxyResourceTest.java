@@ -66,6 +66,47 @@ public class GenericProxyResourceTest extends AbstractEndpointTest {
         assertTrue(response.body().asString().contains("shared-delivery-address"));
     }
 
+    @Test
+    public void sts_validate() {
+        String apiPath = "/httpproxy/generic/{secret}/{userTokenId}/{proxySpecificationName}"
+                .replace("{secret}", validSecret)
+                .replace("{userTokenId}", "TODO")
+                .replace("{proxySpecificationName}", "sts-validate");
+        ExtractableResponse<io.restassured.response.Response> response = given()
+                .when()
+                .port(getServerPort())
+                .accept("application/json")
+                .get(apiPath)
+                .then().log().ifValidationFails()
+                .statusCode(Status.OK.getStatusCode())
+                .extract();
+
+        String body = response.body().asString();
+
+        assertEquals(body, "{\"result\": \"true\"}");
+
+
+    }
+
+    @Test
+    public void sts_validate_jwt() {
+        String apiPath = "/httpproxy/generic/{secret}/{proxySpecificationName}"
+                .replace("{secret}", validSecret)
+                .replace("{proxySpecificationName}", "sts-validate");
+        ExtractableResponse<io.restassured.response.Response> response = given()
+                .when()
+                .port(getServerPort())
+                .accept("application/json")
+                .header("AUTHORIZATION", "Bearer " + validJwt)
+                .get(apiPath)
+                .then().log().ifValidationFails()
+                .statusCode(Status.OK.getStatusCode())
+                .extract();
+
+        String body = response.body().asString();
+
+        assertEquals(body, "{\"result\": \"true\"}");
+    }
 
     @Test
     public void get_withoutValidSecret_401() {
