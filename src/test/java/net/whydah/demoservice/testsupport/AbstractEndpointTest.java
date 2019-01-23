@@ -156,13 +156,6 @@ public abstract class AbstractEndpointTest {
         );
 
 
-//        addStub(WireMock.post(urlMatching("/tokenservice/user/.*/.*/usertoken"))
-//                .willReturn(WireMock.aResponse()
-//                        .withStatus(200)
-//                        .withHeader("Content-Type", "text/xml")
-//                        .withBody(UserTokenMapper.toXML(userToken))
-//                )
-//        );
 
         addStub(WireMock.get(urlMatching("/oidsso/.*/api/.*/shared-delivery-address"))
                 .willReturn(WireMock.aResponse()
@@ -198,6 +191,14 @@ public abstract class AbstractEndpointTest {
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json")
                         .withBody("{\"reason\":  \"ok\"}")
+                )
+        );
+
+        addStub(WireMock.post(urlMatching("/tokenservice/user/.*/.*/usertoken"))
+                .willReturn(WireMock.aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "text/xml")
+                        .withBody(UserTokenMapper.toXML(testAppClientUserToken))
                 )
         );
 
