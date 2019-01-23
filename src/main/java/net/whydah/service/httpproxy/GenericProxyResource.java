@@ -23,7 +23,7 @@ import static net.whydah.service.httpproxy.GenericProxyResource.API_PATH;
 @Path(API_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 public class GenericProxyResource {
-    static final String API_PATH = "/httpproxy/generic";
+    static final String API_PATH = "/generic";
     private static final Logger log = LoggerFactory.getLogger(GenericProxyResource.class);
 
     private static final String BEARER_TOKEN_PREFIX = "bearer";

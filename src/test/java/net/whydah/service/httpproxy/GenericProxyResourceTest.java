@@ -30,7 +30,7 @@ public class GenericProxyResourceTest extends AbstractEndpointTest {
 
     @Test //TODO: Replace with another testcase
     public void getSharedDeliveryAddress() {
-        String apiPath = "/httpproxy/generic/{secret}/{userTokenId}/{proxySpecificationName}"
+        String apiPath = "/generic/{secret}/{userTokenId}/{proxySpecificationName}"
                 .replace("{secret}", validSecret)
                 .replace("{userTokenId}", "TODO")
                 .replace("{proxySpecificationName}", "ssolwa-shared-delivery-address");
@@ -49,7 +49,7 @@ public class GenericProxyResourceTest extends AbstractEndpointTest {
 
     @Test //TODO: Replace with another testcase
     public void getSharedDeliveryAddress_JWT() {
-        String apiPath = "/httpproxy/generic/{secret}/{proxySpecificationName}"
+        String apiPath = "/generic/{secret}/{proxySpecificationName}"
                 .replace("{secret}", validSecret)
                 .replace("{proxySpecificationName}", "ssolwa-shared-delivery-address");
         ExtractableResponse<io.restassured.response.Response> response = given()
@@ -68,7 +68,7 @@ public class GenericProxyResourceTest extends AbstractEndpointTest {
 
     @Test
     public void sts_validate() {
-        String apiPath = "/httpproxy/generic/{secret}/{userTokenId}/{proxySpecificationName}"
+        String apiPath = "/generic/{secret}/{userTokenId}/{proxySpecificationName}"
                 .replace("{secret}", validSecret)
                 .replace("{userTokenId}", "TODO")
                 .replace("{proxySpecificationName}", "sts-validate");
@@ -90,7 +90,7 @@ public class GenericProxyResourceTest extends AbstractEndpointTest {
 
     @Test
     public void sts_validate_jwt() {
-        String apiPath = "/httpproxy/generic/{secret}/{proxySpecificationName}"
+        String apiPath = "/generic/{secret}/{proxySpecificationName}"
                 .replace("{secret}", validSecret)
                 .replace("{proxySpecificationName}", "sts-validate");
         ExtractableResponse<io.restassured.response.Response> response = given()
@@ -110,7 +110,7 @@ public class GenericProxyResourceTest extends AbstractEndpointTest {
 
     @Test
     public void get_withoutValidSecret_401() {
-        String apiPath = "/httpproxy/generic/{secret}/{userTokenId}/{proxySpecificationName}"
+        String apiPath = "/generic/{secret}/{userTokenId}/{proxySpecificationName}"
                 .replace("{secret}", invalidSecret)
                 .replace("{userTokenId}", "irrelevant")
                 .replace("{proxySpecificationName}", "irrelevant");
@@ -126,7 +126,7 @@ public class GenericProxyResourceTest extends AbstractEndpointTest {
 
     @Test
     public void get_validSecret_unkown_proxySpecification_404() {
-        String apiPath = "/httpproxy/generic/{secret}/{userTokenId}/{proxySpecificationName}"
+        String apiPath = "/generic/{secret}/{userTokenId}/{proxySpecificationName}"
                 .replace("{secret}", validSecret)
                 .replace("{userTokenId}", "irrelevant")
                 .replace("{proxySpecificationName}", "irrelevant");
