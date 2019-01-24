@@ -6,6 +6,7 @@ import org.constretto.annotation.Configure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Repository;
 
 import javax.inject.Singleton;
@@ -37,7 +38,7 @@ public class ProxySpecificationRepository {
 
     }
 
-    private Map<String, ProxySpecification> getSpecificationsFromDisk(String path) throws IOException {
+    private static Map<String, ProxySpecification> getSpecificationsFromDisk(String path) throws IOException {
         File folder = new File(path);
         File[] files = folder.listFiles();
         Map<String, ProxySpecification> specifications = new HashMap<>();
@@ -76,7 +77,11 @@ public class ProxySpecificationRepository {
         }
     }
 
-    public Optional<ProxySpecification> get(String proxySpecificationName) {
+    public Optional<ProxySpecification> get(HttpMethod httpMethod, String proxySpecificationName) {
+        return get(httpMethod.name().toLowerCase() +"-"+ proxySpecificationName);
+    }
+
+    private Optional<ProxySpecification> get(String proxySpecificationName) {
         return Optional.ofNullable(proxySpecifications.get(proxySpecificationName));
 
     }

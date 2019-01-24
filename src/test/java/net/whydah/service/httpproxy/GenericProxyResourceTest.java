@@ -33,7 +33,7 @@ public class GenericProxyResourceTest extends AbstractEndpointTest {
         String apiPath = "/generic/{secret}/{userTokenId}/{proxySpecificationName}"
                 .replace("{secret}", validSecret)
                 .replace("{userTokenId}", "TODO")
-                .replace("{proxySpecificationName}", "ssolwa-shared-delivery-address");
+                .replace("{proxySpecificationName}", "shared-delivery-address");
         ExtractableResponse<io.restassured.response.Response> response = given()
                 .when()
                 .port(getServerPort())
@@ -51,7 +51,7 @@ public class GenericProxyResourceTest extends AbstractEndpointTest {
     public void getSharedDeliveryAddress_JWT() {
         String apiPath = "/generic/{secret}/{proxySpecificationName}"
                 .replace("{secret}", validSecret)
-                .replace("{proxySpecificationName}", "ssolwa-shared-delivery-address");
+                .replace("{proxySpecificationName}", "shared-delivery-address");
         ExtractableResponse<io.restassured.response.Response> response = given()
                 .when()
                 .port(getServerPort())

@@ -9,6 +9,7 @@ import org.constretto.annotation.Configure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.ws.rs.*;
@@ -67,8 +68,7 @@ public class GenericProxyResource {
             return status(Status.FORBIDDEN).build();
         }
         log.debug("GET invoked with proxySpecificationName: {}", proxySpecificationName);
-        Response response = proxyRequest(proxySpecificationName, applicationToken, userTokenId, httpheaders);
-        return response;
+        return proxyRequest(HttpMethod.GET, proxySpecificationName, applicationToken, userTokenId, httpheaders);
     }
 
     /**
@@ -101,14 +101,14 @@ public class GenericProxyResource {
             return status(Status.FORBIDDEN).build();
         }
 
-        return proxyRequest(proxySpecificationName, applicationToken, userTokenId, httpheaders);
+        return proxyRequest(HttpMethod.GET, proxySpecificationName, applicationToken, userTokenId, httpheaders);
     }
 
 
-    private Response proxyRequest(final String proxySpecificationName,
+    private Response proxyRequest(final HttpMethod httpMethod, final String proxySpecificationName,
                                   final ApplicationToken applicationToken, final String userTokenId,
                                   final HttpHeaders httpheaders) throws CloneNotSupportedException {
-        Optional<ProxySpecification> optionalSpecification = proxySpecifications.get(proxySpecificationName);
+        Optional<ProxySpecification> optionalSpecification = proxySpecifications.get(httpMethod, proxySpecificationName);
         if (!optionalSpecification.isPresent()) {
             log.info("ProxySpecification not found for targetName: {}, proxySpecificationName{}");
             return Response.status(Status.NOT_FOUND).build();
