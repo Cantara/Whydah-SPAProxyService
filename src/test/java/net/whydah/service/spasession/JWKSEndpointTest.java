@@ -6,7 +6,7 @@ import java.net.HttpURLConnection;
 
 import org.testng.annotations.Test;
 
-import net.whydah.demoservice.testsupport.AbstractEndpointTest;
+import net.whydah.testsupport.AbstractEndpointTest;
 import net.whydah.service.auth.JwksEndpointController;
 import static org.hamcrest.core.StringContains.containsString;
 

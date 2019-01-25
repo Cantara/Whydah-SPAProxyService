@@ -3,7 +3,7 @@ package net.whydah.service.spasession;
 import net.whydah.commands.CommandAPIUserLoginToJWT;
 import net.whydah.commands.CommandGetProxyResponse;
 import net.whydah.commands.CommandResolveTicketToJWT;
-import net.whydah.demoservice.testsupport.TestServer;
+import net.whydah.testsupport.TestServer;
 import net.whydah.service.auth.UserAuthenticationResource;
 import net.whydah.sso.basehelpers.JsonPathHelper;
 import net.whydah.sso.user.types.UserCredential;

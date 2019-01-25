@@ -1,6 +1,6 @@
 package net.whydah.service.spasession;
 
-import net.whydah.demoservice.testsupport.TestServer;
+import net.whydah.testsupport.TestServer;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;

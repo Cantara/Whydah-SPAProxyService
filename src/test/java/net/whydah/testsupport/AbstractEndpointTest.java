@@ -1,4 +1,4 @@
-package net.whydah.demoservice.testsupport;
+package net.whydah.testsupport;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;

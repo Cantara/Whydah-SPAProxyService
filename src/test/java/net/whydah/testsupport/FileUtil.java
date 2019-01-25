@@ -1,4 +1,4 @@
-package net.whydah.demoservice.testsupport;
+package net.whydah.testsupport;
 
 import java.io.File;
 import java.io.IOException;

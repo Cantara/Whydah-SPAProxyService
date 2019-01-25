@@ -2,7 +2,7 @@ package net.whydah.service.httpproxy;
 
 import io.restassured.response.ExtractableResponse;
 import io.restassured.response.ValidatableResponse;
-import net.whydah.demoservice.testsupport.AbstractEndpointTest;
+import net.whydah.testsupport.AbstractEndpointTest;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.testng.annotations.BeforeClass;

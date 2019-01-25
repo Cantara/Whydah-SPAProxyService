@@ -1,6 +1,6 @@
 package net.whydah.service.httpproxy;
 
-import net.whydah.demoservice.testsupport.FileUtil;
+import net.whydah.testsupport.FileUtil;
 import org.springframework.http.HttpMethod;
 import org.testng.annotations.Test;
 

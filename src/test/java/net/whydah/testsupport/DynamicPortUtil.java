@@ -1,4 +1,4 @@
-package net.whydah.demoservice.testsupport;
+package net.whydah.testsupport;
 
 import javax.net.ServerSocketFactory;
 import java.net.InetAddress;

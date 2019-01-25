@@ -1,4 +1,4 @@
-package net.whydah.demoservice.testsupport;
+package net.whydah.testsupport;
 
 import io.restassured.RestAssured;
 import net.whydah.service.Main;

@@ -1,6 +1,6 @@
 package net.whydah.service.health;
 
-import net.whydah.demoservice.testsupport.AbstractEndpointTest;
+import net.whydah.testsupport.AbstractEndpointTest;
 import org.testng.annotations.Test;
 
 import java.net.HttpURLConnection;
