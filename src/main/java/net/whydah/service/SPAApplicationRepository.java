@@ -13,10 +13,7 @@ import org.springframework.stereotype.Repository;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.net.URI;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -108,7 +105,9 @@ public class SPAApplicationRepository {
     }
 
     private void renewApplicationSessions() {
-        for (ApplicationToken applicationToken : allSessions()) {
+        //Use a set to avoid renewing the same token multiple times
+        Set<ApplicationToken> applicationTokens = new HashSet<>(allSessions());
+        for (ApplicationToken applicationToken : applicationTokens) {
             CommandRenewApplicationSession commandRenewApplicationSession = new CommandRenewApplicationSession(
                     URI.create(credentialStore.getWas().getSTS()), applicationToken.getApplicationTokenId());
             commandRenewApplicationSession.execute();
