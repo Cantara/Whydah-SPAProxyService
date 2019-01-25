@@ -128,6 +128,7 @@ public abstract class AbstractEndpointTest {
                 )
         );
 
+
         // get applications from UAS. Return single testApp
         Application application = new Application("inMemoryTestAppId", "testApp");
         application.setApplicationUrl("http://dummy.url.does.not.exist.com");
@@ -170,6 +171,7 @@ public abstract class AbstractEndpointTest {
         testAppClientUserToken.setUserName("testAppUser");
         testAppClientUserToken.setLastName("AbstractEndpointTest");
         testAppClientUserToken.setUid("09876543210987654321");
+        testAppClientUserToken.setUserTokenId("testAppUserTokenId1234");
         addStub(WireMock.post(urlMatching("/tokenservice/user/12340f039fcfbb083bed8c12da581234/get_usertoken_by_userticket"))
                 .willReturn(WireMock.aResponse()
                         .withStatus(200)
@@ -199,6 +201,15 @@ public abstract class AbstractEndpointTest {
                         .withStatus(200)
                         .withHeader("Content-Type", "text/xml")
                         .withBody(UserTokenMapper.toXML(testAppClientUserToken))
+                )
+        );
+
+        // validate logon - STS - inMemoryTestAppId
+        addStub(WireMock.get(urlEqualTo("/tokenservice/user/12340f039fcfbb083bed8c12da581234/validate_usertokenid/testAppUserTokenId1234"))
+                .willReturn(WireMock.aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "text/xml")
+                        .withBody("{\"result\": \"true\"}")
                 )
         );
 
