@@ -9,23 +9,25 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.net.URL;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 /**
  *
  */
-public class CommandGenericGetProxy extends HystrixCommand<Response> {
-    private static final String GROUP_KEY = "CommandGenericGetProxy";
+public class GetCommandGenericProxy extends HystrixCommand<Response> {
+    private static final String GROUP_KEY = "GetCommandGenericProxy";
     final private URI uri;
     final private MultivaluedMap<String, String> headers;
 
 
-    public CommandGenericGetProxy(ProxySpecification specification, MultivaluedMap<String, String> headers) {
+    public GetCommandGenericProxy(ProxySpecification specification, MultivaluedMap<String, String> headers) {
         super(com.netflix.hystrix.HystrixCommand.Setter.withGroupKey(HystrixCommandGroupKey.Factory.asKey(GROUP_KEY))
                 .andCommandPropertiesDefaults(HystrixCommandProperties.Setter()
                         .withExecutionTimeoutInMilliseconds(specification.getCommand_timeout_milliseconds()))
         );
+        specification.resolveVariables(Collections.emptyMap(),Collections.emptyMap(), Collections.emptyMap());
         this.uri = URI.create(specification.getCommand_url());
         this.headers = headers;
     }

@@ -213,6 +213,16 @@ public abstract class AbstractEndpointTest {
                 )
         );
 
+
+        // A stub which simply returns the request body in the response.
+        addStub(WireMock.post(urlMatching("/tokenservice/.*/api/.*/parrot"))
+                .willReturn(WireMock.aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("{{request.body}}")
+                        .withTransformers("response-template")
+                ));
+
         //
     }
 

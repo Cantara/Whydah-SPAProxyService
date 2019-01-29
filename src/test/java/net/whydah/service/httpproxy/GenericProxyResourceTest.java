@@ -30,7 +30,26 @@ public class GenericProxyResourceTest extends AbstractEndpointTest {
         validUserTokenId = "testAppUserTokenId1234";
     }
 
-    @Test //TODO: Replace with another testcase
+    @Test
+    public void post_parrotWireMock() throws Exception {
+        String apiPath = "/generic/{secret}/{userTokenId}/{proxySpecificationName}"
+                .replace("{secret}", validSecret)
+                .replace("{userTokenId}", validUserTokenId)
+                .replace("{proxySpecificationName}", "sts-parrot-mock");
+        ExtractableResponse<io.restassured.response.Response> response = given()
+                .when()
+                .port(getServerPort())
+                .accept("application/json")
+                .post(apiPath)
+                .then().log().ifValidationFails()
+                .statusCode(Status.OK.getStatusCode())
+                .extract();
+
+
+        assertTrue(response.body().asString().contains(validUserTokenId));
+    }
+
+    @Test
     public void sts_validate_usertokenid() {
         String apiPath = "/generic/{secret}/{userTokenId}/{proxySpecificationName}"
                 .replace("{secret}", validSecret)
@@ -49,7 +68,7 @@ public class GenericProxyResourceTest extends AbstractEndpointTest {
         assertTrue(response.body().asString().contains("{\"result\": \"true\"}"));
     }
 
-    @Test //TODO: Replace with another testcase
+    @Test
     public void sts_validate_usertokenid_jwt() {
         String apiPath = "/generic/{secret}/{proxySpecificationName}"
                 .replace("{secret}", validSecret)
@@ -86,8 +105,6 @@ public class GenericProxyResourceTest extends AbstractEndpointTest {
         String body = response.body().asString();
 
         assertEquals(body, "{\"result\": \"true\"}");
-
-
     }
 
     @Test
@@ -165,6 +182,22 @@ public class GenericProxyResourceTest extends AbstractEndpointTest {
     }
 
     @Test
+    public void post_withoutValidSecret_401() {
+        String apiPath = "/generic/{secret}/{userTokenId}/{proxySpecificationName}"
+                .replace("{secret}", invalidSecret)
+                .replace("{userTokenId}", "irrelevant")
+                .replace("{proxySpecificationName}", "irrelevant");
+        given()
+                .when()
+                .port(getServerPort())
+                .accept("application/json")
+                .post(apiPath)
+                .then().log().ifValidationFails()
+                .statusCode(Status.FORBIDDEN.getStatusCode())
+                .extract();
+    }
+
+    @Test
     public void get_validSecret_unkown_proxySpecification_404() {
         String apiPath = "/generic/{secret}/{userTokenId}/{proxySpecificationName}"
                 .replace("{secret}", validSecret)
@@ -175,6 +208,22 @@ public class GenericProxyResourceTest extends AbstractEndpointTest {
                 .port(getServerPort())
                 .accept("application/json")
                 .get(apiPath)
+                .then().log().ifValidationFails()
+                .statusCode(Status.NOT_FOUND.getStatusCode())
+                .extract();
+    }
+
+    @Test
+    public void post_validSecret_unkown_proxySpecification_404() {
+        String apiPath = "/generic/{secret}/{userTokenId}/{proxySpecificationName}"
+                .replace("{secret}", validSecret)
+                .replace("{userTokenId}", "irrelevant")
+                .replace("{proxySpecificationName}", "irrelevant");
+        given()
+                .when()
+                .port(getServerPort())
+                .accept("application/json")
+                .post(apiPath)
                 .then().log().ifValidationFails()
                 .statusCode(Status.NOT_FOUND.getStatusCode())
                 .extract();

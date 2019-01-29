@@ -1,0 +1,12 @@
+{
+  "command_url": "#securitytokenservice#applicationTokenId/api/#userTokenId/parrot",
+  "command_contenttype": "",
+  "command_http_authstring": "",
+  "command_http_post": true,
+  "command_timeout_milliseconds": 2000,
+  "command_template": "#userTokenId",
+  "command_replacement_map": {
+  },
+  "command_response_map": {
+  }
+}

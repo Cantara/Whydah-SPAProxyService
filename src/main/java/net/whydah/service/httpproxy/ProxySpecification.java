@@ -193,62 +193,40 @@ public class ProxySpecification implements Serializable, Cloneable {
     }
 
 
-    // public Map<String, String> getCommand_response_map() {
-    //     if (command_response_map == null) {
-    //         command_response_map = new HashMap<>();
-    //     }
-    //     return command_response_map;
-    // }
-    //
-    // public void setCommand_response_map(Map<String, String> command_response_map) {
-    //     this.command_response_map = command_response_map;
-    // }
+    public Map<String, String> getCommand_response_map() {
+        if (command_response_map == null) {
+            command_response_map = new HashMap<>();
+        }
+        return command_response_map;
+    }
 
-    // private void loadTemplateReference() {
-    //     if (isTemplate) {
-    //         log.error("Attempt to resolve variables on template, user clone() ");
-    //         return;
-    //     }
-    //     if (getCommand_template().startsWith("FILE:")) {
-    //         setCommand_template(getTemplateUtil().updateTemplateWithValuesFromMap(command_template));
-    //
-    //         String filename = getCommand_template().substring(5);
-    //         try {
-    //             String contents = templateByFileReference.computeIfAbsent(filename, f -> loadFromDiskByName(f));
-    //             setCommand_template(contents);
-    //             log.trace("loadTemplateReference - Updated FILE; filename:{}, reference with: {} \n template now: {}", filename, contents, getCommand_template());
-    //         } catch (Exception e) {
-    //             log.error("loadTemplateReference - Unable to load external referenced TestSpecificationtremplate, filaname: {} exception: {}", filename, e);
-    //         }
-    //
-    //     }
-    // }
+    public void setCommand_response_map(Map<String, String> command_response_map) {
+        this.command_response_map = command_response_map;
+    }
 
+    public void resolveVariables(Map<String, String> globalMap, Map<String, String> inheritedVariables, Map<String, String> resolvedResultVariables) {
+        if (isTemplate) {
+            return;
+        }
+        if (globalMap != null) {
+            addMapToCommand_replacement_map(globalMap);
+        }
+        if (inheritedVariables != null) {
+            addMapToCommand_replacement_map(inheritedVariables);
+        }
+        if (resolvedResultVariables != null) {
+            addMapToCommand_replacement_map(resolvedResultVariables);
+        }
+        Map<String, String> command_replacement_map = getCommand_replacement_map();
+        log.trace("resolveVariables - Active variables: {}", command_replacement_map);
+        setCommand_url(getTemplateUtil().updateTemplateWithValuesFromMap(getCommand_url()));
+        log.trace("resolveVariables -Updated commandURL: {}", getCommand_url());
+        setCommand_http_authstring(getTemplateUtil().updateTemplateWithValuesFromMap(getCommand_http_authstring()));
+        log.trace("resolveVariables - Updated command_http_authstring: {}", getCommand_http_authstring());
+        setCommand_template(getTemplateUtil().updateTemplateWithValuesFromMap(getCommand_template()));
+        log.trace("resolveVariables - Updated command_template: {}", getCommand_template());
 
-    // public void resolveVariables(Map<String, String> globalMap, Map<String, String> inheritedVariables, Map<String, String> resolvedResultVariables) {
-    //     if (isTemplate) {
-    //         return;
-    //     }
-    //     if (globalMap != null) {
-    //         addMapToCommand_replacement_map(globalMap);
-    //     }
-    //     if (inheritedVariables != null) {
-    //         addMapToCommand_replacement_map(inheritedVariables);
-    //     }
-    //     if (resolvedResultVariables != null) {
-    //         addMapToCommand_replacement_map(resolvedResultVariables);
-    //     }
-    //     Map<String, String> command_replacement_map = getCommand_replacement_map();
-    //     loadTemplateReference();
-    //     log.trace("resolveVariables - Active variables: {}", command_replacement_map);
-    //     setCommand_url(getTemplateUtil().updateTemplateWithValuesFromMap(getCommand_url()));
-    //     log.trace("resolveVariables -Updated commandURL: {}", getCommand_url());
-    //     setCommand_http_authstring(getTemplateUtil().updateTemplateWithValuesFromMap(getCommand_http_authstring()));
-    //     log.trace("resolveVariables - Updated command_http_authstring: {}", getCommand_http_authstring());
-    //     setCommand_template(getTemplateUtil().updateTemplateWithValuesFromMap(getCommand_template()));
-    //     log.trace("resolveVariables - Updated command_template: {}", getCommand_template());
-    //
-    // }
+    }
 
     @Override
     public String toString() {

@@ -104,6 +104,59 @@ public class GenericProxyResource {
         return proxyRequest(HttpMethod.GET, proxySpecificationName, applicationToken, userTokenId, httpheaders);
     }
 
+    /**
+     * Uses the userTokenId from path
+     */
+    @POST
+    @Path("{secret}/{userTokenId}/{proxySpecificationName}")
+    public Response postGeneric(@Context UriInfo uriInfo,
+                               @Context HttpHeaders httpheaders,
+                               @PathParam("secret") String secret,
+                               @PathParam("userTokenId") String userTokenId,
+                               @PathParam("proxySpecificationName") String proxySpecificationName) throws CloneNotSupportedException {
+
+        ApplicationToken applicationToken = spaApplicationRepository.getApplicationTokenBySecret(secret);
+        if (applicationToken == null) {
+            log.warn("Unable to locate application session from secret, returning FORBIDDEN");
+            return status(Status.FORBIDDEN).build();
+        }
+        log.debug("POST invoked with proxySpecificationName: {}", proxySpecificationName);
+        return proxyRequest(HttpMethod.POST, proxySpecificationName, applicationToken, userTokenId, httpheaders);
+    }
+
+    /**
+     * Retrieves the userTokenId from the provided JWT
+     */
+    @POST
+    @Path("{secret}/{proxySpecificationName}")
+    public Response postGenericWithJWT(@Context UriInfo uriInfo,
+                                      @Context HttpHeaders httpheaders,
+                                      @PathParam("secret") String secret,
+                                      @PathParam("proxySpecificationName") String proxySpecificationName,
+                                      @HeaderParam("Authorization") String authorizationHeader) throws CloneNotSupportedException {
+
+        ApplicationToken applicationToken = spaApplicationRepository.getApplicationTokenBySecret(secret);
+        if (applicationToken == null) {
+            log.warn("Unable to locate application session from secret, returning FORBIDDEN");
+            return status(Status.FORBIDDEN).build();
+        }
+
+        log.debug("POST invoked with proxySpecificationName: {}", proxySpecificationName);
+        //read the authorization header
+        String userTokenId;
+        if (authorizationHeader != null && authorizationHeader.toLowerCase().startsWith(BEARER_TOKEN_PREFIX + " ")) {
+            String jwt = authorizationHeader.substring(BEARER_TOKEN_PREFIX.length()).trim();
+            userTokenId = spaKeyStoreRepository.getUserTokenIdFromJWT(jwt);
+            if (userTokenId == null || userTokenId.isEmpty()) {
+                return status(Status.FORBIDDEN).build();
+            }
+        } else {
+            return status(Status.FORBIDDEN).build();
+        }
+
+        return proxyRequest(HttpMethod.POST, proxySpecificationName, applicationToken, userTokenId, httpheaders);
+    }
+
 
     private Response proxyRequest(final HttpMethod httpMethod, final String proxySpecificationName,
                                   final ApplicationToken applicationToken, final String userTokenId,
@@ -117,11 +170,22 @@ public class GenericProxyResource {
                 optionalSpecification.get(), applicationToken.getApplicationTokenId(),
                 userTokenId, logonServiceBaseUrl, securitytokenservice
         );
+        Response response;
 
-        Response response = new CommandGenericGetProxy(
-                specification,
-                httpheaders.getRequestHeaders()
-        ).execute();
+        if (httpMethod.equals(HttpMethod.GET)) {
+            response = new GetCommandGenericProxy(
+                    specification,
+                    httpheaders.getRequestHeaders()
+            ).execute();
+        } else if (httpMethod.equals(HttpMethod.POST)) {
+            response = new PostCommandGenericProxy(
+                    specification,
+                    httpheaders.getRequestHeaders()
+            ).execute();
+        } else {
+            response = Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+
 
         return fromResponse(response)
                 .header("Access-Control-Allow-Origin", credentialStore.findRedirectUrl(applicationToken.getApplicationName()))
