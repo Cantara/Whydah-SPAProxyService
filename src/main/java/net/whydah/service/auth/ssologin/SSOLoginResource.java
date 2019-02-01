@@ -22,9 +22,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import java.net.URI;
 import java.security.NoSuchAlgorithmException;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import static net.whydah.service.auth.ssologin.SSOLoginUtil.*;
 
@@ -37,6 +35,7 @@ import static net.whydah.service.auth.ssologin.SSOLoginUtil.*;
 public class SSOLoginResource {
     static final String WITH_SESSION_PATH = "/application/session/{spaSessionSecret}/user/auth/ssologin";
     static final String WITHOUT_SESSION_PATH = "/application/{appName}/user/auth/ssologin";
+    static final String[] QUERY_PARAMS_NOT_FORWARDED = Configuration.getString("proxy.queryparams.disallowed").split(",");
 
     private static final Logger log = LoggerFactory.getLogger(SSOLoginResource.class);
 
@@ -228,24 +227,27 @@ public class SSOLoginResource {
         ssoLoginSession.withStatus(SessionStatus.COMPLETE);
         ssoLoginSession.withUserTicket(userticket);
 
+        UriBuilder uri;
         if (ssoLoginSession.hasSpaSessionSecretHash()) {
-            String location = UriBuilder.fromUri(credentialStore.findRedirectUrl(application))
-                    .build().toString();
+            uri = UriBuilder.fromUri(credentialStore.findRedirectUrl(application));
             ssoLoginRepository.put(uuid, ssoLoginSession);
-            return Response.status(Response.Status.FOUND)
-                    .header("Location", location)
-                    .build();
+
         } else {
             SPASessionSecret spaSessionSecret = spaSessionHelper.addReferenceToApplicationSession(application);
             ssoLoginSession.withSpaSessionSecretHash(SSOLoginUtil.sha256Hash(spaSessionSecret.getSecret()));
             ssoLoginRepository.put(uuid, ssoLoginSession);
-            String location = UriBuilder.fromUri(credentialStore.findRedirectUrl(application))
-                    .queryParam("code", spaSessionSecret.getSecret())
-                    .build().toString();
-            return Response.status(Response.Status.FOUND)
-                    .header("Location", location)
-                    .build();
+            uri = UriBuilder.fromUri(credentialStore.findRedirectUrl(application))
+                    .queryParam("code", spaSessionSecret.getSecret());
+
         }
+
+        Map<String, String[]> originalQueryParamsMap = removeKeysFromMap(QUERY_PARAMS_NOT_FORWARDED, httpServletRequest.getParameterMap());
+        String location = SSOLoginUtil.addQueryParamsToUri(originalQueryParamsMap, uri).build().toString();
+
+        log.info("Redirecting user to: " + location);
+        return Response.status(Response.Status.FOUND)
+                .header("Location", location)
+                .build();
     }
 
     /**

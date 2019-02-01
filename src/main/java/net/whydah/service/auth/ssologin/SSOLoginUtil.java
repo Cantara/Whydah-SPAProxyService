@@ -17,10 +17,7 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 /**
  *
@@ -134,6 +131,30 @@ class SSOLoginUtil {
         }
 
         return Optional.empty();
+    }
+
+    /**
+     * addQueryParamsToUri
+     * @description Takes an UriBuilder and params, and adds the param set to the URI
+     * @param params
+     * @param uriBuilder
+     * @return uriBuilder with the params
+     */
+    static UriBuilder addQueryParamsToUri(Map<String, String[]> params, UriBuilder uriBuilder) {
+        for (Map.Entry<String, String[]> entry : params.entrySet()) {
+            uriBuilder.queryParam(entry.getKey(), entry.getValue()[0]);
+        }
+        return uriBuilder;
+    }
+
+    static Map<String, String[]> removeKeysFromMap(String[] paramsToRemove, Map<String, String[]> map) {
+        Map<String, String[]> cleanMap = new HashMap<String, String[]>();
+        for (Map.Entry<String, String[]> entry: cleanMap.entrySet()) {
+            if (Arrays.asList(paramsToRemove).indexOf(entry.getKey()) < 0) {
+                cleanMap.put(entry.getKey(), entry.getValue());
+            }
+        }
+        return cleanMap;
     }
 
     static Map<String, String[]> buildQueryParamsForRedirectUrl(UUID ssoLoginUUID, final Application application,

@@ -1,15 +1,15 @@
 package net.whydah.service.auth.ssologin;
 
 import net.whydah.sso.application.types.Application;
+import org.apache.http.client.utils.URIBuilder;
 import org.testng.annotations.Test;
 
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
 import java.net.URI;
+import java.net.URL;
 import java.security.NoSuchAlgorithmException;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import static org.testng.Assert.*;
 
@@ -190,5 +190,23 @@ public class SSOLoginUtilTest {
         assertNotNull(hash1);
         assertFalse(hash1.isEmpty());
         assertEquals(hash1, hash2);
+    }
+
+    @Test
+    public void test_addQueryParamsToUri() {
+        Map<String, String[]> queryParams = new HashMap<String, String[]>();
+        String key1 = "someParam";
+        String key2 = "someParam2";
+        String[] value1 = {"someValue"};
+        String[] value2 = {"someOtherValue"};
+        queryParams.put(key1, value1);
+        queryParams.put(key2, value2);
+
+        String mockUri = "http://www.someodmain.com/somewhere";
+        UriBuilder mockUriBuilder = UriBuilder.fromUri(mockUri);
+        UriBuilder uriBuilderWithParams = SSOLoginUtil.addQueryParamsToUri(queryParams, mockUriBuilder);
+        assertNotNull(uriBuilderWithParams);
+        assertEquals(uriBuilderWithParams.build().toString(), String.format(mockUri + "?%s=%s&%s=%s", key2, value2[0], key1, value1[0]));
+
     }
 }
