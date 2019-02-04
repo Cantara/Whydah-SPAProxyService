@@ -80,7 +80,7 @@ public class SSOLoginRepositoryTest {
         ZonedDateTime initialized = retrievedSession.getInitializedTimestamp();
         assertNotNull(initialized);
 
-        //Thread should have automatically deleted the old session after maxAgeSeconds
+        //Thread should have the old session deleted automatically after maxAgeSeconds
 
         TimeUnit.SECONDS.sleep(3);
         SSOLoginSession afterCleanUp = ssoLoginRepository.get(uuid);
