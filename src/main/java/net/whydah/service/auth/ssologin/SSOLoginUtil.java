@@ -149,7 +149,7 @@ class SSOLoginUtil {
 
     static Map<String, String[]> removeKeysFromMap(String[] paramsToRemove, Map<String, String[]> map) {
         Map<String, String[]> cleanMap = new HashMap<String, String[]>();
-        for (Map.Entry<String, String[]> entry: cleanMap.entrySet()) {
+        for (Map.Entry<String, String[]> entry: map.entrySet()) {
             if (Arrays.asList(paramsToRemove).indexOf(entry.getKey()) < 0) {
                 cleanMap.put(entry.getKey(), entry.getValue());
             }

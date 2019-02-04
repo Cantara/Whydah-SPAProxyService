@@ -36,7 +36,6 @@ public class ProxySpecification implements Serializable, Cloneable {
 
     private static final Logger log = LoggerFactory.getLogger(ProxySpecification.class);
 
-
     public ProxySpecification(@JsonProperty("command_url") String command_url,
                               @JsonProperty("command_contenttype") String command_contenttype,
                               @JsonProperty("command_http_authstring") String command_http_authstring,

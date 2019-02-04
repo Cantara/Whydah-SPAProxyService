@@ -106,7 +106,7 @@ public class SSOLoginResource {
                                                                 @PathParam("appName") String appName) {
         Application application = credentialStore.findApplication(appName);
         if (application == null) {
-            log.info("Application not found for appliCationName {}. Returning not found", appName);
+            log.info("Application not found for applicationName {}. Returning not found", appName);
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
@@ -240,7 +240,7 @@ public class SSOLoginResource {
                     .queryParam("code", spaSessionSecret.getSecret());
 
         }
-
+        log.info("Removing the following disallowed query params from request: " + Arrays.toString(QUERY_PARAMS_NOT_FORWARDED));
         Map<String, String[]> originalQueryParamsMap = removeKeysFromMap(QUERY_PARAMS_NOT_FORWARDED, httpServletRequest.getParameterMap());
         String location = SSOLoginUtil.addQueryParamsToUri(originalQueryParamsMap, uri).build().toString();
 
