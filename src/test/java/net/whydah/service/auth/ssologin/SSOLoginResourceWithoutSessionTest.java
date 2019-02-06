@@ -225,4 +225,72 @@ public class SSOLoginResourceWithoutSessionTest extends AbstractEndpointTest {
     }
 
 
+    @Test
+    public void verifyQueryParamRedirect() {
+        final String testAppName = "testApp";
+        final String testQueryParamKey = "someExtraQueryParam";
+        final String testQueryParamValue = "someQueryParamValue";
+        final String[] disallowedQueryParams = Configuration.getString("proxy.queryparams.disallowed").split(",");
+
+        // Initialize the user login
+        String apiPath = "/application/" + testAppName + "/user/auth/ssologin/";
+        ValidatableResponse initResponse = given()
+                .when()
+                .port(getServerPort())
+                .post(apiPath)
+                .then().log().ifValidationFails()
+                .statusCode(Response.Status.OK.getStatusCode());
+        String ssoLoginUrl = initResponse.extract().path("ssoLoginUrl");
+        String ssoLoginUUID = initResponse.extract().path("ssoLoginUUID");
+
+        ValidatableResponse redirectResponse = given()
+                .when()
+                .redirects().follow(false) //Do not follow the redirect
+                .get(ssoLoginUrl)
+                .then().log().ifValidationFails()
+                .statusCode(Response.Status.FOUND.getStatusCode());
+
+        String location = redirectResponse.extract().header("Location");
+
+        assertNotNull(location);
+        assertFalse(location.isEmpty());
+
+        String expectedRedirectURI = Configuration.getString("myuri") +
+                "/application/" + testAppName + "/user/auth/ssologin/" + ssoLoginUUID + "/complete";
+
+        ValidatableResponse completeResponse = given()
+                .when()
+                .redirects().follow(false)
+                .queryParam("userticket", "testUserTicket")
+                .queryParam(testQueryParamKey, testQueryParamValue)
+                .get(expectedRedirectURI)
+                .then().log().ifValidationFails()
+                .statusCode(Response.Status.FOUND.getStatusCode());
+
+        String expectedCompleteLocation = "http://dummy.url.does.not.exist.com";
+        String actualCompleteLocation = completeResponse.extract().header("Location");
+
+        assertTrue(actualCompleteLocation.startsWith(expectedCompleteLocation));
+        for (String disallowedQueryParam : disallowedQueryParams) {
+            assertFalse(actualCompleteLocation.contains(disallowedQueryParam + "=")); // check that disallowed is removed
+        }
+        // See that it keeps allowed params
+        assertTrue(actualCompleteLocation.contains(testQueryParamKey + "=" + testQueryParamValue));
+
+        MultiValueMap<String, String> queryParams = UriComponentsBuilder.fromUriString(actualCompleteLocation).build().getQueryParams();
+        String secret = queryParams.getFirst("code");
+
+        ExtractableResponse<io.restassured.response.Response> jwtResponse = given()
+                .when()
+                .redirects().follow(false)
+                .post("/application/session/" + secret + "/user/auth/ssologin/" + ssoLoginUUID + "/exchange-for-token")
+                .then().log().ifValidationFails()
+                .statusCode(Response.Status.OK.getStatusCode())
+                .extract();
+
+        String jwt = jwtResponse.body().asString();
+        assertNotNull(jwt);
+        assertFalse(jwt.isEmpty());
+    }
+
 }
