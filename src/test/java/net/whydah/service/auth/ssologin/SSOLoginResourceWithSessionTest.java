@@ -281,6 +281,9 @@ public class SSOLoginResourceWithSessionTest extends AbstractEndpointTest {
     @Test
     public void verifyQueryParamRedirect() {
         final String testAppName = "testApp";
+        final String testQueryParamKey = "someExtraQueryParam";
+        final String testQueryParamValue = "someQueryParamValue";
+        final String[] disallowedQueryParams = {"userticket"};
 
         // Extract secret from a load for the application
         ValidatableResponse validatableResponse = given()
@@ -297,10 +300,10 @@ public class SSOLoginResourceWithSessionTest extends AbstractEndpointTest {
         assertNotNull(secret);
         assertFalse(secret.isEmpty());
 
-
         // Initialize the user login
         String apiPath = "/application/session/" + secret + "/user/auth/ssologin/";
         ValidatableResponse initResponse = given()
+                .queryParam(testQueryParamKey, testQueryParamValue)
                 .when()
                 .port(getServerPort())
                 .post(apiPath)
@@ -311,6 +314,7 @@ public class SSOLoginResourceWithSessionTest extends AbstractEndpointTest {
 
         ValidatableResponse redirectResponse = given()
                 .when()
+                .queryParam(testQueryParamKey, testQueryParamValue)
                 .redirects().follow(false) //Do not follow the redirect
                 .get(ssoLoginUrl)
                 .then().log().ifValidationFails()
@@ -323,16 +327,21 @@ public class SSOLoginResourceWithSessionTest extends AbstractEndpointTest {
 
         String expectedRedirectURI = Configuration.getString("myuri") +
                 "/application/testApp/user/auth/ssologin/" + ssoLoginUUID + "/complete";
-
         String expectedLocation = UriBuilder.fromUri(Configuration.getString("logonservice"))
                 .path("login")
                 .queryParam("redirectURI", expectedRedirectURI)
                 .queryParam("ssoLoginUUID", ssoLoginUUID)
                 .queryParam("targetApplicationId", "inMemoryTestAppId")
+                .queryParam(testQueryParamKey, testQueryParamValue)
                 .build()
                 .toString();
-
-        assertEquals(location, expectedLocation);
+        String expectedLocationPath = UriBuilder.fromUri(Configuration.getString("logonservice")).path("login").build().toString();
+        for (String disallowedQueryParam : disallowedQueryParams) {
+            assertFalse(location.contains(disallowedQueryParam + "=")); // Verify that disallowed is removed
+        }
+        // Verify that it keeps allowed params
+        assertTrue(location.contains(testQueryParamKey + "=" + testQueryParamValue));
+        assertTrue(location.startsWith(expectedLocationPath));
     }
 
 }

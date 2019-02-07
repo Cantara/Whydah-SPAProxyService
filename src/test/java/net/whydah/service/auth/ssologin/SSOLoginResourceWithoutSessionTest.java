@@ -230,7 +230,7 @@ public class SSOLoginResourceWithoutSessionTest extends AbstractEndpointTest {
         final String testAppName = "testApp";
         final String testQueryParamKey = "someExtraQueryParam";
         final String testQueryParamValue = "someQueryParamValue";
-        final String[] disallowedQueryParams = Configuration.getString("proxy.queryparams.disallowed").split(",");
+        final String[] disallowedQueryParams = {"userticket"};
 
         // Initialize the user login
         String apiPath = "/application/" + testAppName + "/user/auth/ssologin/";
