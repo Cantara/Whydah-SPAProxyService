@@ -114,4 +114,5 @@ The location may be overridden by setting `proxy.specification.directory`
 
 
 ### Forwarding query params
-The SPA Proxy will forward all query params by default. It will not forwards those that are specified in the setting `proxy.queryparams.disallowed`.
+The SPA Proxy will forwards query params that are whitelisted in UAWA for the application used.
+.e. set a tag called `ALLOWEDQUERYPARAMS` with a value that's the allowed query params, seperated by `;`.

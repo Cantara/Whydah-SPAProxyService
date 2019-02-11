@@ -132,6 +132,7 @@ public abstract class AbstractEndpointTest {
         // get applications from UAS. Return single testApp
         Application application = new Application("inMemoryTestAppId", "testApp");
         application.setApplicationUrl("http://dummy.url.does.not.exist.com");
+        application.setTags("ALLOWEDQUERYPARAMS_code;firstName;lastName;streetAddress;someExtraQueryParam;");
         addStub(WireMock.get(urlEqualTo("/useradminservice/86560f039fcfbb083bed8c12da58bdee/applications"))
                 .willReturn(WireMock.aResponse()
                         .withStatus(200)

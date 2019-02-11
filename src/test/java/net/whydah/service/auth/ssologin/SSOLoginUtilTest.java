@@ -202,11 +202,14 @@ public class SSOLoginUtilTest {
         String[] value2 = {"someOtherValue"};
         originalQueryParamMap.put(key1, value1);
         originalQueryParamMap.put(key2, value2);
-        Map<String, String[]> expectedCleanMap = new HashMap<String, String[]>(originalQueryParamMap);
-        expectedCleanMap.remove(key1);
 
-        String[] paramsToRemove = {key1};
-        Map<String, String[]> cleanMap = SSOLoginUtil.removeKeysFromMap(paramsToRemove, originalQueryParamMap);
+        Map<String, String[]> expectedCleanMap = new HashMap<String, String[]>(originalQueryParamMap);
+
+        String[] paramsToKeep = {key1};
+        expectedCleanMap.remove(key2);
+
+        Map<String, String[]> cleanMap = SSOLoginUtil.removeKeysFromMap(paramsToKeep, originalQueryParamMap);
+
         assertEquals(cleanMap, expectedCleanMap);
     }
 

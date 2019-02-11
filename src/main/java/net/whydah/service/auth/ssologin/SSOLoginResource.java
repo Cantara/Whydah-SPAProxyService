@@ -7,8 +7,10 @@ import net.whydah.service.auth.SPAKeyStoreRepository;
 import net.whydah.service.auth.UserResponseUtil;
 import net.whydah.service.spasession.SPASessionHelper;
 import net.whydah.service.spasession.SPASessionSecret;
+import net.whydah.sso.application.mappers.ApplicationTagMapper;
 import net.whydah.sso.application.types.Application;
 import net.whydah.sso.application.types.ApplicationToken;
+import net.whydah.sso.application.types.Tag;
 import net.whydah.sso.user.types.UserToken;
 import net.whydah.util.Configuration;
 import org.slf4j.Logger;
@@ -35,7 +37,6 @@ import static net.whydah.service.auth.ssologin.SSOLoginUtil.*;
 public class SSOLoginResource {
     static final String WITH_SESSION_PATH = "/application/session/{spaSessionSecret}/user/auth/ssologin";
     static final String WITHOUT_SESSION_PATH = "/application/{appName}/user/auth/ssologin";
-    static final String[] QUERY_PARAMS_NOT_FORWARDED = Configuration.getString("proxy.queryparams.disallowed").split(",");
 
     private static final Logger log = LoggerFactory.getLogger(SSOLoginResource.class);
 
@@ -217,6 +218,7 @@ public class SSOLoginResource {
             log.info("completeSSOUserLogin called with unknown application name. appName: {}", appName);
             return Response.status(Response.Status.NOT_FOUND).build();
         }
+        String[] ALLOWED_QUERY_PARAMS = SSOLoginUtil.getAllowedQueryParamsForApplication(application);
 
         UUID uuid = UUID.fromString(ssoLoginUUID);
         SSOLoginSession ssoLoginSession = ssoLoginRepository.get(uuid);
@@ -234,15 +236,15 @@ public class SSOLoginResource {
 
         } else {
             SPASessionSecret spaSessionSecret = spaSessionHelper.addReferenceToApplicationSession(application);
-            ssoLoginSession.withSpaSessionSecretHash(SSOLoginUtil.sha256Hash(spaSessionSecret.getSecret()));
+            ssoLoginSession.withSpaSessionSecretHash(sha256Hash(spaSessionSecret.getSecret()));
             ssoLoginRepository.put(uuid, ssoLoginSession);
             uri = UriBuilder.fromUri(credentialStore.findRedirectUrl(application))
                     .queryParam("code", spaSessionSecret.getSecret());
 
         }
-        log.info("Removing the following disallowed query params from request: " + Arrays.toString(QUERY_PARAMS_NOT_FORWARDED));
-        Map<String, String[]> originalQueryParamsMap = removeKeysFromMap(QUERY_PARAMS_NOT_FORWARDED, httpServletRequest.getParameterMap());
-        String location = SSOLoginUtil.addQueryParamsToUri(originalQueryParamsMap, uri).build().toString();
+        log.info("Removing all query params except: " + Arrays.toString(ALLOWED_QUERY_PARAMS));
+        Map<String, String[]> originalQueryParamsMap = removeKeysFromMap(ALLOWED_QUERY_PARAMS, httpServletRequest.getParameterMap());
+        String location = addQueryParamsToUri(originalQueryParamsMap, uri).build().toString();
 
         log.info("Redirecting user to: " + location);
         return Response.status(Response.Status.FOUND)

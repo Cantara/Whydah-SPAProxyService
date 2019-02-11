@@ -2,9 +2,11 @@ package net.whydah.service.auth.ssologin;
 
 import net.whydah.service.CredentialStore;
 import net.whydah.service.spasession.ResponseUtil;
+import net.whydah.sso.application.mappers.ApplicationTagMapper;
 import net.whydah.sso.application.mappers.ApplicationTokenMapper;
 import net.whydah.sso.application.types.Application;
 import net.whydah.sso.application.types.ApplicationToken;
+import net.whydah.sso.application.types.Tag;
 import net.whydah.sso.commands.userauth.CommandGetUsertokenByUserticket;
 import net.whydah.sso.user.mappers.UserTokenMapper;
 import net.whydah.sso.user.types.UserToken;
@@ -147,16 +149,31 @@ class SSOLoginUtil {
         return uriBuilder;
     }
 
-    static Map<String, String[]> removeKeysFromMap(String[] paramsToRemove, Map<String, String[]> map) {
-        Map<String, String[]> cleanMap = new HashMap<String, String[]>();
-        for (Map.Entry<String, String[]> entry: map.entrySet()) {
-            if (Arrays.asList(paramsToRemove).indexOf(entry.getKey()) < 0) {
-                cleanMap.put(entry.getKey(), entry.getValue());
+
+    /**
+     * removeKeysFromMap
+     * @param paramsToKeep
+     * @param map
+     * @return cleanMap, i.e. a map with only paramsToKeep
+     */
+    static Map<String, String[]> removeKeysFromMap(String[] paramsToKeep, Map<String, String[]> map) {
+       Map<String, String[]> cleanQueryParamMap = new HashMap<String, String[]>();
+       List paramsToKeepAsArray = Arrays.asList(paramsToKeep);
+       for (Map.Entry<String, String[]> entry: map.entrySet()) {
+            if (paramsToKeepAsArray.indexOf(entry.getKey()) >= 0) {
+                cleanQueryParamMap.put(entry.getKey(), entry.getValue());
             }
         }
-        return cleanMap;
+       return cleanQueryParamMap;
     }
 
+    /**
+     * buildQueryParamsForRedirectUrl
+     * @param ssoLoginUUID
+     * @param application
+     * @param originalParameterMap
+     * @return Map of query params to be used in a redirect URL
+     */
     static Map<String, String[]> buildQueryParamsForRedirectUrl(UUID ssoLoginUUID, final Application application,
                                                                 final Map<String, String[]> originalParameterMap) {
 
@@ -169,6 +186,23 @@ class SSOLoginUtil {
         forwardedParameterMap.put("targetApplicationId", new String[]{application.getId()});
         forwardedParameterMap.put("ssoLoginUUID", new String[]{ssoLoginUUID.toString()});
         return forwardedParameterMap;
+    }
+
+    /**
+     * getAllowedQueryParamsForApplication
+     * @param application
+     * @return String array of allowed query params
+     */
+    static String[] getAllowedQueryParamsForApplication(Application application) {
+        final String WHITELISTED_QUERY_PARAMS_TAG_NAME = "ALLOWEDQUERYPARAMS";
+
+        List<Tag> tagList = ApplicationTagMapper.getTagList(application.getTags());
+        for (Tag tag : tagList) {
+            if (tag.getName().equalsIgnoreCase(WHITELISTED_QUERY_PARAMS_TAG_NAME)) {
+                return tag.getValue().split(";");
+            }
+        }
+        return new String[0];
     }
 
     static URI buildPopupEntryPointURIWithApplicationSession(String spaProxyBaseURI, String sessionSecret, UUID ssoLoginUUID) {
