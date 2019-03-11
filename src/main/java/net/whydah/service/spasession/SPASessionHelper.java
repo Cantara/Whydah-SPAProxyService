@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URI;
+import java.util.Map.Entry;
 import java.util.UUID;
 
 /**
@@ -28,7 +29,8 @@ public class SPASessionHelper {
 
     private final CredentialStore credentialStore;
     private final SPAApplicationRepository spaApplicationRepository;
-
+	
+	
     public SPASessionHelper(CredentialStore credentialStore, SPAApplicationRepository spaApplicationRepository) {
         this.credentialStore = credentialStore;
         this.spaApplicationRepository = spaApplicationRepository;
@@ -94,26 +96,27 @@ public class SPASessionHelper {
 
 
     public SPASessionSecret addReferenceToApplicationSession(Application application) {
+    	
+    	Entry<String, ApplicationToken> session = findSession(application);
+    	ApplicationToken appToken;
+    	if(session==null) {
+    		appToken = createApplicationToken(application);
+    	} else {
+    		//remove this secret
+    		appToken = spaApplicationRepository.allSessions().remove(session.getKey());
+    	}
+    	
+    	//make a new secret for this app token 
         SPASessionSecret spaSessionSecret = new SPASessionSecret();
         log.debug("establish new SPA secret and store it in secret-applicationsession map." + spaSessionSecret);
-        spaApplicationRepository.add(spaSessionSecret.getSecret(), getOrCreateSessionForApplication(application));
-
+        spaApplicationRepository.add(spaSessionSecret.getSecret(), appToken);
         return spaSessionSecret;
     }
-
-    private ApplicationToken getOrCreateSessionForApplication(Application application) {
-        ApplicationToken applicationToken = getApplicationTokenFromSessions(application);
-
-        if (applicationToken == null) {
-            return createApplicationToken(application);
-        } else {
-            return applicationToken;
-        }
-    }
-    private ApplicationToken getApplicationTokenFromSessions(Application application) {
-        for (ApplicationToken applicationToken : spaApplicationRepository.allSessions()) {
-            if (applicationToken.getApplicationID().equalsIgnoreCase(application.getId())) {
-                return applicationToken;
+ 
+    private Entry<String, ApplicationToken> findSession(Application application) {
+        for (Entry<String, ApplicationToken> entry : spaApplicationRepository.allSessions().entrySet()) {
+            if (entry.getValue().getApplicationID().equalsIgnoreCase(application.getId())) {
+                return entry;
             }
         }
         return null;

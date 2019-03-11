@@ -6,6 +6,8 @@ import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import net.whydah.sso.application.types.ApplicationToken;
 import net.whydah.sso.commands.appauth.CommandRenewApplicationSession;
+import net.whydah.sso.util.backoff.ExponentialBackOff;
+
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -14,6 +16,7 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -24,7 +27,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class SPAApplicationRepository {
     private static final Logger log = getLogger(SPAApplicationRepository.class);
     private final CredentialStore credentialStore;
-
+    public static final int APPLICATION_SESSION_CHECK_INTERVAL_IN_SECONDS = 10; 
     private Map<String, ApplicationToken> map;
     private static boolean isRunning = false;
 
@@ -81,11 +84,11 @@ public class SPAApplicationRepository {
         return false;
     }
 
-    public Collection<ApplicationToken> allSessions() {
+    public Map<String, ApplicationToken> allSessions() {
         if (map == null) {
             map = new HashMap<>();
         }
-        return map.values();
+        return map;
     }
 
     private void startProcessWorker() {
@@ -105,12 +108,27 @@ public class SPAApplicationRepository {
     }
 
     private void renewApplicationSessions() {
-        //Use a set to avoid renewing the same token multiple times
-        Set<ApplicationToken> applicationTokens = new HashSet<>(allSessions());
-        for (ApplicationToken applicationToken : applicationTokens) {
-            CommandRenewApplicationSession commandRenewApplicationSession = new CommandRenewApplicationSession(
-                    URI.create(credentialStore.getWas().getSTS()), applicationToken.getApplicationTokenId());
-            commandRenewApplicationSession.execute();
+        //Use a set to avoid renewing the same token multiple times   	
+    	Map<String, ApplicationToken> sessions = new HashMap<>(allSessions());
+        for (ApplicationToken applicationToken : sessions.values()) {
+        	if(expiresBeforeNextSchedule(Long.parseLong(applicationToken.getExpires()))) {
+        		CommandRenewApplicationSession commandRenewApplicationSession = new CommandRenewApplicationSession(
+        				URI.create(credentialStore.getWas().getSTS()), applicationToken.getApplicationTokenId());
+        		commandRenewApplicationSession.execute();
+        	}
         }
     }
+    
+    public boolean expiresBeforeNextSchedule(Long timestamp) {
+
+		long currentTime = System.currentTimeMillis();
+		long expiresAt = (timestamp);
+		long diffSeconds = (expiresAt - currentTime) / 1000;
+		log.debug("expiresBeforeNextSchedule - expiresAt: {} - now: {} - expires in: {} seconds", expiresAt, currentTime, diffSeconds);
+		if (diffSeconds < (APPLICATION_SESSION_CHECK_INTERVAL_IN_SECONDS * 3)) {
+			log.debug("expiresBeforeNextSchedule - re-new application session.. diffseconds: {}", diffSeconds);
+			return true;
+		}
+		return false;
+	}
 }

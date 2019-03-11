@@ -87,7 +87,7 @@ public class HealthResource {
     }
 
     private synchronized String getClientIdsJson() {
-        Collection<ApplicationToken> applicationSessions = spaApplicationRepository.allSessions();
+        Collection<ApplicationToken> applicationSessions = spaApplicationRepository.allSessions().values();
         if (applicationSessions == null || applicationSessions.size() < 1) {
             return "{}";
         }
