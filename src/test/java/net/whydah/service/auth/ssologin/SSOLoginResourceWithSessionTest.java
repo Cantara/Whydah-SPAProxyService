@@ -278,4 +278,70 @@ public class SSOLoginResourceWithSessionTest extends AbstractEndpointTest {
         assertFalse(jwt.isEmpty());
     }
 
+    @Test
+    public void verifyQueryParamRedirect() {
+        final String testAppName = "testApp";
+        final String testQueryParamKey = "someExtraQueryParam";
+        final String testQueryParamValue = "someQueryParamValue";
+        final String[] disallowedQueryParams = {"userticket"};
+
+        // Extract secret from a load for the application
+        ValidatableResponse validatableResponse = given()
+                .when()
+                .port(getServerPort())
+                .redirects().follow(false) //Do not follow the redirect
+                .get("/load/" + testAppName)
+                .then().log().ifError()
+                .statusCode(Response.Status.FOUND.getStatusCode());
+
+        String locationHeader = validatableResponse.extract().header("Location");
+        MultiValueMap<String, String> queryParams = UriComponentsBuilder.fromUriString(locationHeader).build().getQueryParams();
+        String secret = queryParams.get("code").get(0);
+        assertNotNull(secret);
+        assertFalse(secret.isEmpty());
+
+        // Initialize the user login
+        String apiPath = "/application/session/" + secret + "/user/auth/ssologin/";
+        ValidatableResponse initResponse = given()
+                .queryParam(testQueryParamKey, testQueryParamValue)
+                .when()
+                .port(getServerPort())
+                .post(apiPath)
+                .then().log().ifValidationFails()
+                .statusCode(Response.Status.OK.getStatusCode());
+        String ssoLoginUrl = initResponse.extract().path("ssoLoginUrl");
+        String ssoLoginUUID = initResponse.extract().path("ssoLoginUUID");
+
+        ValidatableResponse redirectResponse = given()
+                .when()
+                .queryParam(testQueryParamKey, testQueryParamValue)
+                .redirects().follow(false) //Do not follow the redirect
+                .get(ssoLoginUrl)
+                .then().log().ifValidationFails()
+                .statusCode(Response.Status.FOUND.getStatusCode());
+
+        String location = redirectResponse.extract().header("Location");
+
+        assertNotNull(location);
+        assertFalse(location.isEmpty());
+
+        String expectedRedirectURI = Configuration.getString("myuri") +
+                "/application/testApp/user/auth/ssologin/" + ssoLoginUUID + "/complete";
+        String expectedLocation = UriBuilder.fromUri(Configuration.getString("logonservice"))
+                .path("login")
+                .queryParam("redirectURI", expectedRedirectURI)
+                .queryParam("ssoLoginUUID", ssoLoginUUID)
+                .queryParam("targetApplicationId", "inMemoryTestAppId")
+                .queryParam(testQueryParamKey, testQueryParamValue)
+                .build()
+                .toString();
+        String expectedLocationPath = UriBuilder.fromUri(Configuration.getString("logonservice")).path("login").build().toString();
+        for (String disallowedQueryParam : disallowedQueryParams) {
+            assertFalse(location.contains(disallowedQueryParam + "=")); // Verify that disallowed is removed
+        }
+        // Verify that it keeps allowed params
+        assertTrue(location.contains(testQueryParamKey + "=" + testQueryParamValue));
+        assertTrue(location.startsWith(expectedLocationPath));
+    }
+
 }

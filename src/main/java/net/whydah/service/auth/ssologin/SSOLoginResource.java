@@ -7,8 +7,10 @@ import net.whydah.service.auth.SPAKeyStoreRepository;
 import net.whydah.service.auth.UserResponseUtil;
 import net.whydah.service.spasession.SPASessionHelper;
 import net.whydah.service.spasession.SPASessionSecret;
+import net.whydah.sso.application.mappers.ApplicationTagMapper;
 import net.whydah.sso.application.types.Application;
 import net.whydah.sso.application.types.ApplicationToken;
+import net.whydah.sso.application.types.Tag;
 import net.whydah.sso.user.types.UserToken;
 import net.whydah.util.Configuration;
 import org.slf4j.Logger;
@@ -22,9 +24,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import java.net.URI;
 import java.security.NoSuchAlgorithmException;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import static net.whydah.service.auth.ssologin.SSOLoginUtil.*;
 
@@ -107,7 +107,7 @@ public class SSOLoginResource {
                                                                 @PathParam("appName") String appName) {
         Application application = credentialStore.findApplication(appName);
         if (application == null) {
-            log.info("Application not found for appliCationName {}. Returning not found", appName);
+            log.info("Application not found for applicationName {}. Returning not found", appName);
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
@@ -218,6 +218,7 @@ public class SSOLoginResource {
             log.info("completeSSOUserLogin called with unknown application name. appName: {}", appName);
             return Response.status(Response.Status.NOT_FOUND).build();
         }
+        String[] ALLOWED_QUERY_PARAMS = SSOLoginUtil.getAllowedQueryParamsForApplication(application);
 
         UUID uuid = UUID.fromString(ssoLoginUUID);
         SSOLoginSession ssoLoginSession = ssoLoginRepository.get(uuid);
@@ -228,24 +229,27 @@ public class SSOLoginResource {
         ssoLoginSession.withStatus(SessionStatus.COMPLETE);
         ssoLoginSession.withUserTicket(userticket);
 
+        UriBuilder uri;
         if (ssoLoginSession.hasSpaSessionSecretHash()) {
-            String location = UriBuilder.fromUri(credentialStore.findRedirectUrl(application))
-                    .build().toString();
+            uri = UriBuilder.fromUri(credentialStore.findRedirectUrl(application));
             ssoLoginRepository.put(uuid, ssoLoginSession);
-            return Response.status(Response.Status.FOUND)
-                    .header("Location", location)
-                    .build();
+
         } else {
             SPASessionSecret spaSessionSecret = spaSessionHelper.addReferenceToApplicationSession(application);
-            ssoLoginSession.withSpaSessionSecretHash(SSOLoginUtil.sha256Hash(spaSessionSecret.getSecret()));
+            ssoLoginSession.withSpaSessionSecretHash(sha256Hash(spaSessionSecret.getSecret()));
             ssoLoginRepository.put(uuid, ssoLoginSession);
-            String location = UriBuilder.fromUri(credentialStore.findRedirectUrl(application))
-                    .queryParam("code", spaSessionSecret.getSecret())
-                    .build().toString();
-            return Response.status(Response.Status.FOUND)
-                    .header("Location", location)
-                    .build();
+            uri = UriBuilder.fromUri(credentialStore.findRedirectUrl(application))
+                    .queryParam("code", spaSessionSecret.getSecret());
+
         }
+        log.info("Removing all query params except: " + Arrays.toString(ALLOWED_QUERY_PARAMS));
+        Map<String, String[]> originalQueryParamsMap = removeKeysFromMap(ALLOWED_QUERY_PARAMS, httpServletRequest.getParameterMap());
+        String location = addQueryParamsToUri(originalQueryParamsMap, uri).build().toString();
+
+        log.info("Redirecting user to: " + location);
+        return Response.status(Response.Status.FOUND)
+                .header("Location", location)
+                .build();
     }
 
     /**

@@ -1,12 +1,10 @@
 # Whydah-SPAProxyService
 
-
-
 ![Build Status](https://jenkins.capraconsulting.no/buildStatus/icon?job=Whydah-SPAProxyService) [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active)  [![Known Vulnerabilities](https://snyk.io/test/github/Cantara/Whydah-SPAProxyService/badge.svg)](https://snyk.io/test/github/Cantara/Whydah-SPAProxyService)
 
 
-The SPAProxyService is an optinal Whydah module to support Whydah application sessions for single-page applications.
-This module is the backend/API support module for the Whydah SPA javascript npm library.
+The SPAProxyService is an optional Whydah module to support Whydah application sessions for Single-Page Applications (SPAs).
+This module is the backend/API support module for the Whydah SPA JavaScript NPM Library.
 
 
 * use:  https://spaproxy.cantara.no/proxy/health
@@ -71,12 +69,12 @@ JWT Body : {"sub":"useradmin","jti":"8bdf8ad8-b7af-4561-93be-58d420c3ea54","iss"
 
 ### Generic HTTP Proxy support
 There might be cases where you wish to expose endpoints belonging to other applications through SPAProxy.
-The endpoints:
+
+The following endpoints are used to proxy requests based on a `ProxySpecification`:
  * `../generic/{secret}/{userTokenId/{proxySpecificationName}`
  * `../generic/{secret}/{proxySpecificationName}`
 
-Are used to proxy requests based on a `ProxySpecification`. The first endpoint expects a usedTokenId in the path,
-while the second expects a valid JWT Bearer token in the Authorization header.
+The first endpoint expects a usedTokenId in the path, while the second expects a valid JWT Bearer token in the Authorization header.
 
 Currently only `GET` requests are supported, while `POST` support is planned.
 
@@ -113,3 +111,8 @@ SPAProxy will execute the GET in a Hystrix command. `command_timeout_millisecond
 
 By default SPAProxy will look for ProxySpecification files in the `proxy-specifications/` directory.
 The location may be overridden by setting `proxy.specification.directory`
+
+
+### Forwarding query params
+The SPA Proxy will forwards query params that are whitelisted in UAWA for the application used.
+.e. set a tag called `ALLOWEDQUERYPARAMS` with a value that's the allowed query params, seperated by `;`.
