@@ -103,7 +103,7 @@ public abstract class MyBaseHttpPostHystrixCommand<R> extends HystrixCommand<R> 
                     return dealWithFailedResponse(responseAsText, statusCode);
             }
         } catch (Exception ex) {
-            ex.printStackTrace();
+            log.error("Exception caught in doPostCommand", ex);
             throw new RuntimeException("TAG" + " - Application authentication failed to execute");
         }
     }

@@ -36,11 +36,10 @@ public class SPAApplicationRepository {
         this.credentialStore = credentialStore;
 
         String xmlFileName = System.getProperty("hazelcast.config");
-        log.info("Loading hazelcast configuration from :" + xmlFileName);
+        log.debug("Attempting to load hazelcast configuration from :" + xmlFileName);
         Config hazelcastConfig = new Config();
 
-
-        if (xmlFileName != null && xmlFileName.length() > 10) {
+        if (xmlFileName != null && !xmlFileName.isEmpty()) {
             try {
                 hazelcastConfig = new XmlConfigBuilder(xmlFileName).build();
                 log.info("Loading hazelcast configuration from :" + xmlFileName);
@@ -54,7 +53,6 @@ public class SPAApplicationRepository {
         }
 
         hazelcastConfig.setProperty("hazelcast.logging.type", "slf4j");
-        //hazelcastConfig.getGroupConfig().setName("OID_HAZELCAST");
         HazelcastInstance hazelcastInstance = Hazelcast.newHazelcastInstance(hazelcastConfig);
         String gridPrefix = "SPAPROXY";
         map = hazelcastInstance.getMap(gridPrefix + "_applicationTokenMap");

@@ -138,7 +138,7 @@ public final class AdvancedJWTokenUtil {
                 try {
                     log.warn("JWT expired at " + e.getJwtContext().getJwtClaims().getExpirationTime());
                 } catch (MalformedClaimException e1) {
-                    e1.printStackTrace();
+                    log.error("MalformedClaimException caught: ", e);
                 }
             } else {
                 // InvalidJwtException will be thrown, if the JWT failed processing or validation in anyway.

@@ -61,7 +61,7 @@ class SSOLoginRepository {
      */
     private void initializeHazelcast() {
         String xmlFileName = System.getProperty("hazelcast.config");
-        log.info("Loading hazelcast configuration from :" + xmlFileName);
+        log.info("Attempting to load hazelcast configuration from :" + xmlFileName);
         Config hazelcastConfig = new Config();
 
 

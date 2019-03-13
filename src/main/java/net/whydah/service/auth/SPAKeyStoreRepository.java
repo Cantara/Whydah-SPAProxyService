@@ -33,10 +33,10 @@ public class SPAKeyStoreRepository {
 	@Autowired
     public SPAKeyStoreRepository() throws Exception {
         String xmlFileName = System.getProperty("hazelcast.config");
-        logger.info("Loading hazelcast configuration from :" + xmlFileName);
+        logger.info("Attempting to load hazelcast configuration from :" + xmlFileName);
         Config hazelcastConfig = new Config();
 
-        if (xmlFileName != null && xmlFileName.length() > 10) {
+        if (xmlFileName != null && !xmlFileName.isEmpty()) {
             try {
                 hazelcastConfig = new XmlConfigBuilder(xmlFileName).build();
                 logger.info("Loading hazelcast configuration from :" + xmlFileName);
@@ -50,7 +50,6 @@ public class SPAKeyStoreRepository {
 		}
 
         hazelcastConfig.setProperty("hazelcast.logging.type", "slf4j");
-        //hazelcastConfig.getGroupConfig().setName("OID_HAZELCAST");
         HazelcastInstance hazelcastInstance = Hazelcast.newHazelcastInstance(hazelcastConfig);
         String gridPrefix = "SPAPROXY";
         map = hazelcastInstance.getMap(gridPrefix + "_keystoreMap");
@@ -123,10 +122,9 @@ public class SPAKeyStoreRepository {
 
 			//get usertokenid from the claims
 			return claims.getJwtId();
-		} catch(Exception ex) {
+		} catch(Exception e) {
 			//should not happen
-			ex.printStackTrace();
-			logger.error("Failed to retrieve the keystore before parsing JWT. Exception message = " + ex.getMessage());
+			logger.error("Failed to retrieve the keystore before parsing JWT." + e);
 		}
 		return null;
 	}
