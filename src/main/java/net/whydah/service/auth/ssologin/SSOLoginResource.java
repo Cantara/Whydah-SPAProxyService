@@ -249,6 +249,9 @@ public class SSOLoginResource {
         log.info("Redirecting user to: " + location);
         return Response.status(Response.Status.FOUND)
                 .header("Location", location)
+                .header("Access-Control-Allow-Origin", "*")
+                .header("Access-Control-Allow-Credentials", true)
+                .header("Access-Control-Allow-Headers", "*")
                 .build();
     }
 
@@ -270,9 +273,14 @@ public class SSOLoginResource {
         }
         Application application = credentialStore.findApplication(applicationToken.getApplicationName());
         if (application == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
+            return Response.status(Response.Status.NOT_FOUND).
+            		header("Access-Control-Allow-Origin", "*")
+                    .header("Access-Control-Allow-Credentials", true)
+                    .header("Access-Control-Allow-Headers", "*")
+                    .build();
         }
 
+        String redirectURI = credentialStore.findRedirectUrl(applicationToken.getApplicationName());
         UUID uuid = UUID.fromString(ssoLoginUUID);
         SSOLoginSession ssoLoginSession = ssoLoginRepository.get(uuid);
         String expectedSessionSecretHash = SSOLoginUtil.sha256Hash(spaSessionSecret);
@@ -285,14 +293,18 @@ public class SSOLoginResource {
         UserToken userToken = SSOLoginUtil.getUserToken(credentialStore, applicationToken, userTicket);
 
         if (userToken == null || !userToken.isValid()) {
-            log.warn("Unable to resolve valid UserToken from ticket, returning 403");
-            return Response.status(Response.Status.FORBIDDEN).build();
+            log.warn("Unable to resolve valid UserToken from ticket, returning 403");            
+            return Response.status(Response.Status.FORBIDDEN)
+            		.header("Access-Control-Allow-Origin", redirectURI)
+                    .header("Access-Control-Allow-Credentials", true)
+                    .header("Access-Control-Allow-Headers", "*")
+                    .build();
         }
 
         String jwt = AdvancedJWTokenUtil.buildJWT(spaKeyStoreRepository.getARandomKey(), userToken, userTicket, applicationToken.getApplicationID());
         ssoLoginRepository.remove(uuid);
 
-        return UserResponseUtil.createResponseWithHeader(jwt, credentialStore.findRedirectUrl(applicationToken.getApplicationName()));
+        return UserResponseUtil.createResponseWithHeader(jwt, redirectURI);
 
     }
 
