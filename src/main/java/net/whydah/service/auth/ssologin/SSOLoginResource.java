@@ -249,7 +249,7 @@ public class SSOLoginResource {
         log.info("Redirecting user to: " + location);
         return Response.status(Response.Status.FOUND)
                 .header("Location", location)
-                .header("Access-Control-Allow-Origin", "*")
+                .header("Access-Control-Allow-Origin", application.getApplicationUrl())
                 .header("Access-Control-Allow-Credentials", true)
                 .header("Access-Control-Allow-Headers", "*")
                 .build();
@@ -273,10 +273,7 @@ public class SSOLoginResource {
         }
         Application application = credentialStore.findApplication(applicationToken.getApplicationName());
         if (application == null) {
-            return Response.status(Response.Status.NOT_FOUND).
-            		header("Access-Control-Allow-Origin", "*")
-                    .header("Access-Control-Allow-Credentials", true)
-                    .header("Access-Control-Allow-Headers", "*")
+            return Response.status(Response.Status.NOT_FOUND)
                     .build();
         }
 
