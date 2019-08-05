@@ -21,6 +21,7 @@
 
     <properties>
         <service.name>Whydah-SPAProxyService</service.name>
+        <java.version>1.8</java.version>
         <whydah-admin-sdk-version>2.5.18</whydah-admin-sdk-version>
         <jackson.version>2.10.0.pr1</jackson.version>
         <jersey.version>2.29</jersey.version>
@@ -85,6 +86,12 @@
             <groupId>org.glassfish.jaxb</groupId>
             <artifactId>jaxb-runtime</artifactId>
             <version>2.4.0-b180830.0438</version>
+        </dependency>
+
+        <dependency>
+            <groupId>javax.validation</groupId>
+            <artifactId>validation-api</artifactId>
+            <version>2.0.1.Final</version>
         </dependency>
 
         <!--this supports the JWS/JWE compact serializations with the complete suite of JOSE (Javascript Object Signing and Encryption) algorithms-->
