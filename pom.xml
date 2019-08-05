@@ -81,6 +81,12 @@
             </exclusions>
         </dependency>
 
+        <dependency>
+            <groupId>org.glassfish.jaxb</groupId>
+            <artifactId>jaxb-runtime</artifactId>
+            <version>2.4.0-b180830.0438</version>
+        </dependency>
+
         <!--this supports the JWS/JWE compact serializations with the complete suite of JOSE (Javascript Object Signing and Encryption) algorithms-->
         <dependency>
             <groupId>org.bitbucket.b_c</groupId>
