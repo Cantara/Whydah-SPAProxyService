@@ -1,6 +1,6 @@
 # Whydah-SPAProxyService
 
-![Build Status](https://jenkins.quadim.ai/buildStatus/icon?job=Whydah-SPAProxyService) [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active)  [![Known Vulnerabilities](https://snyk.io/test/github/Cantara/Whydah-SPAProxyService/badge.svg)](https://snyk.io/test/github/Cantara/Whydah-SPAProxyService)
+![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/Cantara/Whydah-SPAProxyService) ![Build Status](https://jenkins.quadim.ai/buildStatus/icon?job=Whydah-SPAProxyService) [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active)  [![Known Vulnerabilities](https://snyk.io/test/github/Cantara/Whydah-SPAProxyService/badge.svg)](https://snyk.io/test/github/Cantara/Whydah-SPAProxyService)
 
 
 The SPAProxyService is an optional Whydah module to support Whydah application sessions for Single-Page Applications (SPAs).
