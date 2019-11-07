@@ -22,7 +22,7 @@
     <properties>
         <service.name>Whydah-SPAProxyService</service.name>
         <java.version>1.8</java.version>
-        <whydah-admin-sdk-version>2.5.25</whydah-admin-sdk-version>
+        <whydah-admin-sdk-version>2.5.26</whydah-admin-sdk-version>
         <jackson.version>2.10.0</jackson.version>
         <jersey.version>2.29</jersey.version>
         <jetty.version>9.4.21.v20190926</jetty.version>
