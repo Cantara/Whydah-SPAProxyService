@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>net.whydah.service</groupId>
     <artifactId>Whydah-SPAProxyService</artifactId>
-    <version>2.5.36-SNAPSHOT</version>
+    <version>2.5.37</version>
     <name>Whydah-SPAProxyService</name>
     <url>https://wiki.cantara.no/display/whydah/SPAProxyService</url>
 
@@ -17,7 +17,7 @@
         <connection>scm:git:https://github.com/cantara/Whydah-SPAProxyService.git</connection>
         <url>https://wiki.cantara.no/display/whydah/SPAProxyService</url>
  
-      <tag>HEAD</tag>
+      <tag>Whydah-SPAProxyService-2.5.37</tag>
   </scm>
 
     <properties>
@@ -430,7 +430,7 @@
                                         <Main-Class>net.whydah.service.Main</Main-Class>
                                     </manifestEntries>
                                 </transformer>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
 
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
                                     <resource>META-INF/spring.handlers</resource>
