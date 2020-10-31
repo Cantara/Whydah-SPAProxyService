@@ -23,7 +23,7 @@
     <properties>
         <service.name>Whydah-SPAProxyService</service.name>
         <java.version>1.8</java.version>
-        <whydah-admin-sdk-version>2.6.0</whydah-admin-sdk-version>
+        <whydah-admin-sdk-version>2.6.2</whydah-admin-sdk-version>
         <jackson.version>2.11.2</jackson.version>
         <jersey.version>2.32</jersey.version>
         <jetty.version>9.4.31.v20200723</jetty.version>
@@ -47,22 +47,6 @@
             </organizationUrl>
         </developer>
     </developers>
-
-
-    <repositories>
-        <!-- Needed for parent  -->
-        <repository>
-            <id>cantara-releases</id>
-            <name>Cantara Release Repository</name>
-            <url>https://mvnrepo.cantara.no/content/repositories/releases/</url>
-        </repository>
-        <!-- Needed for SDK snapshots  -->
-        <repository>
-            <id>cantara-snapshots</id>
-            <name>Cantara Snapshot Repository</name>
-            <url>https://mvnrepo.cantara.no/content/repositories/snapshots/</url>
-        </repository>
-    </repositories>
 
 
     <dependencies>
@@ -540,4 +524,22 @@
             </plugin>
         </plugins>
     </build>
+    
+    
+
+    <repositories>
+        <!-- Needed for parent  -->
+        <repository>
+            <id>cantara-releases</id>
+            <name>Cantara Release Repository</name>
+            <url>https://mvnrepo.cantara.no/content/repositories/releases/</url>
+        </repository>
+        <!-- Needed for SDK snapshots  -->
+        <repository>
+            <id>cantara-snapshots</id>
+            <name>Cantara Snapshot Repository</name>
+            <url>https://mvnrepo.cantara.no/content/repositories/snapshots/</url>
+        </repository>
+    </repositories>
+
 </project>
