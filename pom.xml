@@ -5,25 +5,15 @@
     <version>2.6.5-SNAPSHOT</version>
     <name>Whydah-SPAProxyService</name>
     <url>https://wiki.cantara.no/display/whydah/SPAProxyService</url>
-
     <parent>
         <groupId>no.cantara.emi</groupId>
         <artifactId>parent</artifactId>
         <version>8</version>
     </parent>
-
-    <scm>
-        <developerConnection>scm:git:ssh://git@github.com/cantara/Whydah-SPAProxyService.git</developerConnection>
-        <connection>scm:git:https://github.com/cantara/Whydah-SPAProxyService.git</connection>
-        <url>https://wiki.cantara.no/display/whydah/SPAProxyService</url>
- 
-      <tag>HEAD</tag>
-  </scm>
-
     <properties>
         <service.name>Whydah-SPAProxyService</service.name>
+        <whydah-admin-sdk-version>2.6.10</whydah-admin-sdk-version>
         <java.version>1.8</java.version>
-        <whydah-admin-sdk-version>2.6.6</whydah-admin-sdk-version>
         <jackson.version>2.11.3</jackson.version>
         <jersey.version>2.32</jersey.version>
         <jetty.version>9.4.34.v20201102</jetty.version>
@@ -33,6 +23,12 @@
         <maven.javadoc.skip>true</maven.javadoc.skip>
     </properties>
 
+    <scm>
+        <developerConnection>scm:git:ssh://git@github.com/cantara/Whydah-SPAProxyService.git</developerConnection>
+        <connection>scm:git:https://github.com/cantara/Whydah-SPAProxyService.git</connection>
+        <url>https://wiki.cantara.no/display/whydah/SPAProxyService</url> 
+        <tag>HEAD</tag>
+    </scm>
     <developers>
         <developer>
             <id>totto</id>
