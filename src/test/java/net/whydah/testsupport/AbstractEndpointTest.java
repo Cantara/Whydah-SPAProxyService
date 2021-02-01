@@ -31,7 +31,7 @@ public abstract class AbstractEndpointTest {
 
     private static String testServerBaseUrl;
 
-    @BeforeSuite(alwaysRun = true, timeOut = 30000L)
+    @BeforeSuite(alwaysRun = true, timeOut = 60000L)
     public void startTestServer() throws Exception {
         serverPort = DynamicPortUtil.findAvailableTcpPort();
         setupWiremock();
