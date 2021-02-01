@@ -15,7 +15,7 @@
         <whydah-admin-sdk-version>2.6.14</whydah-admin-sdk-version>
         <java.version>1.8</java.version>
         <jackson.version>2.12.1</jackson.version>
-        <jersey.version>2.33</jersey.version>
+        <jersey.version>2.32</jersey.version>
         <jetty.version>9.4.35.v20201120</jetty.version>
         <spring.version>5.3.2</spring.version>
         <slf4j.version>1.7.30</slf4j.version>
@@ -301,27 +301,72 @@
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
-            <version>6.9.10</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.rest-assured</groupId>
-            <artifactId>rest-assured</artifactId>
-            <version>3.3.0</version>
+            <version>7.3.0</version>
             <scope>test</scope>
             <exclusions>
+		        <exclusion>
+		            <artifactId>hamcrest-core</artifactId>
+		            <groupId>org.hamcrest</groupId>
+		        </exclusion>
+		    </exclusions>
+        </dependency>
+        
+        <!-- https://mvnrepository.com/artifact/io.rest-assured/rest-assured -->
+		<dependency>
+		    <groupId>io.rest-assured</groupId>
+		    <artifactId>rest-assured</artifactId>
+		    <version>4.3.3</version>
+		    <scope>test</scope>
+		    <exclusions>
                 <exclusion>
                     <groupId>commons-logging</groupId>
                     <artifactId>commons-logging</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
-            <version>2.23.4</version>
-            <scope>test</scope>
-        </dependency>
+		</dependency>
+		        
+        
+        
+		<dependency>
+		    <groupId>org.mockito</groupId>
+		    <artifactId>mockito-core</artifactId>
+		    <version>1.9.5</version>
+		    <exclusions>
+		        <exclusion>
+		            <artifactId>hamcrest-core</artifactId>
+		            <groupId>org.hamcrest</groupId>
+		        </exclusion>
+		    </exclusions>
+		</dependency>
+		<dependency>
+		    <groupId>junit</groupId>
+		    <artifactId>junit</artifactId>
+		    <version>4.11</version>
+		    <exclusions>
+		        <exclusion>
+		            <artifactId>hamcrest-core</artifactId>
+		            <groupId>org.hamcrest</groupId>
+		        </exclusion>
+		    </exclusions>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.hamcrest/hamcrest-core -->
+		<dependency>
+		    <groupId>org.hamcrest</groupId>
+		    <artifactId>hamcrest-core</artifactId>
+		    <version>2.2</version>
+		    <scope>test</scope>
+		</dependency>
+		
+		<!-- https://mvnrepository.com/artifact/org.hamcrest/hamcrest-library -->
+		<dependency>
+		    <groupId>org.hamcrest</groupId>
+		    <artifactId>hamcrest-library</artifactId>
+		    <version>2.2</version>
+		    <scope>test</scope>
+		</dependency>
+				
+
+
         <!-- Wiremock for mocking external services -->
         <dependency>
             <groupId>com.github.tomakehurst</groupId>
@@ -359,6 +404,8 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        
+		        
     </dependencies>
 
     <build>
