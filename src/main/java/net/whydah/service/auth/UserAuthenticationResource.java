@@ -8,7 +8,7 @@ import net.whydah.sso.application.types.ApplicationCredential;
 import net.whydah.sso.application.types.ApplicationToken;
 import net.whydah.sso.commands.appauth.CommandLogonApplication;
 import net.whydah.sso.commands.userauth.CommandCreateTicketForUserTokenID;
-import net.whydah.sso.commands.userauth.CommandGetUsertokenByUserticket;
+import net.whydah.sso.commands.userauth.CommandGetUserTokenByUserTicket;
 import net.whydah.sso.commands.userauth.CommandLogonUserByUserCredential;
 import net.whydah.sso.user.mappers.UserTokenMapper;
 import net.whydah.sso.user.types.UserCredential;
@@ -154,7 +154,7 @@ public class UserAuthenticationResource {
     }
 
     private UserToken getUserTokenFromTicket(ApplicationToken applicationToken, String ticket) {
-        CommandGetUsertokenByUserticket commandGetUsertokenByUserticket = new CommandGetUsertokenByUserticket(
+        CommandGetUserTokenByUserTicket commandGetUsertokenByUserticket = new CommandGetUserTokenByUserTicket(
                 URI.create(credentialStore.getWas().getSTS()), applicationToken.getApplicationTokenId(),
                 ApplicationTokenMapper.toXML(applicationToken), ticket);
         return UserTokenMapper.fromUserTokenXml(commandGetUsertokenByUserticket.execute());

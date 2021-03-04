@@ -7,7 +7,7 @@ import net.whydah.sso.application.mappers.ApplicationTokenMapper;
 import net.whydah.sso.application.types.Application;
 import net.whydah.sso.application.types.ApplicationToken;
 import net.whydah.sso.application.types.Tag;
-import net.whydah.sso.commands.userauth.CommandGetUsertokenByUserticket;
+import net.whydah.sso.commands.userauth.CommandGetUserTokenByUserTicket;
 import net.whydah.sso.user.mappers.UserTokenMapper;
 import net.whydah.sso.user.types.UserToken;
 import org.slf4j.Logger;
@@ -38,7 +38,7 @@ class SSOLoginUtil {
     }
 
     static UserToken getUserToken(final CredentialStore credentialStore, final ApplicationToken applicationToken, final String userTicket) {
-        CommandGetUsertokenByUserticket commandGetUsertokenByUserticket = new CommandGetUsertokenByUserticket(
+        CommandGetUserTokenByUserTicket commandGetUsertokenByUserticket = new CommandGetUserTokenByUserTicket(
                 URI.create(credentialStore.getWas().getSTS()), applicationToken.getApplicationTokenId(),
                 ApplicationTokenMapper.toXML(applicationToken), userTicket);
         return UserTokenMapper.fromUserTokenXml(commandGetUsertokenByUserticket.execute());

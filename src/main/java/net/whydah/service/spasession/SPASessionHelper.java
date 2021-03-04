@@ -8,7 +8,7 @@ import net.whydah.sso.application.types.ApplicationCredential;
 import net.whydah.sso.application.types.ApplicationToken;
 import net.whydah.sso.commands.appauth.CommandLogonApplication;
 import net.whydah.sso.commands.userauth.CommandCreateTicketForUserTokenID;
-import net.whydah.sso.commands.userauth.CommandGetUsertokenByUserticket;
+import net.whydah.sso.commands.userauth.CommandGetUserTokenByUserTicket;
 import net.whydah.sso.user.helpers.UserTokenXpathHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,7 +70,7 @@ public class SPASessionHelper {
     }
 
     private String getUserTokenXml(String userticket) {
-        return new CommandGetUsertokenByUserticket(URI.create(credentialStore.getWas().getSTS()),
+        return new CommandGetUserTokenByUserTicket(URI.create(credentialStore.getWas().getSTS()),
                 credentialStore.getWas().getActiveApplicationTokenId(),
                 credentialStore.getWas().getActiveApplicationTokenXML(),
                 userticket
