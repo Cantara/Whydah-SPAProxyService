@@ -16,7 +16,7 @@
         <java.version>1.8</java.version>
         <jackson.version>2.12.3</jackson.version>
         <jersey.version>2.34</jersey.version>
-        <jetty.version>9.4.41.v20210516</jetty.version>
+        <jetty.version>11.0.3</jetty.version>
         <spring.version>5.3.7</spring.version>
         <slf4j.version>1.7.30</slf4j.version>
         <hystrix.version>1.4.21</hystrix.version>
