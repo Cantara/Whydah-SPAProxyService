@@ -171,7 +171,7 @@
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-web</artifactId>
-            <version>5.7.1</version>
+            <version>5.7.2</version>
         </dependency>
 
         <!-- ONLY for DI, override spring versions from constretto-spring -->
