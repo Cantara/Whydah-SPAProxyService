@@ -171,7 +171,7 @@
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-web</artifactId>
-            <version>5.8.15</version>
+            <version>6.3.4</version>
         </dependency>
 
         <!-- ONLY for DI, override spring versions from constretto-spring -->
@@ -479,7 +479,7 @@
                                         <Main-Class>net.whydah.service.Main</Main-Class>
                                     </manifestEntries>
                                 </transformer>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
 
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
                                     <resource>META-INF/spring.handlers</resource>
