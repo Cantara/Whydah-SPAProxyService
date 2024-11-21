@@ -17,7 +17,7 @@
         <jackson.version>2.18.1</jackson.version>
         <jersey.version>2.45</jersey.version>
         <jetty.version>9.4.56.v20240826</jetty.version>
-        <spring.version>5.3.39</spring.version>
+        <spring.version>6.1.14</spring.version>
         <slf4j.version>2.0.16</slf4j.version>
         <hystrix.version>1.4.21</hystrix.version>
         <maven.javadoc.skip>true</maven.javadoc.skip>
@@ -171,7 +171,7 @@
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-web</artifactId>
-            <version>5.8.16</version>
+            <version>6.2.7</version>
         </dependency>
 
         <!-- ONLY for DI, override spring versions from constretto-spring -->
@@ -479,7 +479,7 @@
                                         <Main-Class>net.whydah.service.Main</Main-Class>
                                     </manifestEntries>
                                 </transformer>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
 
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
                                     <resource>META-INF/spring.handlers</resource>
