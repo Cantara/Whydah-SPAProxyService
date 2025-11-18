@@ -12,7 +12,7 @@
     </parent>
     <properties>
         <service.name>Whydah-SPAProxyService</service.name>
-        <whydah-admin-sdk-version>2.31.12</whydah-admin-sdk-version>
+        <whydah-admin-sdk-version>2.31.13</whydah-admin-sdk-version>
         <java.version>21</java.version>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
