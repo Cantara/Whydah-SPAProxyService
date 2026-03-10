@@ -1,0 +1,21 @@
+id: Whydah-SPAProxyService
+name: Whydah SPA Proxy Service
+version: 2.27.1-SNAPSHOT
+description: |
+  Reverse proxy service for Single-Page Applications. Injects Whydah
+  authentication tokens into downstream requests, enabling SPAs to call
+  protected APIs without handling tokens directly.
+units:
+  - id: proxy
+    name: Proxy Core
+    type: service
+    description: Reverse-proxy core that forwards requests to configured backend targets.
+    path: src/main/java/net/whydah/service
+  - id: token-injection
+    name: Token Injection
+    type: component
+    description: Injects Whydah auth tokens into proxied HTTP requests as headers or cookies.
+  - id: route-config
+    name: Route Configuration
+    type: component
+    description: Route and target URL configuration for mapping SPA paths to backend services.
