@@ -1,4 +1,4 @@
-kcp_version: "0.21"
+kcp_version: "0.26"
 updated: "2026-06-20"
 language: en
 license: "Apache-2.0"
@@ -25,20 +25,19 @@ units:
     type: service
     description: Reverse-proxy core that forwards requests to configured backend targets.
     path: src/main/java/net/whydah/service
-      content_hash:
-        algorithm: sha256
-        value: ""
   - id: token-injection
     name: Token Injection
     type: component
     description: Injects Whydah auth tokens into proxied HTTP requests as headers or cookies.
-      content_hash:
-        algorithm: sha256
-        value: ""
   - id: route-config
     name: Route Configuration
     type: component
     description: Route and target URL configuration for mapping SPA paths to backend services.
-      content_hash:
-        algorithm: sha256
-        value: ""
+
+# Serving Endpoint Binding (KCP SPEC v0.26 §3.12): authoritative manifest URL
+# and authorized MCP representative. Ignored by pre-0.26 verifiers.
+serving:
+  manifest:
+    - https://raw.githubusercontent.com/Cantara/Whydah-SPAProxyService/master/knowledge.yaml
+  mcp:
+    - https://mcp.cantara.no/mcp
