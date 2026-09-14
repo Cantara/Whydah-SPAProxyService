@@ -1,15 +1,14 @@
 package net.whydah.service.httpproxy;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.constretto.annotation.Configuration;
-import org.constretto.annotation.Configure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Repository;
 
-import javax.inject.Singleton;
+import jakarta.inject.Singleton;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -25,9 +24,8 @@ public class ProxySpecificationRepository {
     private final Map<String, ProxySpecification> proxySpecifications;
 
     @Autowired
-    @Configure
-    public ProxySpecificationRepository(@Configuration("proxy.specification.directory") String path,
-                                        @Configuration("proxy.specification.load.from.classpath") boolean loadFromClasspath) throws IOException {
+    public ProxySpecificationRepository(@Value("#{T(net.whydah.util.Configuration).getString('proxy.specification.directory')}") String path,
+                                        @Value("#{T(net.whydah.util.Configuration).getString('proxy.specification.load.from.classpath')}") boolean loadFromClasspath) throws IOException {
         this.proxySpecifications = new HashMap<>();
 
         proxySpecifications.putAll(getSpecificationsFromDisk(path));

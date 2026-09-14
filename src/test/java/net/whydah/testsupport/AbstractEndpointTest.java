@@ -3,7 +3,6 @@ package net.whydah.testsupport;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.client.WireMock;
-import com.github.tomakehurst.wiremock.extension.responsetemplating.ResponseTemplateTransformer;
 import net.whydah.service.Main;
 import net.whydah.sso.application.mappers.ApplicationMapper;
 import net.whydah.sso.application.types.Application;
@@ -57,7 +56,6 @@ public abstract class AbstractEndpointTest {
     private void setupWiremock() {
         wireMockServer = new WireMockServer(options()
                 .dynamicPort()
-                .extensions(new ResponseTemplateTransformer(false))
         );
         wireMockServer.start();
         setupExternalServicesMocks();

@@ -4,7 +4,7 @@ import net.whydah.sso.application.types.Application;
 import org.glassfish.jersey.uri.UriComponent;
 import org.testng.annotations.Test;
 
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;

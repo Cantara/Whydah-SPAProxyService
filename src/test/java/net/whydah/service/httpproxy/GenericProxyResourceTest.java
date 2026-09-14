@@ -8,8 +8,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
 import java.util.UUID;
 
 import static io.restassured.RestAssured.given;

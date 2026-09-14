@@ -7,12 +7,12 @@ import net.whydah.util.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.net.URL;
 
-//import javax.servlet.http.HttpServletResponse;
+//import jakarta.servlet.http.HttpServletResponse;
 
 final class CookieManager {
     //private static final String LOGOUT_COOKIE_VALUE = "logout";
