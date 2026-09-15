@@ -4,19 +4,18 @@ import net.whydah.service.CredentialStore;
 import net.whydah.service.SPAApplicationRepository;
 import net.whydah.service.auth.SPAKeyStoreRepository;
 import net.whydah.sso.application.types.ApplicationToken;
-import org.constretto.annotation.Configuration;
-import org.constretto.annotation.Configure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.*;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.*;
 import java.util.Optional;
 
-import static javax.ws.rs.core.Response.*;
+import static jakarta.ws.rs.core.Response.*;
 import static net.whydah.service.httpproxy.GenericProxyResource.API_PATH;
 
 
@@ -38,11 +37,10 @@ public class GenericProxyResource {
     private final String securitytokenservice;
 
     @Autowired
-    @Configure
     public GenericProxyResource(CredentialStore credentialStore, SPAApplicationRepository spaApplicationRepository,
                                 SPAKeyStoreRepository spaKeyStoreRepository, ProxySpecificationRepository proxySpecifications,
-                                @Configuration("logonservice") String logonServiceBaseUrl,
-                                @Configuration("securitytokenservice") String securitytokenservice) {
+                                @Value("#{T(net.whydah.util.Configuration).getString('logonservice')}") String logonServiceBaseUrl,
+                                @Value("#{T(net.whydah.util.Configuration).getString('securitytokenservice')}") String securitytokenservice) {
         this.credentialStore = credentialStore;
         this.spaApplicationRepository = spaApplicationRepository;
         this.spaKeyStoreRepository = spaKeyStoreRepository;

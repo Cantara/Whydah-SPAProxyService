@@ -3,7 +3,7 @@ package net.whydah.commands;
 import com.github.kevinsawicki.http.HttpRequest;
 import net.whydah.commands.basecommands.MyBaseHttpPostHystrixCommand;
 
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MediaType;
 import java.net.URI;
 import java.util.Random;
 

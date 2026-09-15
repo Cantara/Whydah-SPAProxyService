@@ -4,16 +4,17 @@ import net.whydah.service.auth.UserAuthenticationResource;
 import net.whydah.service.health.HealthResource;
 import net.whydah.service.spasession.SPASessionResource;
 import net.whydah.util.Configuration;
-import org.eclipse.jetty.security.ConstraintMapping;
-import org.eclipse.jetty.security.ConstraintSecurityHandler;
+import org.eclipse.jetty.ee10.servlet.security.ConstraintMapping;
+import org.eclipse.jetty.ee10.servlet.security.ConstraintSecurityHandler;
 import org.eclipse.jetty.security.HashLoginService;
 import org.eclipse.jetty.security.UserStore;
-import org.eclipse.jetty.server.NCSARequestLog;
+import org.eclipse.jetty.server.CustomRequestLog;
+import org.eclipse.jetty.server.RequestLogWriter;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
-import org.eclipse.jetty.util.security.Constraint;
+import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
+import org.eclipse.jetty.ee10.servlet.ServletHolder;
+import org.eclipse.jetty.security.Constraint;
 import org.eclipse.jetty.util.security.Password;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.mvc.MvcFeature;
@@ -103,7 +104,7 @@ public class Main {
         }
 
         if (Configuration.getBoolean("jetty.request.log.enabled")) {
-            NCSARequestLog requestLog = buildRequestLog();
+            CustomRequestLog requestLog = buildRequestLog();
             server.setRequestLog(requestLog);
         }
 
@@ -125,25 +126,19 @@ public class Main {
         }
     }
 
-    private NCSARequestLog buildRequestLog() {
-        NCSARequestLog requestLog = new NCSARequestLog("logs/jetty-yyyy_mm_dd.request.log");
-        requestLog.setAppend(true);
-        requestLog.setExtended(true);
-        requestLog.setLogTimeZone("GMT");
-
-        return requestLog;
+    private CustomRequestLog buildRequestLog() {
+        // Jetty 10 removed NCSARequestLog; this is its documented replacement.
+        RequestLogWriter writer = new RequestLogWriter("logs/jetty-yyyy_mm_dd.request.log");
+        writer.setAppend(true);
+        writer.setTimeZone("GMT");
+        return new CustomRequestLog(writer, CustomRequestLog.EXTENDED_NCSA_FORMAT);
     }
 
     private ConstraintSecurityHandler buildSecurityHandler() {
-        Constraint userRoleConstraint = new Constraint();
-        userRoleConstraint.setName(Constraint.__BASIC_AUTH);
-        userRoleConstraint.setRoles(new String[]{USER_ROLE, ADMIN_ROLE});
-        userRoleConstraint.setAuthenticate(true);
+        // Jetty 12: a role-restricted constraint implies authentication.
+        Constraint userRoleConstraint = Constraint.from(USER_ROLE, ADMIN_ROLE);
 
-        Constraint adminRoleConstraint = new Constraint();
-        adminRoleConstraint.setName(Constraint.__BASIC_AUTH);
-        adminRoleConstraint.setRoles(new String[]{ADMIN_ROLE});
-        adminRoleConstraint.setAuthenticate(true);
+        Constraint adminRoleConstraint = Constraint.from(ADMIN_ROLE);
 
         ConstraintMapping clientConstraintMapping = new ConstraintMapping();
         clientConstraintMapping.setConstraint(userRoleConstraint);
@@ -159,19 +154,19 @@ public class Main {
 
         // Allow healthresource to be accessed without authentication
         ConstraintMapping healthEndpointConstraintMapping = new ConstraintMapping();
-        healthEndpointConstraintMapping.setConstraint(new Constraint(Constraint.NONE, Constraint.ANY_ROLE));
+        healthEndpointConstraintMapping.setConstraint(Constraint.ALLOWED);
         healthEndpointConstraintMapping.setPathSpec(HealthResource.HEALTH_PATH);
         securityHandler.addConstraintMapping(healthEndpointConstraintMapping);
 
         // Allow proxyresource to be accessed without authentication
         ConstraintMapping proxyEndpointConstraintMapping = new ConstraintMapping();
-        proxyEndpointConstraintMapping.setConstraint(new Constraint(Constraint.NONE, Constraint.ANY_ROLE));
+        proxyEndpointConstraintMapping.setConstraint(Constraint.ALLOWED);
         proxyEndpointConstraintMapping.setPathSpec(SPASessionResource.PROXY_PATH);
         securityHandler.addConstraintMapping(proxyEndpointConstraintMapping);
 
         // Allow userAuthEndpointConstraintMapping to be accessed without authentication
         ConstraintMapping userAuthEndpointConstraintMapping = new ConstraintMapping();
-        userAuthEndpointConstraintMapping.setConstraint(new Constraint(Constraint.NONE, Constraint.ANY_ROLE));
+        userAuthEndpointConstraintMapping.setConstraint(Constraint.ALLOWED);
         userAuthEndpointConstraintMapping.setPathSpec(UserAuthenticationResource.API_PATH + "/*");
         securityHandler.addConstraintMapping(userAuthEndpointConstraintMapping);
 

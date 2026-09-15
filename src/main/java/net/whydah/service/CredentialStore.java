@@ -11,14 +11,13 @@ import net.whydah.sso.session.WhydahApplicationSession;
 import net.whydah.sso.user.mappers.UserTokenMapper;
 import net.whydah.sso.user.types.UserCredential;
 import net.whydah.sso.user.types.UserToken;
-import org.constretto.annotation.Configuration;
-import org.constretto.annotation.Configure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
-import javax.inject.Singleton;
+import jakarta.inject.Singleton;
 import java.net.URI;
 import java.util.List;
 import java.util.UUID;
@@ -39,14 +38,13 @@ public class CredentialStore {
 
 
     @Autowired
-    @Configure
-    public CredentialStore(@Configuration("securitytokenservice") String stsUri,
-                           @Configuration("useradminservice") String uasUri,
-                           @Configuration("applicationid") String applicationid,
-                           @Configuration("applicationname") String applicationname,
-                           @Configuration("applicationsecret") String applicationsecret,
-                           @Configuration("adminuserid") String adminuserid,
-                           @Configuration("adminusersecret") String adminusersecret) {
+    public CredentialStore(@Value("#{T(net.whydah.util.Configuration).getString('securitytokenservice')}") String stsUri,
+                           @Value("#{T(net.whydah.util.Configuration).getString('useradminservice')}") String uasUri,
+                           @Value("#{T(net.whydah.util.Configuration).getString('applicationid')}") String applicationid,
+                           @Value("#{T(net.whydah.util.Configuration).getString('applicationname')}") String applicationname,
+                           @Value("#{T(net.whydah.util.Configuration).getString('applicationsecret')}") String applicationsecret,
+                           @Value("#{T(net.whydah.util.Configuration).getString('adminuserid')}") String adminuserid,
+                           @Value("#{T(net.whydah.util.Configuration).getString('adminusersecret')}") String adminusersecret) {
         this.stsUri = stsUri;
         this.uasUri = uasUri;
         this.myApplicationCredential = new ApplicationCredential(applicationid, applicationname, applicationsecret);

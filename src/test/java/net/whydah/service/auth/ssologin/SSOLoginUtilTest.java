@@ -4,8 +4,8 @@ import net.whydah.sso.application.types.Application;
 import org.apache.http.client.utils.URIBuilder;
 import org.testng.annotations.Test;
 
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriBuilder;
 import java.net.URI;
 import java.net.URL;
 import java.security.NoSuchAlgorithmException;
