@@ -49,6 +49,17 @@
     </developers>
 
 
+    <dependencyManagement>
+        <dependencies>
+            <!-- Force a patched json-smart (transitive via json-path) to avoid known CVEs in older releases -->
+            <dependency>
+                <groupId>net.minidev</groupId>
+                <artifactId>json-smart</artifactId>
+                <version>2.5.2</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <dependency>
             <groupId>net.whydah.sso</groupId>
@@ -232,7 +243,7 @@
         <dependency>
             <groupId>com.jayway.jsonpath</groupId>
             <artifactId>json-path</artifactId>
-            <version>2.10.0</version>
+            <version>3.0.0</version>
             <exclusions>
                 <exclusion>
                     <groupId>asm</groupId>
